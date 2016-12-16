@@ -1,0 +1,4 @@
+#pragma once
+
+#define MATH_PI  3.14159265358979323846
+#define MATH_PIF 3.14159265f
