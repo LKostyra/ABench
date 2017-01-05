@@ -9,3 +9,4 @@
 #define LOGD(msg) LOG("DEBUG", msg);
 #define LOGE(msg) LOG("ERROR", msg);
 #define LOGI(msg) LOG(" INF ", msg);
+#define LOGW(msg) LOG(" WRN ", msg);

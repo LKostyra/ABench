@@ -1,6 +1,7 @@
 #include "../PCH.hpp"
 #include "Extensions.hpp"
 
+#include "Common/Logger.hpp"
 
 /**
  * Acquire a function pointer from Vulkan library.
@@ -11,7 +12,10 @@
 #ifndef VK_GET_LIBPROC
 #define VK_GET_LIBPROC(lib, x) do { \
     if (!(x = (PFN_##x)lib.GetSymbol(#x))) \
+    { \
+        LOGE("Unable to retrieve Library function " #x); \
         allExtensionsAvailable = false; \
+    } \
 } while(0)
 #endif
 
@@ -26,6 +30,7 @@
     x = (PFN_##x)vkGetInstanceProcAddr(inst, #x); \
     if (!x) \
     { \
+        LOGE("Unable to retrieve Instance function " #x); \
         allExtensionsAvailable = false; \
     } \
 } while(0)
@@ -41,7 +46,7 @@
     x = (PFN_##x)vkGetDeviceProcAddr(dev, #x); \
     if (!x) \
     { \
-        LOG_ERROR("Unable to retrieve Device function " #x); \
+        LOGE("Unable to retrieve Device function " #x); \
         allExtensionsAvailable = false; \
     } \
 } while(0)
@@ -72,6 +77,9 @@ PFN_vkGetPhysicalDeviceProperties vkGetPhysicalDeviceProperties = VK_NULL_HANDLE
 PFN_vkGetPhysicalDeviceFeatures vkGetPhysicalDeviceFeatures = VK_NULL_HANDLE;
 PFN_vkGetPhysicalDeviceMemoryProperties vkGetPhysicalDeviceMemoryProperties = VK_NULL_HANDLE;
 PFN_vkGetPhysicalDeviceQueueFamilyProperties vkGetPhysicalDeviceQueueFamilyProperties = VK_NULL_HANDLE;
+PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR vkGetPhysicalDeviceSurfaceCapabilitiesKHR = VK_NULL_HANDLE;
+PFN_vkGetPhysicalDeviceSurfaceFormatsKHR vkGetPhysicalDeviceSurfaceFormatsKHR = VK_NULL_HANDLE;
+PFN_vkGetPhysicalDeviceSurfacePresentModesKHR vkGetPhysicalDeviceSurfacePresentModesKHR = VK_NULL_HANDLE;
 PFN_vkGetPhysicalDeviceSurfaceSupportKHR vkGetPhysicalDeviceSurfaceSupportKHR = VK_NULL_HANDLE;
 PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr = VK_NULL_HANDLE;
 PFN_vkCreateDevice vkCreateDevice = VK_NULL_HANDLE;
@@ -88,6 +96,9 @@ bool InitInstanceExtensions(const VkInstance& instance)
     VK_GET_INSTANCEPROC(instance, vkGetPhysicalDeviceFeatures);
     VK_GET_INSTANCEPROC(instance, vkGetPhysicalDeviceMemoryProperties);
     VK_GET_INSTANCEPROC(instance, vkGetPhysicalDeviceQueueFamilyProperties);
+    VK_GET_INSTANCEPROC(instance, vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
+    VK_GET_INSTANCEPROC(instance, vkGetPhysicalDeviceSurfaceFormatsKHR);
+    VK_GET_INSTANCEPROC(instance, vkGetPhysicalDeviceSurfacePresentModesKHR);
     VK_GET_INSTANCEPROC(instance, vkGetPhysicalDeviceSurfaceSupportKHR);
     VK_GET_INSTANCEPROC(instance, vkGetDeviceProcAddr);
     VK_GET_INSTANCEPROC(instance, vkCreateDevice);
@@ -98,12 +109,15 @@ bool InitInstanceExtensions(const VkInstance& instance)
     return allExtensionsAvailable;
 }
 
+PFN_vkCreateSwapchainKHR vkCreateSwapchainKHR = VK_NULL_HANDLE;
+PFN_vkGetDeviceQueue vkGetDeviceQueue = VK_NULL_HANDLE;
 
 bool InitDeviceExtensions(const VkDevice& device)
 {
     bool allExtensionsAvailable = true;
 
-
+    VK_GET_DEVICEPROC(device, vkCreateSwapchainKHR);
+    VK_GET_DEVICEPROC(device, vkGetDeviceQueue);
 
     return allExtensionsAvailable;
 }

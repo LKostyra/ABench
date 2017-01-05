@@ -3,6 +3,7 @@
 
 #include "Util.hpp"
 #include "Extensions.hpp"
+#include "Translations.hpp"
 
 #include "Common/Logger.hpp"
 #include "Common/Common.hpp"
@@ -45,8 +46,8 @@ bool Device::Init(const Instance& inst)
         vkGetPhysicalDeviceProperties(devices[i], &devProps);
         LOGD("Device #" << i << " - " << devProps.deviceName);
         LOGD("  ID:         " << devProps.deviceID);
-        LOGD("  Type:       " << devProps.deviceType);
-                             //               TranslateDeviceTypeToString(devProps.deviceType));
+        LOGD("  Type:       " << devProps.deviceType << " ("
+                              << TranslateVkPhysicalDeviceTypeToString(devProps.deviceType) << ")");
         LOGD("  Vendor ID:  " << devProps.vendorID);
         LOGD("  API ver:    " << VK_VERSION_MAJOR(devProps.apiVersion) << "."
                               << VK_VERSION_MINOR(devProps.apiVersion) << "."
@@ -76,7 +77,8 @@ bool Device::Init(const Instance& inst)
     for (uint32_t i = 0; i < queueCount; ++i)
     {
         LOGD("Queue #" << i << ":");
-        LOGD("  Flags: " << std::hex << queueProps[i].queueFlags);
+        LOGD("  Flags: " << std::hex << queueProps[i].queueFlags << " ("
+                         << TranslateVkQueueFlagsToString(queueProps[i].queueFlags) << ")");
     }
 
     // go through all the queues and find one, which supports Graphics operations

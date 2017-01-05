@@ -28,8 +28,10 @@ int main()
     ABench::Renderer::BackbufferDesc bbDesc;
     bbDesc.hInstance = gWindow.GetInstance();
     bbDesc.hWnd = gWindow.GetHandle();
+    bbDesc.instance = &inst;
     bbDesc.device = &dev;
-    bb.Init(inst, bbDesc);
+    bbDesc.requestedFormat = VK_FORMAT_B8G8R8A8_UNORM;
+    bb.Init(bbDesc);
 
     while(gWindow.IsOpen())
     {

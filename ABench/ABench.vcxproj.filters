@@ -44,6 +44,9 @@
     <ClCompile Include="Common\Common.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer\Translations.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\Window.hpp">
@@ -82,6 +85,9 @@
     </ClInclude>
     <ClInclude Include="Common\Common.hpp">
       <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Translations.hpp">
+      <Filter>Renderer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
