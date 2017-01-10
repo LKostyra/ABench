@@ -2,6 +2,7 @@
 
 #include "Instance.hpp"
 #include "Device.hpp"
+#include "Texture.hpp"
 
 namespace ABench {
 namespace Renderer {
@@ -32,17 +33,18 @@ struct BackbufferDesc
     }
 };
 
-class Backbuffer
+class Backbuffer: public Texture
 {
     VkSurfaceKHR mSurface;
     uint32_t mPresentQueueIndex;
     VkQueue mPresentQueue;
-    VkFormat mFormat;
     VkColorSpaceKHR mColorSpace;
     VkPresentModeKHR mPresentMode;
     VkSurfaceCapabilitiesKHR mSurfCaps;
     uint32_t mBufferCount;
     VkSwapchainKHR mSwapchain;
+
+    std::vector<VkCommandBuffer> mPresentCommandBuffers;
 
     bool CreateSurface(const BackbufferDesc& desc);
     bool GetPresentQueue(const BackbufferDesc& desc);
@@ -51,6 +53,7 @@ class Backbuffer
     bool AcquireSurfaceCaps(const BackbufferDesc& desc);
     void SelectBufferCount(const BackbufferDesc& desc);
     bool CreateSwapchain(const BackbufferDesc& desc);
+    bool AllocateImageViews(const BackbufferDesc& desc);
 
 public:
     Backbuffer();

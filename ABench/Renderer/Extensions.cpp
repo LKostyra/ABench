@@ -109,15 +109,30 @@ bool InitInstanceExtensions(const VkInstance& instance)
     return allExtensionsAvailable;
 }
 
+
+// Swapchain
 PFN_vkCreateSwapchainKHR vkCreateSwapchainKHR = VK_NULL_HANDLE;
+PFN_vkGetSwapchainImagesKHR vkGetSwapchainImagesKHR = VK_NULL_HANDLE;
+
+// Queues
 PFN_vkGetDeviceQueue vkGetDeviceQueue = VK_NULL_HANDLE;
+
+// Images
+PFN_vkCreateImageView vkCreateImageView = VK_NULL_HANDLE;
 
 bool InitDeviceExtensions(const VkDevice& device)
 {
     bool allExtensionsAvailable = true;
 
+    // Swapchain
     VK_GET_DEVICEPROC(device, vkCreateSwapchainKHR);
+    VK_GET_DEVICEPROC(device, vkGetSwapchainImagesKHR);
+
+    // Queues
     VK_GET_DEVICEPROC(device, vkGetDeviceQueue);
+
+    // Images
+    VK_GET_DEVICEPROC(device, vkCreateImageView);
 
     return allExtensionsAvailable;
 }

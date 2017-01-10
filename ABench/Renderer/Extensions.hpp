@@ -33,8 +33,16 @@ bool InitInstanceExtensions(const VkInstance& instance);
 
 
 // Functions extracted per VkDevice
+
+// Swapchain
 extern PFN_vkCreateSwapchainKHR vkCreateSwapchainKHR;
+extern PFN_vkGetSwapchainImagesKHR vkGetSwapchainImagesKHR;
+
+// Queues
 extern PFN_vkGetDeviceQueue vkGetDeviceQueue;
+
+// Images
+extern PFN_vkCreateImageView vkCreateImageView;
 
 bool InitDeviceExtensions(const VkDevice& device);
 

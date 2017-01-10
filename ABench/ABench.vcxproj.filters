@@ -47,6 +47,9 @@
     <ClCompile Include="Renderer\Translations.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer\Texture.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\Window.hpp">
@@ -87,6 +90,9 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="Renderer\Translations.hpp">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Texture.hpp">
       <Filter>Renderer</Filter>
     </ClInclude>
   </ItemGroup>

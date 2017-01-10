@@ -202,6 +202,44 @@ bool Backbuffer::CreateSwapchain(const BackbufferDesc& desc)
     return true;
 }
 
+bool Backbuffer::AllocateImageViews(const BackbufferDesc& desc)
+{
+    mImages.resize(mBufferCount);
+    mImageViews.resize(mBufferCount);
+
+    VkResult result = vkGetSwapchainImagesKHR(desc.device->mDevice, mSwapchain,
+                                              &mBufferCount, mImages.data());
+    CHECK_VKRESULT(result, "Failed to acquire Swapchain images");
+    LOGD(mBufferCount << " swapchain images acquired.");
+
+    // we need image views to attach them to Render Targets later on
+    VkImageViewCreateInfo ivInfo;
+    for (uint32_t i = 0; i < mBufferCount; ++i)
+    {
+        ZERO_MEMORY(ivInfo);
+        ivInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        ivInfo.image = mImages[i];
+        ivInfo.format = mFormat;
+        ivInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        ivInfo.components = {
+            // order of variables in VkComponentMapping is r, g, b, a
+            VK_COMPONENT_SWIZZLE_R,
+            VK_COMPONENT_SWIZZLE_G,
+            VK_COMPONENT_SWIZZLE_B,
+            VK_COMPONENT_SWIZZLE_A,
+        };
+        ivInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        ivInfo.subresourceRange.baseMipLevel = 0;
+        ivInfo.subresourceRange.levelCount = 1;
+        ivInfo.subresourceRange.baseArrayLayer = 0;
+        ivInfo.subresourceRange.layerCount = 1;
+        result = vkCreateImageView(desc.device->mDevice, &ivInfo, nullptr, &mImageViews[i]);
+        CHECK_VKRESULT(result, "Failed to generate Image View from Swapchain image");
+    }
+
+    return true;
+}
+
 bool Backbuffer::Init(const BackbufferDesc& desc)
 {
     if (!CreateSurface(desc)) return false;
@@ -211,6 +249,11 @@ bool Backbuffer::Init(const BackbufferDesc& desc)
     if (!AcquireSurfaceCaps(desc)) return false;
     SelectBufferCount(desc);
     if (!CreateSwapchain(desc)) return false;
+
+    mWidth = desc.width;
+    mHeight = desc.height;
+
+    if (!AllocateImageViews(desc)) return false;
 
     LOGI("Backbuffer initialized successfully");
     return true;
