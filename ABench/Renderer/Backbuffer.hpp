@@ -40,8 +40,7 @@ class Backbuffer: public Texture
     VkColorSpaceKHR mColorSpace;
     VkPresentModeKHR mPresentMode;
     VkSurfaceCapabilitiesKHR mSurfCaps;
-    uint32_t mBufferCount;
-    uint32_t mCurrentBufferIndex;
+    uint32_t mBufferCount; 
     VkSwapchainKHR mSwapchain;
 
     VkCommandPool mPresentCommandPool;

@@ -34,7 +34,7 @@ bool Framebuffer::Init(const FramebufferDesc& desc)
 
     if ((desc.depthTex) && 
         ((desc.colorTex->mWidth != desc.depthTex->mWidth) ||
-        (desc.colorTex->mHeight != desc.depthTex->mHeight)))
+         (desc.colorTex->mHeight != desc.depthTex->mHeight)))
     {
         LOGE("Cannot create framebuffer - provided color and depth textures are incompatible");
         return false;
@@ -67,7 +67,6 @@ bool Framebuffer::Init(const FramebufferDesc& desc)
 
     mWidth = desc.colorTex->mWidth;
     mHeight = desc.colorTex->mHeight;
-
     return true;
 }
 

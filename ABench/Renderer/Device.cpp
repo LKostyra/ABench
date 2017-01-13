@@ -26,6 +26,8 @@ Device::~Device()
 {
     delete mSemaphores;
 
+    if (mCommandPool != VK_NULL_HANDLE)
+        vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
     if (mDevice != VK_NULL_HANDLE)
         vkDestroyDevice(mDevice, nullptr);
 }
@@ -139,6 +141,14 @@ bool Device::Init(const Instance& inst)
 
     mSemaphores = new SemaphoreManager(this);
     mSemaphores->Init();
+
+    VkCommandPoolCreateInfo poolInfo;
+    ZERO_MEMORY(poolInfo);
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.queueFamilyIndex = mGraphicsQueueIndex;
+    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    result = vkCreateCommandPool(mDevice, &poolInfo, nullptr, &mCommandPool);
+    CHECK_VKRESULT(result, "Failed to create main Command Pool");
 
     LOGI("Vulkan Device initialized successfully");
     return true;

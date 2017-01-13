@@ -24,11 +24,14 @@ struct FramebufferDesc
 
 class Framebuffer
 {
+    friend class CommandBuffer;
+
     const Device* mDevicePtr;
 
     std::vector<VkFramebuffer> mFramebuffers;
     uint32_t mWidth;
     uint32_t mHeight;
+    uint32_t* mCurrentBufferPtr;
 
 public:
     Framebuffer(const Device* device);

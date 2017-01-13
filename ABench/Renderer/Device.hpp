@@ -6,13 +6,13 @@
 namespace ABench {
 namespace Renderer {
 
-// An object representing Vulkan's VkDevice
 class Device
 {
     friend class Backbuffer;
     friend class SemaphoreManager;
     friend class RenderPass;
     friend class Framebuffer;
+    friend class CommandBuffer;
 
     SemaphoreManager* mSemaphores;
 
@@ -20,6 +20,7 @@ class Device
     VkPhysicalDevice mPhysicalDevice;
     VkPhysicalDeviceMemoryProperties mMemoryProperties;
     uint32_t mGraphicsQueueIndex;
+    VkCommandPool mCommandPool;
 
     VkPhysicalDevice SelectPhysicalDevice(const std::vector<VkPhysicalDevice>& devices);
 

@@ -22,6 +22,7 @@ struct RenderPassDesc
 class RenderPass
 {
     friend class Framebuffer;
+    friend class CommandBuffer;
 
     const Device* mDevicePtr;
 
