@@ -4,39 +4,34 @@
 #include "Util.hpp"
 #include "Extensions.hpp"
 #include "Translations.hpp"
+#include "SemaphoreManager.hpp"
 
 #include "Common/Logger.hpp"
 #include "Common/Common.hpp"
+
 
 namespace ABench {
 namespace Renderer {
 
 Device::Device()
-    : mDevice(VK_NULL_HANDLE)
+    : mSemaphores(nullptr)
+    , mDevice(VK_NULL_HANDLE)
+    , mPhysicalDevice(VK_NULL_HANDLE)
+    , mMemoryProperties()
+    , mGraphicsQueueIndex(UINT32_MAX)
 {
 }
 
 Device::~Device()
 {
+    delete mSemaphores;
+
+    if (mDevice != VK_NULL_HANDLE)
+        vkDestroyDevice(mDevice, nullptr);
 }
 
-bool Device::Init(const Instance& inst)
+VkPhysicalDevice Device::SelectPhysicalDevice(const std::vector<VkPhysicalDevice>& devices)
 {
-    const VkInstance& instance = inst.GetVkInstance();
-
-    unsigned int gpuCount = 0;
-    VkResult result = vkEnumeratePhysicalDevices(instance, &gpuCount, nullptr);
-    CHECK_VKRESULT(result, "Failed to acquire Physical Device count");
-    if (gpuCount == 0)
-    {
-        LOGE("No physical devices detected");
-        return false;
-    }
-
-    std::vector<VkPhysicalDevice> devices(gpuCount);
-    result = vkEnumeratePhysicalDevices(instance, &gpuCount, devices.data());
-    CHECK_VKRESULT(result, "Failed to acquire available Physical Devices");
-
     VkPhysicalDeviceProperties devProps;
 
     // Debugging-related device description printing
@@ -57,7 +52,26 @@ bool Device::Init(const Instance& inst)
                               << VK_VERSION_PATCH(devProps.driverVersion));
     }
 
-    mPhysicalDevice = devices[0];
+    return devices[0];
+}
+
+bool Device::Init(const Instance& inst)
+{
+    const VkInstance& instance = inst.GetVkInstance();
+
+    unsigned int gpuCount = 0;
+    VkResult result = vkEnumeratePhysicalDevices(instance, &gpuCount, nullptr);
+    CHECK_VKRESULT(result, "Failed to acquire Physical Device count");
+    if (gpuCount == 0)
+    {
+        LOGE("No physical devices detected");
+        return false;
+    }
+
+    std::vector<VkPhysicalDevice> devices(gpuCount);
+    result = vkEnumeratePhysicalDevices(instance, &gpuCount, devices.data());
+    CHECK_VKRESULT(result, "Failed to acquire available Physical Devices");
+    mPhysicalDevice = SelectPhysicalDevice(devices);
 
     // Memory properties (for further use)
     vkGetPhysicalDeviceMemoryProperties(mPhysicalDevice, &mMemoryProperties);
@@ -122,6 +136,9 @@ bool Device::Init(const Instance& inst)
         LOGE("Failed to initailize needed device extensions");
         return false;
     }
+
+    mSemaphores = new SemaphoreManager(this);
+    mSemaphores->Init();
 
     LOGI("Vulkan Device initialized successfully");
     return true;

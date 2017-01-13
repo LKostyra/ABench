@@ -11,8 +11,6 @@ struct BackbufferDesc
 {
     HINSTANCE hInstance;
     HWND hWnd;
-    Instance* instance;
-    Device* device;
     VkFormat requestedFormat;
     bool vsync;
     uint32_t bufferCount;
@@ -22,8 +20,6 @@ struct BackbufferDesc
     BackbufferDesc()
         : hInstance(0)
         , hWnd(0)
-        , instance(nullptr)
-        , device(nullptr)
         , requestedFormat(VK_FORMAT_UNDEFINED)
         , vsync(false)
         , bufferCount(2)
@@ -35,6 +31,9 @@ struct BackbufferDesc
 
 class Backbuffer: public Texture
 {
+    const Instance* mInstancePtr;
+    const Device* mDevicePtr;
+
     VkSurfaceKHR mSurface;
     uint32_t mPresentQueueIndex;
     VkQueue mPresentQueue;
@@ -42,8 +41,10 @@ class Backbuffer: public Texture
     VkPresentModeKHR mPresentMode;
     VkSurfaceCapabilitiesKHR mSurfCaps;
     uint32_t mBufferCount;
+    uint32_t mCurrentBufferIndex;
     VkSwapchainKHR mSwapchain;
 
+    VkCommandPool mPresentCommandPool;
     std::vector<VkCommandBuffer> mPresentCommandBuffers;
 
     bool CreateSurface(const BackbufferDesc& desc);
@@ -54,12 +55,16 @@ class Backbuffer: public Texture
     void SelectBufferCount(const BackbufferDesc& desc);
     bool CreateSwapchain(const BackbufferDesc& desc);
     bool AllocateImageViews(const BackbufferDesc& desc);
+    bool AllocateCommandBuffers(const BackbufferDesc& desc);
+
+    bool AcquireNextImage();
 
 public:
-    Backbuffer();
+    Backbuffer(const Instance* instance, const Device* device);
     ~Backbuffer();
 
     bool Init(const BackbufferDesc& desc);
+    bool Present();
 };
 
 } // namespace Renderer

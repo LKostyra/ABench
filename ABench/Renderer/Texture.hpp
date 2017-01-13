@@ -2,12 +2,15 @@
 
 #include <vector>
 
+
 namespace ABench {
 namespace Renderer {
 
 class Texture
 {
     friend class Backbuffer;
+    friend class RenderPass;
+    friend class Framebuffer;
 
     uint32_t mWidth;
     uint32_t mHeight;
@@ -16,7 +19,8 @@ class Texture
     std::vector<VkImageView> mImageViews;
 
 public:
-
+    Texture();
+    ~Texture();
 };
 
 } // namespace Renderer

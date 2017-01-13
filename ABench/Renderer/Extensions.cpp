@@ -111,28 +111,78 @@ bool InitInstanceExtensions(const VkInstance& instance)
 
 
 // Swapchain
+PFN_vkAcquireNextImageKHR vkAcquireNextImageKHR = VK_NULL_HANDLE;
 PFN_vkCreateSwapchainKHR vkCreateSwapchainKHR = VK_NULL_HANDLE;
 PFN_vkGetSwapchainImagesKHR vkGetSwapchainImagesKHR = VK_NULL_HANDLE;
+PFN_vkQueuePresentKHR vkQueuePresentKHR = VK_NULL_HANDLE;
 
 // Queues
 PFN_vkGetDeviceQueue vkGetDeviceQueue = VK_NULL_HANDLE;
+PFN_vkQueueSubmit vkQueueSubmit = VK_NULL_HANDLE;
 
 // Images
 PFN_vkCreateImageView vkCreateImageView = VK_NULL_HANDLE;
+
+// Synchronization
+PFN_vkCreateSemaphore vkCreateSemaphore = VK_NULL_HANDLE;
+PFN_vkDestroySemaphore vkDestroySemaphore = VK_NULL_HANDLE;
+PFN_vkQueueWaitIdle vkQueueWaitIdle = VK_NULL_HANDLE;
+
+// Command Buffers
+PFN_vkAllocateCommandBuffers vkAllocateCommandBuffers = VK_NULL_HANDLE;
+PFN_vkBeginCommandBuffer vkBeginCommandBuffer = VK_NULL_HANDLE;
+PFN_vkCreateCommandPool vkCreateCommandPool = VK_NULL_HANDLE;
+PFN_vkDestroyCommandPool vkDestroyCommandPool = VK_NULL_HANDLE;
+PFN_vkEndCommandBuffer vkEndCommandBuffer = VK_NULL_HANDLE;
+PFN_vkFreeCommandBuffers vkFreeCommandBuffers = VK_NULL_HANDLE;
+
+// Render Passes / Framebuffers
+PFN_vkCreateFramebuffer vkCreateFramebuffer = VK_NULL_HANDLE;
+PFN_vkCreateRenderPass vkCreateRenderPass = VK_NULL_HANDLE;
+PFN_vkDestroyFramebuffer vkDestroyFramebuffer = VK_NULL_HANDLE;
+PFN_vkDestroyRenderPass vkDestroyRenderPass = VK_NULL_HANDLE;
+
+// Commands
+PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier = VK_NULL_HANDLE;
 
 bool InitDeviceExtensions(const VkDevice& device)
 {
     bool allExtensionsAvailable = true;
 
     // Swapchain
+    VK_GET_DEVICEPROC(device, vkAcquireNextImageKHR);
     VK_GET_DEVICEPROC(device, vkCreateSwapchainKHR);
     VK_GET_DEVICEPROC(device, vkGetSwapchainImagesKHR);
+    VK_GET_DEVICEPROC(device, vkQueuePresentKHR);
 
     // Queues
     VK_GET_DEVICEPROC(device, vkGetDeviceQueue);
+    VK_GET_DEVICEPROC(device, vkQueueSubmit);
+    VK_GET_DEVICEPROC(device, vkQueueWaitIdle);
 
     // Images
     VK_GET_DEVICEPROC(device, vkCreateImageView);
+
+    // Synchronization
+    VK_GET_DEVICEPROC(device, vkCreateSemaphore);
+    VK_GET_DEVICEPROC(device, vkDestroySemaphore);
+
+    // Command Buffers
+    VK_GET_DEVICEPROC(device, vkAllocateCommandBuffers);
+    VK_GET_DEVICEPROC(device, vkBeginCommandBuffer);
+    VK_GET_DEVICEPROC(device, vkCreateCommandPool);
+    VK_GET_DEVICEPROC(device, vkDestroyCommandPool);
+    VK_GET_DEVICEPROC(device, vkEndCommandBuffer);
+    VK_GET_DEVICEPROC(device, vkFreeCommandBuffers);
+
+    // Render Passes / Framebuffers
+    VK_GET_DEVICEPROC(device, vkCreateFramebuffer);
+    VK_GET_DEVICEPROC(device, vkCreateRenderPass);
+    VK_GET_DEVICEPROC(device, vkDestroyFramebuffer);
+    VK_GET_DEVICEPROC(device, vkDestroyRenderPass);
+
+    // Commands
+    VK_GET_DEVICEPROC(device, vkCmdPipelineBarrier);
 
     return allExtensionsAvailable;
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Instance.hpp"
+#include "SemaphoreManager.hpp"
 
 namespace ABench {
 namespace Renderer {
@@ -9,11 +10,18 @@ namespace Renderer {
 class Device
 {
     friend class Backbuffer;
+    friend class SemaphoreManager;
+    friend class RenderPass;
+    friend class Framebuffer;
+
+    SemaphoreManager* mSemaphores;
 
     VkDevice mDevice;
     VkPhysicalDevice mPhysicalDevice;
     VkPhysicalDeviceMemoryProperties mMemoryProperties;
     uint32_t mGraphicsQueueIndex;
+
+    VkPhysicalDevice SelectPhysicalDevice(const std::vector<VkPhysicalDevice>& devices);
 
 public:
     Device();
