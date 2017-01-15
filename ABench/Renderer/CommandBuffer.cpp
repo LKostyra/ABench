@@ -51,12 +51,13 @@ void CommandBuffer::BeginRenderPass(RenderPass* rp, Framebuffer* fb)
     rpInfo.renderPass = rp->mRenderPass;
     rpInfo.renderArea.extent.width = fb->mWidth;
     rpInfo.renderArea.extent.height = fb->mHeight;
-    rpInfo.framebuffer = fb->mFramebuffers[*fb->mCurentBufferPtr];
-    vkCmdBeginRenderPass(mCommandBuffer, )
+    rpInfo.framebuffer = fb->mFramebuffers[*(fb->mCurrentBufferPtr)];
+    vkCmdBeginRenderPass(mCommandBuffer, &rpInfo, VK_SUBPASS_CONTENTS_INLINE);
 }
 
 void CommandBuffer::EndRenderPass()
 {
+    vkCmdEndRenderPass(mCommandBuffer);
 }
 
 bool CommandBuffer::End()

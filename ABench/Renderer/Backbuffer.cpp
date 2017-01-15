@@ -310,7 +310,7 @@ bool Backbuffer::AcquireNextImage()
 {
     VkResult result = vkAcquireNextImageKHR(mDevicePtr->mDevice, mSwapchain, UINT64_MAX,
                                             mDevicePtr->mSemaphores->mPresentSemaphore, VK_NULL_HANDLE,
-                                            &mCurrentBufferIndex);
+                                            &mCurrentBuffer);
     CHECK_VKRESULT(result, "Failed to preacquire next image for presenting");
 
     VkPipelineStageFlags pipelineStages = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
@@ -318,7 +318,7 @@ bool Backbuffer::AcquireNextImage()
     ZERO_MEMORY(submitInfo);
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &mPresentCommandBuffers[mCurrentBufferIndex];
+    submitInfo.pCommandBuffers = &mPresentCommandBuffers[mCurrentBuffer];
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = &mDevicePtr->mSemaphores->mPresentSemaphore;
     submitInfo.signalSemaphoreCount = 1;
@@ -360,7 +360,7 @@ bool Backbuffer::Present()
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = &mSwapchain;
-    presentInfo.pImageIndices = &mCurrentBufferIndex;
+    presentInfo.pImageIndices = &mCurrentBuffer;
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pWaitSemaphores = &mDevicePtr->mSemaphores->mRenderSemaphore;
     presentInfo.pResults = &result;

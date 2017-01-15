@@ -17,6 +17,7 @@ class Texture
     VkFormat mFormat;
     std::vector<VkImage> mImages;
     std::vector<VkImageView> mImageViews;
+    uint32_t mCurrentBuffer;
 
 public:
     Texture();
