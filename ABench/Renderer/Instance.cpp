@@ -3,6 +3,7 @@
 
 #include "Util.hpp"
 #include "Extensions.hpp"
+#include "Debugger.hpp"
 
 #include "Common/Common.hpp"
 #include "Common/Logger.hpp"
@@ -50,15 +51,28 @@ bool Instance::Init()
     const char* enabledExtensions[] = {
         VK_KHR_SURFACE_EXTENSION_NAME,
         VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+#ifdef _DEBUG
+        VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
+#endif
     };
+
+#ifdef _DEBUG
+    const char* enabledLayers[] = {
+        "VK_LAYER_LUNARG_standard_validation"
+    };
+#endif
 
     VkInstanceCreateInfo instInfo;
     ZERO_MEMORY(instInfo);
     instInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     instInfo.pNext = nullptr;
     instInfo.pApplicationInfo = &appInfo;
-    instInfo.enabledExtensionCount = 2;
+    instInfo.enabledExtensionCount = sizeof(enabledExtensions) / sizeof(enabledExtensions[0]);
     instInfo.ppEnabledExtensionNames = enabledExtensions;
+#ifdef _DEBUG
+    instInfo.enabledLayerCount = 1;
+    instInfo.ppEnabledLayerNames = enabledLayers;
+#endif
 
     VkResult result = vkCreateInstance(&instInfo, nullptr, &mInstance);
     CHECK_VKRESULT(result, "Failed to create Vulkan Instance");
@@ -68,6 +82,13 @@ bool Instance::Init()
         LOGE("Failed to initialize all Instance extensions");
         return false;
     }
+
+#ifdef _DEBUG
+    if (!Debugger::Instance().InitReport(mInstance))
+    {
+        LOGW("Failed to initialize Debug Reports - debugging unavailable");
+    }
+#endif
 
     LOGI("Vulkan Instance initialized successfully");
     return true;

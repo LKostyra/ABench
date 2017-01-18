@@ -14,6 +14,7 @@ class SemaphoreManager
     const Device* mDevice;
 
     VkSemaphore mRenderSemaphore;
+    VkSemaphore mPrePresentSemaphore;
     VkSemaphore mPresentSemaphore;
     VkSemaphore mPostPresentSemaphore;
 
@@ -24,6 +25,7 @@ public:
     bool Init();
 
     VkSemaphore GetRenderSemaphore() const;
+    VkSemaphore GetPrePresentSemaphore() const;
     VkSemaphore GetPresentSemaphore() const;
     VkSemaphore GetPostPresentSemaphore() const;
 };

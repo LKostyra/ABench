@@ -45,6 +45,7 @@ class Backbuffer: public Texture
 
     VkCommandPool mPresentCommandPool;
     std::vector<VkCommandBuffer> mPresentCommandBuffers;
+    std::vector<VkCommandBuffer> mPostPresentCommandBuffers;
 
     bool CreateSurface(const BackbufferDesc& desc);
     bool GetPresentQueue(const BackbufferDesc& desc);

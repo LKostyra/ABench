@@ -12,6 +12,7 @@ namespace Renderer {
 SemaphoreManager::SemaphoreManager(Device* device)
     : mDevice(device)
     , mRenderSemaphore(VK_NULL_HANDLE)
+    , mPrePresentSemaphore(VK_NULL_HANDLE)
     , mPresentSemaphore(VK_NULL_HANDLE)
     , mPostPresentSemaphore(VK_NULL_HANDLE)
 {
@@ -23,6 +24,8 @@ SemaphoreManager::~SemaphoreManager()
         vkDestroySemaphore(mDevice->mDevice, mPostPresentSemaphore, nullptr);
     if (mPresentSemaphore)
         vkDestroySemaphore(mDevice->mDevice, mPresentSemaphore, nullptr);
+    if (mPrePresentSemaphore)
+        vkDestroySemaphore(mDevice->mDevice, mPrePresentSemaphore, nullptr);
     if (mRenderSemaphore)
         vkDestroySemaphore(mDevice->mDevice, mRenderSemaphore, nullptr);
 }
@@ -35,6 +38,9 @@ bool SemaphoreManager::Init()
 
     VkResult result = vkCreateSemaphore(mDevice->mDevice, &semInfo, nullptr, &mRenderSemaphore);
     CHECK_VKRESULT(result, "Failed to create Render Semaphore");
+
+    result = vkCreateSemaphore(mDevice->mDevice, &semInfo, nullptr, &mPrePresentSemaphore);
+    CHECK_VKRESULT(result, "Failed to create Pre Present Semaphore");
 
     result = vkCreateSemaphore(mDevice->mDevice, &semInfo, nullptr, &mPresentSemaphore);
     CHECK_VKRESULT(result, "Failed to create Present Semaphore");
@@ -50,9 +56,14 @@ VkSemaphore SemaphoreManager::GetRenderSemaphore() const
      return mRenderSemaphore;
 }
 
+VkSemaphore SemaphoreManager::GetPrePresentSemaphore() const
+{
+    return mPrePresentSemaphore;
+}
+
 VkSemaphore SemaphoreManager::GetPresentSemaphore() const
 {
-     return mPresentSemaphore;
+    return mPresentSemaphore;
 }
 
 VkSemaphore SemaphoreManager::GetPostPresentSemaphore() const

@@ -10,6 +10,8 @@ namespace Renderer {
 
 class CommandBuffer
 {
+    friend class Device;
+
     const Device* mDevicePtr;
 
     VkCommandBuffer mCommandBuffer;
@@ -21,7 +23,7 @@ public:
     bool Init();
 
     void Begin();
-    void BeginRenderPass(RenderPass* rp, Framebuffer* fb);
+    void BeginRenderPass(RenderPass* rp, Framebuffer* fb, float clearValues[4]);
     void EndRenderPass();
     bool End();
 };

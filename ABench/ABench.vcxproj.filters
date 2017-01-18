@@ -62,6 +62,12 @@
     <ClCompile Include="Renderer\CommandBuffer.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer\Buffer.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Debugger.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\Window.hpp">
@@ -117,6 +123,12 @@
       <Filter>Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Renderer\CommandBuffer.hpp">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Buffer.hpp">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Debugger.hpp">
       <Filter>Renderer</Filter>
     </ClInclude>
   </ItemGroup>

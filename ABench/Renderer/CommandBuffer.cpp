@@ -39,18 +39,23 @@ void CommandBuffer::Begin()
     VkCommandBufferBeginInfo beginInfo;
     ZERO_MEMORY(beginInfo);
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
     vkBeginCommandBuffer(mCommandBuffer, &beginInfo);
 }
 
-void CommandBuffer::BeginRenderPass(RenderPass* rp, Framebuffer* fb)
+void CommandBuffer::BeginRenderPass(RenderPass* rp, Framebuffer* fb, float clearValues[4])
 {
+    VkClearValue clear;
+    memcpy(clear.color.float32, clearValues, 4 * sizeof(float));
+
     VkRenderPassBeginInfo rpInfo;
     ZERO_MEMORY(rpInfo);
     rpInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     rpInfo.renderPass = rp->mRenderPass;
     rpInfo.renderArea.extent.width = fb->mWidth;
     rpInfo.renderArea.extent.height = fb->mHeight;
+    rpInfo.clearValueCount = 1;
+    rpInfo.pClearValues = &clear;
     rpInfo.framebuffer = fb->mFramebuffers[*(fb->mCurrentBufferPtr)];
     vkCmdBeginRenderPass(mCommandBuffer, &rpInfo, VK_SUBPASS_CONTENTS_INLINE);
 }

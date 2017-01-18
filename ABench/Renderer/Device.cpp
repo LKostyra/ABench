@@ -130,6 +130,15 @@ bool Device::Init(const Instance& inst)
     devInfo.pQueueCreateInfos = &queueInfo;
     devInfo.enabledExtensionCount = 1;
     devInfo.ppEnabledExtensionNames = enabledExtensions;
+
+#ifdef _DEBUG
+    const char* enabledLayers[] = {
+        "VK_LAYER_LUNARG_standard_validation" // for debugging
+    };
+    devInfo.enabledLayerCount = 1;
+    devInfo.ppEnabledLayerNames = enabledLayers;
+#endif
+
     result = vkCreateDevice(mPhysicalDevice, &devInfo, nullptr, &mDevice);
     CHECK_VKRESULT(result, "Failed to create Vulkan Device");
 
@@ -138,6 +147,9 @@ bool Device::Init(const Instance& inst)
         LOGE("Failed to initailize needed device extensions");
         return false;
     }
+
+    // extract queue (might be useful later on when ex. submitting commands)
+    vkGetDeviceQueue(mDevice, mGraphicsQueueIndex, 0, &mGraphicsQueue);
 
     mSemaphores = new SemaphoreManager(this);
     mSemaphores->Init();
@@ -151,6 +163,42 @@ bool Device::Init(const Instance& inst)
     CHECK_VKRESULT(result, "Failed to create main Command Pool");
 
     LOGI("Vulkan Device initialized successfully");
+    return true;
+}
+
+uint32_t Device::GetMemoryTypeIndex(uint32_t typeBits, VkFlags properties) const
+{
+    for (uint32_t i = 0; i < mMemoryProperties.memoryTypeCount; ++i)
+    {
+        if (typeBits & (1 << i))
+            if (mMemoryProperties.memoryTypes[i].propertyFlags & properties)
+                return i;
+    }
+
+    return UINT32_MAX;
+}
+
+void Device::WaitForGPU() const
+{
+    vkQueueWaitIdle(mGraphicsQueue);
+}
+
+bool Device::Execute(CommandBuffer* cmd) const
+{
+    VkPipelineStageFlags pipelineStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+    VkSubmitInfo submitInfo;
+    ZERO_MEMORY(submitInfo);
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &cmd->mCommandBuffer;
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores = &mSemaphores->mPostPresentSemaphore;
+    submitInfo.signalSemaphoreCount = 1; // TODO semaphore management sucks, to redo
+    submitInfo.pSignalSemaphores = &mSemaphores->mRenderSemaphore;
+    submitInfo.pWaitDstStageMask = &pipelineStage;
+    VkResult result = vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+    CHECK_VKRESULT(result, "Failed to submit graphics operation");
+
     return true;
 }
 

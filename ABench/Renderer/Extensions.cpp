@@ -120,8 +120,17 @@ PFN_vkQueuePresentKHR vkQueuePresentKHR = VK_NULL_HANDLE;
 PFN_vkGetDeviceQueue vkGetDeviceQueue = VK_NULL_HANDLE;
 PFN_vkQueueSubmit vkQueueSubmit = VK_NULL_HANDLE;
 
-// Images
+// Buffers and Images
+PFN_vkAllocateMemory vkAllocateMemory = VK_NULL_HANDLE;
+PFN_vkBindBufferMemory vkBindBufferMemory = VK_NULL_HANDLE;
+PFN_vkCreateBuffer vkCreateBuffer = VK_NULL_HANDLE;
 PFN_vkCreateImageView vkCreateImageView = VK_NULL_HANDLE;
+PFN_vkDestroyBuffer vkDestroyBuffer = VK_NULL_HANDLE;
+PFN_vkDestroyImageView vkDestroyImageView = VK_NULL_HANDLE;
+PFN_vkFreeMemory vkFreeMemory = VK_NULL_HANDLE;
+PFN_vkGetBufferMemoryRequirements vkGetBufferMemoryRequirements = VK_NULL_HANDLE;
+PFN_vkMapMemory vkMapMemory = VK_NULL_HANDLE;
+PFN_vkUnmapMemory vkUnmapMemory = VK_NULL_HANDLE;
 
 // Synchronization
 PFN_vkCreateSemaphore vkCreateSemaphore = VK_NULL_HANDLE;
@@ -143,6 +152,9 @@ PFN_vkDestroyFramebuffer vkDestroyFramebuffer = VK_NULL_HANDLE;
 PFN_vkDestroyRenderPass vkDestroyRenderPass = VK_NULL_HANDLE;
 
 // Commands
+PFN_vkCmdBeginRenderPass vkCmdBeginRenderPass = VK_NULL_HANDLE;
+PFN_vkCmdCopyBuffer vkCmdCopyBuffer = VK_NULL_HANDLE;
+PFN_vkCmdEndRenderPass vkCmdEndRenderPass = VK_NULL_HANDLE;
 PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier = VK_NULL_HANDLE;
 
 bool InitDeviceExtensions(const VkDevice& device)
@@ -160,8 +172,17 @@ bool InitDeviceExtensions(const VkDevice& device)
     VK_GET_DEVICEPROC(device, vkQueueSubmit);
     VK_GET_DEVICEPROC(device, vkQueueWaitIdle);
 
-    // Images
+    // Buffers and Images
+    VK_GET_DEVICEPROC(device, vkAllocateMemory);
+    VK_GET_DEVICEPROC(device, vkBindBufferMemory);
+    VK_GET_DEVICEPROC(device, vkCreateBuffer);
     VK_GET_DEVICEPROC(device, vkCreateImageView);
+    VK_GET_DEVICEPROC(device, vkDestroyBuffer);
+    VK_GET_DEVICEPROC(device, vkDestroyImageView);
+    VK_GET_DEVICEPROC(device, vkFreeMemory);
+    VK_GET_DEVICEPROC(device, vkGetBufferMemoryRequirements);
+    VK_GET_DEVICEPROC(device, vkMapMemory);
+    VK_GET_DEVICEPROC(device, vkUnmapMemory);
 
     // Synchronization
     VK_GET_DEVICEPROC(device, vkCreateSemaphore);
@@ -182,6 +203,9 @@ bool InitDeviceExtensions(const VkDevice& device)
     VK_GET_DEVICEPROC(device, vkDestroyRenderPass);
 
     // Commands
+    VK_GET_DEVICEPROC(device, vkCmdBeginRenderPass);
+    VK_GET_DEVICEPROC(device, vkCmdCopyBuffer);
+    VK_GET_DEVICEPROC(device, vkCmdEndRenderPass);
     VK_GET_DEVICEPROC(device, vkCmdPipelineBarrier);
 
     return allExtensionsAvailable;

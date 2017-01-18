@@ -6,6 +6,7 @@
 #include "Renderer/Backbuffer.hpp"
 #include "Renderer/RenderPass.hpp"
 #include "Renderer/Framebuffer.hpp"
+#include "Renderer/Buffer.hpp"
 
 ABench::Common::Window gWindow;
 
@@ -28,6 +29,9 @@ int main()
     bbDesc.hInstance = gWindow.GetInstance();
     bbDesc.hWnd = gWindow.GetHandle();
     bbDesc.requestedFormat = VK_FORMAT_B8G8R8A8_UNORM;
+    bbDesc.width = 200;
+    bbDesc.height = 200;
+    bbDesc.vsync = true;
     if (!bb.Init(bbDesc))
         return -1;
 
@@ -44,10 +48,52 @@ int main()
     if (!fb.Init(fbDesc))
         return -1;
 
+    float vertices[] =
+    {
+        -0.5f, -0.5f, 0.0f,
+         0.5f, -0.5f, 0.0f,
+         0.5f,  0.5f, 0.0f
+    };
+
+    ABench::Renderer::Buffer vertexBuffer(&dev);
+    ABench::Renderer::BufferDesc vbDesc;
+    vbDesc.data = vertices;
+    vbDesc.dataSize = sizeof(vertices);
+    vbDesc.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    if (!vertexBuffer.Init(vbDesc))
+        return -1;
+
+    ABench::Renderer::CommandBuffer cmdBuf(&dev);
+    if (!cmdBuf.Init())
+        return -1;
+
+    {
+        cmdBuf.Begin();
+
+        float clearValue[] = {1.0f, 0.0f, 0.0f, 1.0f};
+        cmdBuf.BeginRenderPass(&rp, &fb, clearValue);
+
+        cmdBuf.EndRenderPass();
+
+        if (!cmdBuf.End())
+            return -1;
+    }
+
     while(gWindow.IsOpen())
     {
+
+        std::cout << "\n======\nBEGIN NEXT FRAME\n======\n\n";
+
         gWindow.ProcessMessages();
+
+        dev.Execute(&cmdBuf);
+
+        bb.Present();
+
+        dev.WaitForGPU();
     }
+
+    system("PAUSE");
 
     return 0;
 }

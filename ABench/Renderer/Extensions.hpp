@@ -45,8 +45,17 @@ extern PFN_vkGetDeviceQueue vkGetDeviceQueue;
 extern PFN_vkQueueSubmit vkQueueSubmit;
 extern PFN_vkQueueWaitIdle vkQueueWaitIdle;
 
-// Images
+// Buffers and Images
+extern PFN_vkAllocateMemory vkAllocateMemory;
+extern PFN_vkBindBufferMemory vkBindBufferMemory;
+extern PFN_vkCreateBuffer vkCreateBuffer;
 extern PFN_vkCreateImageView vkCreateImageView;
+extern PFN_vkDestroyBuffer vkDestroyBuffer;
+extern PFN_vkDestroyImageView vkDestroyImageView;
+extern PFN_vkFreeMemory vkFreeMemory;
+extern PFN_vkGetBufferMemoryRequirements vkGetBufferMemoryRequirements;
+extern PFN_vkMapMemory vkMapMemory;
+extern PFN_vkUnmapMemory vkUnmapMemory;
 
 // Synchronization
 extern PFN_vkCreateSemaphore vkCreateSemaphore;
@@ -67,6 +76,9 @@ extern PFN_vkDestroyFramebuffer vkDestroyFramebuffer;
 extern PFN_vkDestroyRenderPass vkDestroyRenderPass;
 
 // Commands
+extern PFN_vkCmdBeginRenderPass vkCmdBeginRenderPass;
+extern PFN_vkCmdCopyBuffer vkCmdCopyBuffer;
+extern PFN_vkCmdEndRenderPass vkCmdEndRenderPass;
 extern PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier;
 
 bool InitDeviceExtensions(const VkDevice& device);
