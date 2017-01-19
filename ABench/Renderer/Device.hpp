@@ -15,6 +15,8 @@ class Device
     friend class Framebuffer;
     friend class CommandBuffer;
     friend class Buffer;
+    friend class Pipeline;
+    friend class Shader;
 
     SemaphoreManager* mSemaphores;
 
@@ -24,8 +26,10 @@ class Device
     VkQueue mGraphicsQueue;
     uint32_t mGraphicsQueueIndex;
     VkCommandPool mCommandPool;
+    VkPipelineCache mPipelineCache;
 
-    VkPhysicalDevice SelectPhysicalDevice(const std::vector<VkPhysicalDevice>& devices);
+    VkPhysicalDevice SelectPhysicalDevice(const Instance& inst);
+    bool CreatePipelineCache();
 
 public:
     Device();

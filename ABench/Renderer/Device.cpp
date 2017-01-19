@@ -19,6 +19,8 @@ Device::Device()
     , mPhysicalDevice(VK_NULL_HANDLE)
     , mMemoryProperties()
     , mGraphicsQueueIndex(UINT32_MAX)
+    , mCommandPool(VK_NULL_HANDLE)
+    , mPipelineCache(VK_NULL_HANDLE)
 {
 }
 
@@ -26,14 +28,29 @@ Device::~Device()
 {
     delete mSemaphores;
 
+    if (mPipelineCache != VK_NULL_HANDLE)
+        vkDestroyPipelineCache(mDevice, mPipelineCache, nullptr);
     if (mCommandPool != VK_NULL_HANDLE)
         vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
     if (mDevice != VK_NULL_HANDLE)
         vkDestroyDevice(mDevice, nullptr);
 }
 
-VkPhysicalDevice Device::SelectPhysicalDevice(const std::vector<VkPhysicalDevice>& devices)
+VkPhysicalDevice Device::SelectPhysicalDevice(const Instance& inst)
 {
+    unsigned int gpuCount = 0;
+    VkResult result = vkEnumeratePhysicalDevices(inst.mInstance, &gpuCount, nullptr);
+    CHECK_VKRESULT(result, "Failed to acquire Physical Device count");
+    if (gpuCount == 0)
+    {
+        LOGE("No physical devices detected");
+        return false;
+    }
+
+    std::vector<VkPhysicalDevice> devices(gpuCount);
+    result = vkEnumeratePhysicalDevices(inst.mInstance, &gpuCount, devices.data());
+    CHECK_VKRESULT(result, "Failed to acquire available Physical Devices");
+
     VkPhysicalDeviceProperties devProps;
 
     // Debugging-related device description printing
@@ -54,26 +71,24 @@ VkPhysicalDevice Device::SelectPhysicalDevice(const std::vector<VkPhysicalDevice
                               << VK_VERSION_PATCH(devProps.driverVersion));
     }
 
+    // Select first one available (might be a subject to change later on)
     return devices[0];
+}
+
+bool Device::CreatePipelineCache()
+{
+    VkPipelineCacheCreateInfo cacheInfo;
+    ZERO_MEMORY(cacheInfo);
+    cacheInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+    VkResult result = vkCreatePipelineCache(mDevice, &cacheInfo, nullptr, &mPipelineCache);
+    CHECK_VKRESULT(result, "Failed to create Pipeline Cache");
+
+    return true;
 }
 
 bool Device::Init(const Instance& inst)
 {
-    const VkInstance& instance = inst.GetVkInstance();
-
-    unsigned int gpuCount = 0;
-    VkResult result = vkEnumeratePhysicalDevices(instance, &gpuCount, nullptr);
-    CHECK_VKRESULT(result, "Failed to acquire Physical Device count");
-    if (gpuCount == 0)
-    {
-        LOGE("No physical devices detected");
-        return false;
-    }
-
-    std::vector<VkPhysicalDevice> devices(gpuCount);
-    result = vkEnumeratePhysicalDevices(instance, &gpuCount, devices.data());
-    CHECK_VKRESULT(result, "Failed to acquire available Physical Devices");
-    mPhysicalDevice = SelectPhysicalDevice(devices);
+    mPhysicalDevice = SelectPhysicalDevice(inst);
 
     // Memory properties (for further use)
     vkGetPhysicalDeviceMemoryProperties(mPhysicalDevice, &mMemoryProperties);
@@ -139,7 +154,7 @@ bool Device::Init(const Instance& inst)
     devInfo.ppEnabledLayerNames = enabledLayers;
 #endif
 
-    result = vkCreateDevice(mPhysicalDevice, &devInfo, nullptr, &mDevice);
+    VkResult result = vkCreateDevice(mPhysicalDevice, &devInfo, nullptr, &mDevice);
     CHECK_VKRESULT(result, "Failed to create Vulkan Device");
 
     if (!InitDeviceExtensions(mDevice))

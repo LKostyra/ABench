@@ -151,9 +151,9 @@ bool Backbuffer::SelectPresentMode(const BackbufferDesc& desc)
     if (!desc.vsync)
     {
         if (mPresentMode == VK_PRESENT_MODE_FIFO_KHR)
-            LOGW("Unable to select non-VSync present mode. V-Sync will stay on.")
+            LOGW("Unable to select non-VSync present mode. V-Sync will stay on.");
         else if (mPresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR)
-            LOGW("Mailbox present mode was unavailable. Selecting immediate mode, you may experience tearing.")
+            LOGW("Mailbox present mode was unavailable. Selecting immediate mode, you may experience tearing.");
     }
 
     return true;
@@ -208,10 +208,21 @@ bool Backbuffer::CreateSwapchain(const BackbufferDesc& desc)
 
 bool Backbuffer::AllocateImageViews(const BackbufferDesc& desc)
 {
+    uint32_t currentBufferCount = 0;
+    VkResult result = vkGetSwapchainImagesKHR(mDevicePtr->mDevice, mSwapchain,
+                                              &currentBufferCount, nullptr);
+    CHECK_VKRESULT(result, "Failed to acquire Swapchain image count");
+
+    if (currentBufferCount != mBufferCount)
+    {
+        LOGW("Allocated " << currentBufferCount << " images instead of " << mBufferCount);
+        mBufferCount = currentBufferCount;
+    }
+
     mImages.resize(mBufferCount);
     mImageViews.resize(mBufferCount);
 
-    VkResult result = vkGetSwapchainImagesKHR(mDevicePtr->mDevice, mSwapchain,
+    result = vkGetSwapchainImagesKHR(mDevicePtr->mDevice, mSwapchain,
                                               &mBufferCount, mImages.data());
     CHECK_VKRESULT(result, "Failed to acquire Swapchain images");
     LOGD(mBufferCount << " swapchain images acquired.");

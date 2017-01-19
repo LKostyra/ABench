@@ -23,6 +23,7 @@ class RenderPass
 {
     friend class Framebuffer;
     friend class CommandBuffer;
+    friend class Pipeline;
 
     const Device* mDevicePtr;
 

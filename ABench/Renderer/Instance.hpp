@@ -8,6 +8,8 @@ namespace Renderer {
 // An object representing Vulkan's VkInstance
 class Instance
 {
+    friend class Device;
+
     VkInstance mInstance;
     Common::Library mVulkanLibrary;
 

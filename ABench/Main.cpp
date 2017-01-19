@@ -67,24 +67,25 @@ int main()
     if (!cmdBuf.Init())
         return -1;
 
-    {
-        cmdBuf.Begin();
-
-        float clearValue[] = {1.0f, 0.0f, 0.0f, 1.0f};
-        cmdBuf.BeginRenderPass(&rp, &fb, clearValue);
-
-        cmdBuf.EndRenderPass();
-
-        if (!cmdBuf.End())
-            return -1;
-    }
 
     while(gWindow.IsOpen())
     {
-
         std::cout << "\n======\nBEGIN NEXT FRAME\n======\n\n";
 
         gWindow.ProcessMessages();
+
+        {
+            cmdBuf.Begin();
+
+            float clearValue[] = {1.0f, 0.0f, 0.0f, 1.0f};
+            cmdBuf.BeginRenderPass(&rp, &fb, clearValue);
+
+            cmdBuf.EndRenderPass();
+
+            if (!cmdBuf.End())
+                return -1;
+        }
+
 
         dev.Execute(&cmdBuf);
 
