@@ -27,7 +27,7 @@ class Shader
 
     VkShaderModule mShaderModule;
 
-    bool Compile(ShaderLanguage lang, const std::string& path, std::unique_ptr<uint32_t>& code, size_t codeSize);
+    bool Compile(ShaderLanguage lang, const std::string& path, std::unique_ptr<uint32_t[]>& code, size_t& codeSize);
 
 public:
     Shader(const Device* device);

@@ -14,6 +14,8 @@ struct BufferDesc
 
 class Buffer
 {
+    friend class CommandBuffer;
+
     const Device* mDevicePtr;
 
     VkBuffer mBuffer;

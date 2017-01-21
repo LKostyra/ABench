@@ -17,6 +17,7 @@ class Device
     friend class Buffer;
     friend class Pipeline;
     friend class Shader;
+    friend class PipelineLayout;
 
     SemaphoreManager* mSemaphores;
 

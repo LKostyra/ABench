@@ -12,13 +12,15 @@ class Instance
 
     VkInstance mInstance;
     Common::Library mVulkanLibrary;
+    bool mDebuggingEnabled;
 
 public:
     Instance();
     ~Instance();
 
-    bool Init();
+    bool Init(VkDebugReportFlagsEXT debugFlags = 0);
     const VkInstance& GetVkInstance() const;
+    bool IsDebuggingEnabled() const;
 };
 
 } // namespace Renderer

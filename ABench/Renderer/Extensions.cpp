@@ -113,6 +113,7 @@ bool InitInstanceExtensions(const VkInstance& instance)
 // Swapchain
 PFN_vkAcquireNextImageKHR vkAcquireNextImageKHR = VK_NULL_HANDLE;
 PFN_vkCreateSwapchainKHR vkCreateSwapchainKHR = VK_NULL_HANDLE;
+PFN_vkDestroySwapchainKHR vkDestroySwapchainKHR = VK_NULL_HANDLE;
 PFN_vkGetSwapchainImagesKHR vkGetSwapchainImagesKHR = VK_NULL_HANDLE;
 PFN_vkQueuePresentKHR vkQueuePresentKHR = VK_NULL_HANDLE;
 
@@ -151,11 +152,29 @@ PFN_vkCreateRenderPass vkCreateRenderPass = VK_NULL_HANDLE;
 PFN_vkDestroyFramebuffer vkDestroyFramebuffer = VK_NULL_HANDLE;
 PFN_vkDestroyRenderPass vkDestroyRenderPass = VK_NULL_HANDLE;
 
+// Pipeline management
+PFN_vkCreateGraphicsPipelines vkCreateGraphicsPipelines = VK_NULL_HANDLE;
+PFN_vkCreatePipelineCache vkCreatePipelineCache = VK_NULL_HANDLE;
+PFN_vkCreatePipelineLayout vkCreatePipelineLayout = VK_NULL_HANDLE;
+PFN_vkDestroyPipeline vkDestroyPipeline = VK_NULL_HANDLE;
+PFN_vkDestroyPipelineCache vkDestroyPipelineCache = VK_NULL_HANDLE;
+PFN_vkDestroyPipelineLayout vkDestroyPipelineLayout = VK_NULL_HANDLE;
+
+// Shader
+PFN_vkCreateShaderModule vkCreateShaderModule = VK_NULL_HANDLE;
+PFN_vkDestroyShaderModule vkDestroyShaderModule = VK_NULL_HANDLE;
+
 // Commands
 PFN_vkCmdBeginRenderPass vkCmdBeginRenderPass = VK_NULL_HANDLE;
+PFN_vkCmdBindPipeline vkCmdBindPipeline = VK_NULL_HANDLE;
+PFN_vkCmdBindVertexBuffers vkCmdBindVertexBuffers = VK_NULL_HANDLE;
+PFN_vkCmdClearAttachments vkCmdClearAttachments = VK_NULL_HANDLE;
 PFN_vkCmdCopyBuffer vkCmdCopyBuffer = VK_NULL_HANDLE;
+PFN_vkCmdDraw vkCmdDraw = VK_NULL_HANDLE;
 PFN_vkCmdEndRenderPass vkCmdEndRenderPass = VK_NULL_HANDLE;
 PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier = VK_NULL_HANDLE;
+PFN_vkCmdSetScissor vkCmdSetScissor = VK_NULL_HANDLE;
+PFN_vkCmdSetViewport vkCmdSetViewport = VK_NULL_HANDLE;
 
 bool InitDeviceExtensions(const VkDevice& device)
 {
@@ -164,6 +183,7 @@ bool InitDeviceExtensions(const VkDevice& device)
     // Swapchain
     VK_GET_DEVICEPROC(device, vkAcquireNextImageKHR);
     VK_GET_DEVICEPROC(device, vkCreateSwapchainKHR);
+    VK_GET_DEVICEPROC(device, vkDestroySwapchainKHR);
     VK_GET_DEVICEPROC(device, vkGetSwapchainImagesKHR);
     VK_GET_DEVICEPROC(device, vkQueuePresentKHR);
 
@@ -202,11 +222,29 @@ bool InitDeviceExtensions(const VkDevice& device)
     VK_GET_DEVICEPROC(device, vkDestroyFramebuffer);
     VK_GET_DEVICEPROC(device, vkDestroyRenderPass);
 
+    // Pipeline management
+    VK_GET_DEVICEPROC(device, vkCreateGraphicsPipelines);
+    VK_GET_DEVICEPROC(device, vkCreatePipelineCache);
+    VK_GET_DEVICEPROC(device, vkCreatePipelineLayout);
+    VK_GET_DEVICEPROC(device, vkDestroyPipeline);
+    VK_GET_DEVICEPROC(device, vkDestroyPipelineCache);
+    VK_GET_DEVICEPROC(device, vkDestroyPipelineLayout);
+
+    // Shader
+    VK_GET_DEVICEPROC(device, vkCreateShaderModule);
+    VK_GET_DEVICEPROC(device, vkDestroyShaderModule);
+
     // Commands
     VK_GET_DEVICEPROC(device, vkCmdBeginRenderPass);
+    VK_GET_DEVICEPROC(device, vkCmdBindPipeline);
+    VK_GET_DEVICEPROC(device, vkCmdBindVertexBuffers);
+    VK_GET_DEVICEPROC(device, vkCmdClearAttachments);
     VK_GET_DEVICEPROC(device, vkCmdCopyBuffer);
+    VK_GET_DEVICEPROC(device, vkCmdDraw);
     VK_GET_DEVICEPROC(device, vkCmdEndRenderPass);
     VK_GET_DEVICEPROC(device, vkCmdPipelineBarrier);
+    VK_GET_DEVICEPROC(device, vkCmdSetScissor);
+    VK_GET_DEVICEPROC(device, vkCmdSetViewport);
 
     return allExtensionsAvailable;
 }

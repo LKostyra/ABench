@@ -2,10 +2,12 @@
 #include "Logger.hpp"
 
 #include <iostream>
-
+#include <fstream>
 
 namespace ABench {
 namespace Logger {
+
+std::ofstream logFile;
 
 void Log(LogLevel level, const std::stringstream& msg)
 {
@@ -14,6 +16,11 @@ void Log(LogLevel level, const std::stringstream& msg)
     static HANDLE console = 0;
     if (!console)
         console = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    if (!logFile.is_open())
+    {
+        logFile.open("log.txt");
+    }
 
     CONSOLE_SCREEN_BUFFER_INFO conInfo;
     GetConsoleScreenBufferInfo(console, &conInfo);
@@ -37,7 +44,12 @@ void Log(LogLevel level, const std::stringstream& msg)
         break;
     }
 
-    std::cout << "[" << levelStr << "] " << msg.str() << std::endl;
+    std::stringstream fullMsg;
+    fullMsg << "[" << levelStr << "] " << msg.str() << "\n";
+    std::cout << fullMsg.str();
+    if (logFile.is_open())
+        logFile << fullMsg.str();
+
     SetConsoleTextAttribute(console, conInfo.wAttributes);
 }
 

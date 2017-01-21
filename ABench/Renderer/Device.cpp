@@ -138,6 +138,10 @@ bool Device::Init(const Instance& inst)
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     };
 
+    const char* enabledLayers[] = {
+        "VK_LAYER_LUNARG_standard_validation" // for debugging
+    };
+
     VkDeviceCreateInfo devInfo;
     ZERO_MEMORY(devInfo);
     devInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -145,14 +149,11 @@ bool Device::Init(const Instance& inst)
     devInfo.pQueueCreateInfos = &queueInfo;
     devInfo.enabledExtensionCount = 1;
     devInfo.ppEnabledExtensionNames = enabledExtensions;
-
-#ifdef _DEBUG
-    const char* enabledLayers[] = {
-        "VK_LAYER_LUNARG_standard_validation" // for debugging
-    };
-    devInfo.enabledLayerCount = 1;
-    devInfo.ppEnabledLayerNames = enabledLayers;
-#endif
+    if (inst.IsDebuggingEnabled())
+    {
+        devInfo.enabledLayerCount = 1;
+        devInfo.ppEnabledLayerNames = enabledLayers;
+    }
 
     VkResult result = vkCreateDevice(mPhysicalDevice, &devInfo, nullptr, &mDevice);
     CHECK_VKRESULT(result, "Failed to create Vulkan Device");

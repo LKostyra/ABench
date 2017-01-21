@@ -23,7 +23,7 @@ Shader::~Shader()
         vkDestroyShaderModule(mDevicePtr->mDevice, mShaderModule, nullptr);
 }
 
-bool Shader::Compile(ShaderLanguage lang, const std::string& path, std::unique_ptr<uint32_t>& code, size_t codeSize)
+bool Shader::Compile(ShaderLanguage lang, const std::string& path, std::unique_ptr<uint32_t[]>& code, size_t& codeSize)
 {
 #ifndef _DEBUG
     // a little warning to not forget before release
@@ -49,10 +49,10 @@ bool Shader::Init(const ShaderDesc& desc)
     }
     else
     {
-        std::ifstream codeFile(desc.path);
+        std::ifstream codeFile(desc.path, std::ifstream::in | std::ifstream::binary);
         if (!codeFile.good())
         {
-            LOGE("Failed to open Shader code from file " << desc.path);
+            LOGE("Failed to open Shader code file " << desc.path);
             return false;
         }
 
@@ -60,8 +60,13 @@ bool Shader::Init(const ShaderDesc& desc)
         codeSize = codeFile.tellg();
         codeFile.seekg(0, std::ifstream::beg);
 
-        code.reset(new uint32_t [codeSize]);
+        code.reset(new uint32_t [codeSize/sizeof(uint32_t)]);
         codeFile.read(reinterpret_cast<char*>(code.get()), codeSize);
+        if (!codeFile.good())
+        {
+            LOGE("Failure while reading the file");
+            LOGE("bits: " << codeFile.eof() << codeFile.fail() << codeFile.bad());
+        }
     }
 
     VkShaderModuleCreateInfo shaderInfo;

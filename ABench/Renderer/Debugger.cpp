@@ -45,11 +45,14 @@ VkBool32 DebugReport(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT obj
 
 
 Debugger::Debugger()
+    : mDebugCallback(VK_NULL_HANDLE)
+    , mVkInstance(VK_NULL_HANDLE)
 {
 }
 
 Debugger::~Debugger()
 {
+    Release();
 }
 
 Debugger& Debugger::Instance()
@@ -90,7 +93,10 @@ bool Debugger::InitReport(VkInstance instance, VkDebugReportFlagsEXT flags)
 void Debugger::Release()
 {
     if (mDebugCallback)
+    {
         vkDestroyDebugReportCallbackEXT(mVkInstance, mDebugCallback, nullptr);
+        mDebugCallback = VK_NULL_HANDLE;
+    }
 }
 
 } // namespace Renderer

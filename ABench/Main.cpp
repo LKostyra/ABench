@@ -7,17 +7,28 @@
 #include "Renderer/RenderPass.hpp"
 #include "Renderer/Framebuffer.hpp"
 #include "Renderer/Buffer.hpp"
+#include "Renderer/Pipeline.hpp"
+#include "Renderer/VertexLayout.hpp"
 
 ABench::Common::Window gWindow;
+
+uint32_t windowWidth = 800;
+uint32_t windowHeight = 600;
 
 int main()
 {
     gWindow.Init();
-    if (!gWindow.Open(300, 300, 200, 200, "ABench"))
+    if (!gWindow.Open(300, 300, windowWidth, windowHeight, "ABench"))
         return -1;
 
+    VkDebugReportFlagsEXT debugFlags = 0;
+
+#ifdef _DEBUG
+    debugFlags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
+#endif
+
     ABench::Renderer::Instance inst;
-    if (!inst.Init())
+    if (!inst.Init(debugFlags))
         return -1;
 
     ABench::Renderer::Device dev;
@@ -29,8 +40,8 @@ int main()
     bbDesc.hInstance = gWindow.GetInstance();
     bbDesc.hWnd = gWindow.GetHandle();
     bbDesc.requestedFormat = VK_FORMAT_B8G8R8A8_UNORM;
-    bbDesc.width = 200;
-    bbDesc.height = 200;
+    bbDesc.width = windowWidth;
+    bbDesc.height = windowHeight;
     bbDesc.vsync = true;
     if (!bb.Init(bbDesc))
         return -1;
@@ -50,9 +61,13 @@ int main()
 
     float vertices[] =
     {
-        -0.5f, -0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
-         0.5f,  0.5f, 0.0f
+        -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // 1
+         0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, // 2
+         0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, // 3
+
+        -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // 1
+         0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, // 3
+        -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, // 4
     };
 
     ABench::Renderer::Buffer vertexBuffer(&dev);
@@ -67,18 +82,61 @@ int main()
     if (!cmdBuf.Init())
         return -1;
 
+    ABench::Renderer::VertexLayout vertexLayout;
+    ABench::Renderer::VertexLayoutDesc vlDesc;
+
+    std::vector<ABench::Renderer::VertexLayoutEntry> vlEntries;
+    vlEntries.push_back({VK_FORMAT_R32G32B32_SFLOAT, 0, 0, 28, false});
+    vlEntries.push_back({VK_FORMAT_R32G32B32A32_SFLOAT, 12, 0, 28, false});
+
+    vlDesc.entryCount = static_cast<uint32_t>(vlEntries.size());
+    vlDesc.entries = vlEntries.data();
+    if (!vertexLayout.Init(vlDesc))
+        return -1;
+
+    ABench::Renderer::Shader vertShader(&dev);
+    ABench::Renderer::ShaderDesc shaderDesc;
+    shaderDesc.language = ABench::Renderer::ShaderLanguage::SPIRV;
+    shaderDesc.path = "vert.spv";
+    if (!vertShader.Init(shaderDesc))
+        return -1;
+
+    ABench::Renderer::Shader fragShader(&dev);
+    shaderDesc.path = "frag.spv";
+    if (!fragShader.Init(shaderDesc))
+        return -1;
+
+    ABench::Renderer::PipelineLayout pipeLayout(&dev);
+    ABench::Renderer::PipelineLayoutDesc pipeLayoutDesc;
+    if (!pipeLayout.Init(pipeLayoutDesc))
+        return -1;
+
+    ABench::Renderer::Pipeline pipeline(&dev);
+    ABench::Renderer::PipelineDesc pipeDesc;
+    pipeDesc.vertexShader = &vertShader;
+    pipeDesc.fragmentShader = &fragShader;
+    pipeDesc.vertexLayout = &vertexLayout;
+    pipeDesc.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    pipeDesc.renderPass = &rp;
+    pipeDesc.pipelineLayout = &pipeLayout;
+    pipeline.Init(pipeDesc);
 
     while(gWindow.IsOpen())
     {
-        std::cout << "\n======\nBEGIN NEXT FRAME\n======\n\n";
-
         gWindow.ProcessMessages();
 
         {
             cmdBuf.Begin();
 
-            float clearValue[] = {1.0f, 0.0f, 0.0f, 1.0f};
+            cmdBuf.SetViewport(0, 0, windowWidth, windowHeight, 0.0f, 1.0f);
+            cmdBuf.SetScissor(0, 0, windowWidth, windowHeight);
+
+            float clearValue[] = {0.2f, 0.4f, 0.8f, 0.0f};
             cmdBuf.BeginRenderPass(&rp, &fb, clearValue);
+
+            cmdBuf.BindPipeline(&pipeline);
+            cmdBuf.BindVertexBuffer(&vertexBuffer);
+            cmdBuf.Draw(6);
 
             cmdBuf.EndRenderPass();
 

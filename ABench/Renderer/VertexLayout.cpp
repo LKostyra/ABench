@@ -52,11 +52,7 @@ bool VertexLayout::Init(const VertexLayoutDesc& desc)
         vibDesc.inputRate = desc.entries[std::get<0>(vb)].instance ? VK_VERTEX_INPUT_RATE_INSTANCE
                                                                    : VK_VERTEX_INPUT_RATE_VERTEX;
 
-        vibDesc.stride = 0;
-        for (uint32_t i = 0; i < desc.entryCount; ++i)
-        {
-            vibDesc.stride += TranslateVkFormatToFormatSize(desc.entries[i].format);
-        }
+        vibDesc.stride = desc.entries[std::get<0>(vb)].stride;
 
         mBindings.push_back(vibDesc);
     }

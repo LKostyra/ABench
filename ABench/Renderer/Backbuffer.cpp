@@ -21,6 +21,14 @@ Backbuffer::~Backbuffer()
 {
     if (mPresentCommandPool)
         vkDestroyCommandPool(mDevicePtr->mDevice, mPresentCommandPool, nullptr);
+    if (mSwapchain)
+    {
+        for (auto& iv: mImageViews)
+            vkDestroyImageView(mDevicePtr->mDevice, iv, nullptr);
+        vkDestroySwapchainKHR(mDevicePtr->mDevice, mSwapchain, nullptr);
+    }
+    if (mSurface)
+        vkDestroySurfaceKHR(mInstancePtr->GetVkInstance(), mSurface, nullptr);
 }
 
 bool Backbuffer::CreateSurface(const BackbufferDesc& desc)

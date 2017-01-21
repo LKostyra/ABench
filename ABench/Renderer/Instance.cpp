@@ -8,22 +8,26 @@
 #include "Common/Common.hpp"
 #include "Common/Logger.hpp"
 
+
 namespace ABench {
 namespace Renderer {
 
 Instance::Instance()
     : mInstance(VK_NULL_HANDLE)
     , mVulkanLibrary()
+    , mDebuggingEnabled(false)
 {
 }
 
 Instance::~Instance()
 {
+    Debugger::Instance().Release();
+
     if (mInstance)
         vkDestroyInstance(mInstance, nullptr);
 }
 
-bool Instance::Init()
+bool Instance::Init(VkDebugReportFlagsEXT debugFlags)
 {
     if (mInstance)
         return true; // already initialized
@@ -51,16 +55,12 @@ bool Instance::Init()
     const char* enabledExtensions[] = {
         VK_KHR_SURFACE_EXTENSION_NAME,
         VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
-#ifdef _DEBUG
         VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
-#endif
     };
 
-#ifdef _DEBUG
     const char* enabledLayers[] = {
         "VK_LAYER_LUNARG_standard_validation"
     };
-#endif
 
     VkInstanceCreateInfo instInfo;
     ZERO_MEMORY(instInfo);
@@ -68,11 +68,11 @@ bool Instance::Init()
     instInfo.pNext = nullptr;
     instInfo.pApplicationInfo = &appInfo;
     instInfo.enabledExtensionCount = sizeof(enabledExtensions) / sizeof(enabledExtensions[0]);
+    if (!debugFlags)
+        instInfo.enabledExtensionCount--; // to disable debug report flag
     instInfo.ppEnabledExtensionNames = enabledExtensions;
-#ifdef _DEBUG
     instInfo.enabledLayerCount = 1;
     instInfo.ppEnabledLayerNames = enabledLayers;
-#endif
 
     VkResult result = vkCreateInstance(&instInfo, nullptr, &mInstance);
     CHECK_VKRESULT(result, "Failed to create Vulkan Instance");
@@ -83,12 +83,13 @@ bool Instance::Init()
         return false;
     }
 
-#ifdef _DEBUG
-    if (!Debugger::Instance().InitReport(mInstance))
+    if (debugFlags)
     {
-        LOGW("Failed to initialize Debug Reports - debugging unavailable");
+        if (!Debugger::Instance().InitReport(mInstance, debugFlags))
+            LOGW("Failed to initialize Debug Reports - debugging unavailable");
+
+        mDebuggingEnabled = true;
     }
-#endif
 
     LOGI("Vulkan Instance initialized successfully");
     return true;
@@ -97,6 +98,11 @@ bool Instance::Init()
 const VkInstance& Instance::GetVkInstance() const
 {
     return mInstance;
+}
+
+bool Instance::IsDebuggingEnabled() const
+{
+    return mDebuggingEnabled;
 }
 
 } // namespace Renderer

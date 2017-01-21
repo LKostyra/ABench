@@ -5,6 +5,7 @@
 
 #include "Common/Common.hpp"
 
+#include <cstring>
 
 namespace ABench {
 namespace Renderer {
@@ -58,6 +59,41 @@ void CommandBuffer::BeginRenderPass(RenderPass* rp, Framebuffer* fb, float clear
     rpInfo.pClearValues = &clear;
     rpInfo.framebuffer = fb->mFramebuffers[*(fb->mCurrentBufferPtr)];
     vkCmdBeginRenderPass(mCommandBuffer, &rpInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+    mCurrentFramebuffer = fb;
+}
+
+void CommandBuffer::BindVertexBuffer(Buffer* buffer)
+{
+    VkDeviceSize offset = 0;
+    vkCmdBindVertexBuffers(mCommandBuffer, 0, 1, &buffer->mBuffer, &offset);
+}
+
+void CommandBuffer::BindPipeline(Pipeline* pipeline)
+{
+    vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->mPipeline);
+}
+
+void CommandBuffer::Clear(float clearValues[4])
+{
+    VkClearAttachment clearAtt;
+
+    clearAtt.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    clearAtt.colorAttachment = 0;
+    memcpy(clearAtt.clearValue.color.float32, clearValues, 4 * sizeof(float));
+
+    VkClearRect rect;
+    rect.rect.offset = { 0, 0 };
+    rect.rect.extent = { mCurrentFramebuffer->mWidth , mCurrentFramebuffer->mHeight };
+    rect.baseArrayLayer = 0;
+    rect.layerCount = 1;
+
+    vkCmdClearAttachments(mCommandBuffer, 1, &clearAtt, 1, &rect);
+}
+
+void CommandBuffer::Draw(uint32_t vertCount)
+{
+    vkCmdDraw(mCommandBuffer, vertCount, 1, 0, 0);
 }
 
 void CommandBuffer::EndRenderPass()
@@ -70,6 +106,28 @@ bool CommandBuffer::End()
     VkResult result = vkEndCommandBuffer(mCommandBuffer);
     CHECK_VKRESULT(result, "Failure during Command Buffer recording");
     return true;
+}
+
+void CommandBuffer::SetViewport(int32_t x, int32_t y, uint32_t width, uint32_t height, float minDepth, float maxDepth)
+{
+    VkViewport viewport;
+    viewport.x = static_cast<float>(x);
+    viewport.y = static_cast<float>(y);
+    viewport.width = static_cast<float>(width);
+    viewport.height = static_cast<float>(height);
+    viewport.minDepth = minDepth;
+    viewport.maxDepth = maxDepth;
+    vkCmdSetViewport(mCommandBuffer, 0, 1, &viewport);
+}
+
+void CommandBuffer::SetScissor(int32_t x, int32_t y, uint32_t width, uint32_t height)
+{
+    VkRect2D scissor;
+    scissor.offset.x = x;
+    scissor.offset.y = y;
+    scissor.extent.width = width;
+    scissor.extent.height = height;
+    vkCmdSetScissor(mCommandBuffer, 0, 1, &scissor);
 }
 
 } // namespace Renderer
