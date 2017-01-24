@@ -7,17 +7,13 @@
 namespace ABench {
 namespace Renderer {
 
+class CommandBuffer;
+
 class Device
 {
     friend class Backbuffer;
-    friend class SemaphoreManager;
-    friend class RenderPass;
-    friend class Framebuffer;
-    friend class CommandBuffer;
-    friend class Buffer;
     friend class Pipeline;
-    friend class Shader;
-    friend class PipelineLayout;
+    friend class Buffer; // TODO remove
 
     SemaphoreManager* mSemaphores;
 
@@ -42,6 +38,16 @@ public:
     void WaitForGPU() const;
 
     bool Execute(CommandBuffer* cmd) const;
+
+    __forceinline VkDevice GetDevice() const
+    {
+        return mDevice;
+    }
+
+    __forceinline VkCommandPool GetCommandPool() const
+    {
+        return mCommandPool;
+    }
 };
 
 } // namespace Renderer

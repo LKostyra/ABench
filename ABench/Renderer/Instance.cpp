@@ -75,7 +75,7 @@ bool Instance::Init(VkDebugReportFlagsEXT debugFlags)
     instInfo.ppEnabledLayerNames = enabledLayers;
 
     VkResult result = vkCreateInstance(&instInfo, nullptr, &mInstance);
-    CHECK_VKRESULT(result, "Failed to create Vulkan Instance");
+    RETURN_FALSE_IF_FAILED(result, "Failed to create Vulkan Instance");
 
     if (!InitInstanceExtensions(mInstance))
     {

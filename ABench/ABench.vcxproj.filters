@@ -77,7 +77,7 @@
     <ClCompile Include="Renderer\VertexLayout.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\PipelineLayout.cpp">
+    <ClCompile Include="Renderer\Tools.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
   </ItemGroup>
@@ -152,7 +152,7 @@
     <ClInclude Include="Renderer\VertexLayout.hpp">
       <Filter>Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer\PipelineLayout.hpp">
+    <ClInclude Include="Renderer\Tools.hpp">
       <Filter>Renderer</Filter>
     </ClInclude>
   </ItemGroup>

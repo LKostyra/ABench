@@ -16,9 +16,9 @@ Buffer::Buffer(const Device* device)
 Buffer::~Buffer()
 {
     if (mBufferMemory)
-        vkFreeMemory(mDevicePtr->mDevice, mBufferMemory, nullptr);
+        vkFreeMemory(mDevicePtr->GetDevice(), mBufferMemory, nullptr);
     if (mBuffer)
-        vkDestroyBuffer(mDevicePtr->mDevice, mBuffer, nullptr);
+        vkDestroyBuffer(mDevicePtr->GetDevice(), mBuffer, nullptr);
 }
 
 bool Buffer::Init(const BufferDesc& desc)
@@ -42,12 +42,12 @@ bool Buffer::Init(const BufferDesc& desc)
     bufInfo.size = mBufferSize;
     bufInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     bufInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-    VkResult result = vkCreateBuffer(mDevicePtr->mDevice, &bufInfo, nullptr, &staging);
-    CHECK_VKRESULT(result, "Failed to create staging buffer");
+    VkResult result = vkCreateBuffer(mDevicePtr->GetDevice(), &bufInfo, nullptr, &staging);
+    RETURN_FALSE_IF_FAILED(result, "Failed to create staging buffer");
 
     // get staging buffer's memory requirements
     VkMemoryRequirements stagingMemReqs;
-    vkGetBufferMemoryRequirements(mDevicePtr->mDevice, staging, &stagingMemReqs);
+    vkGetBufferMemoryRequirements(mDevicePtr->GetDevice(), staging, &stagingMemReqs);
 
     // allocate memory for staging buffer
     VkMemoryAllocateInfo memInfo;
@@ -56,55 +56,56 @@ bool Buffer::Init(const BufferDesc& desc)
     memInfo.allocationSize = stagingMemReqs.size;
     memInfo.memoryTypeIndex = mDevicePtr->GetMemoryTypeIndex(stagingMemReqs.memoryTypeBits,
                                                              VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-    result = vkAllocateMemory(mDevicePtr->mDevice, &memInfo, nullptr, &stagingMemory);
-    CHECK_VKRESULT(result, "Failed to allocate memory for staging buffer");
+    result = vkAllocateMemory(mDevicePtr->GetDevice(), &memInfo, nullptr, &stagingMemory);
+    RETURN_FALSE_IF_FAILED(result, "Failed to allocate memory for staging buffer");
 
     // map the memory and copy data to it
     void* stagingData = nullptr;
-    result = vkMapMemory(mDevicePtr->mDevice, stagingMemory, 0, stagingMemReqs.size, 0, &stagingData);
-    CHECK_VKRESULT(result, "Failed to map staging memory for copying");
+    result = vkMapMemory(mDevicePtr->GetDevice(), stagingMemory, 0, stagingMemReqs.size, 0, &stagingData);
+    RETURN_FALSE_IF_FAILED(result, "Failed to map staging memory for copying");
     memcpy(stagingData, desc.data, static_cast<size_t>(desc.dataSize));
-    vkUnmapMemory(mDevicePtr->mDevice, stagingMemory);
+    vkUnmapMemory(mDevicePtr->GetDevice(), stagingMemory);
 
-    result = vkBindBufferMemory(mDevicePtr->mDevice, staging, stagingMemory, 0);
-    CHECK_VKRESULT(result, "Failed to bind staging memory to staging buffer");
+    result = vkBindBufferMemory(mDevicePtr->GetDevice(), staging, stagingMemory, 0);
+    RETURN_FALSE_IF_FAILED(result, "Failed to bind staging memory to staging buffer");
 
 
     // repeat above steps for device buffer (except map-copy-unmap)
     bufInfo.usage = desc.usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-    result = vkCreateBuffer(mDevicePtr->mDevice, &bufInfo, nullptr, &mBuffer);
-    CHECK_VKRESULT(result, "Failed to create device buffer");
+    result = vkCreateBuffer(mDevicePtr->GetDevice(), &bufInfo, nullptr, &mBuffer);
+    RETURN_FALSE_IF_FAILED(result, "Failed to create device buffer");
 
     VkMemoryRequirements deviceMemReqs;
-    vkGetBufferMemoryRequirements(mDevicePtr->mDevice, mBuffer, &deviceMemReqs);
+    vkGetBufferMemoryRequirements(mDevicePtr->GetDevice(), mBuffer, &deviceMemReqs);
 
     memInfo.memoryTypeIndex = mDevicePtr->GetMemoryTypeIndex(deviceMemReqs.memoryTypeBits,
                                                              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-    result = vkAllocateMemory(mDevicePtr->mDevice, &memInfo, nullptr, &mBufferMemory);
-    CHECK_VKRESULT(result, "Failed to allocate device memory");
+    result = vkAllocateMemory(mDevicePtr->GetDevice(), &memInfo, nullptr, &mBufferMemory);
+    RETURN_FALSE_IF_FAILED(result, "Failed to allocate device memory");
 
-    result = vkBindBufferMemory(mDevicePtr->mDevice, mBuffer, mBufferMemory, 0);
-    CHECK_VKRESULT(result, "Failed to bind device memory to device buffer");
+    result = vkBindBufferMemory(mDevicePtr->GetDevice(), mBuffer, mBufferMemory, 0);
+    RETURN_FALSE_IF_FAILED(result, "Failed to bind device memory to device buffer");
 
 
     // copy data from staging buffer to device
     // TODO OPTIMIZE this uses graphics queue and waits; after implementing queue manager, switch to Transfer queue
+    // TODO this probably should be built and done somewhere else
     VkCommandBuffer copyCommand;
     VkCommandBufferAllocateInfo cmdInfo;
     ZERO_MEMORY(cmdInfo);
     cmdInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    cmdInfo.commandPool = mDevicePtr->mCommandPool;
+    cmdInfo.commandPool = mDevicePtr->GetCommandPool();
     cmdInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     cmdInfo.commandBufferCount = 1;
-    result = vkAllocateCommandBuffers(mDevicePtr->mDevice, &cmdInfo, &copyCommand);
-    CHECK_VKRESULT(result, "Failed to allcoate command buffer for copy between staging and device");
+    result = vkAllocateCommandBuffers(mDevicePtr->GetDevice(), &cmdInfo, &copyCommand);
+    RETURN_FALSE_IF_FAILED(result, "Failed to allcoate command buffer for copy between staging and device");
 
     VkCommandBufferBeginInfo cmdBeginInfo;
     ZERO_MEMORY(cmdBeginInfo);
     cmdBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     cmdBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
     result = vkBeginCommandBuffer(copyCommand, &cmdBeginInfo);
-    CHECK_VKRESULT(result, "Failed to begin copy command buffer");
+    RETURN_FALSE_IF_FAILED(result, "Failed to begin copy command buffer");
 
     VkBufferCopy region;
     ZERO_MEMORY(region);
@@ -112,7 +113,7 @@ bool Buffer::Init(const BufferDesc& desc)
     vkCmdCopyBuffer(copyCommand, staging, mBuffer, 1, &region);
 
     result = vkEndCommandBuffer(copyCommand);
-    CHECK_VKRESULT(result, "Error during copy command buffer record");
+    RETURN_FALSE_IF_FAILED(result, "Error during copy command buffer record");
 
     VkSubmitInfo submitInfo;
     ZERO_MEMORY(submitInfo);
@@ -125,9 +126,9 @@ bool Buffer::Init(const BufferDesc& desc)
 
 
     // cleanup
-    vkFreeCommandBuffers(mDevicePtr->mDevice, mDevicePtr->mCommandPool, 1, &copyCommand);
-    vkFreeMemory(mDevicePtr->mDevice, stagingMemory, nullptr);
-    vkDestroyBuffer(mDevicePtr->mDevice, staging, nullptr);
+    vkFreeCommandBuffers(mDevicePtr->GetDevice(), mDevicePtr->mCommandPool, 1, &copyCommand);
+    vkFreeMemory(mDevicePtr->GetDevice(), stagingMemory, nullptr);
+    vkDestroyBuffer(mDevicePtr->GetDevice(), staging, nullptr);
 
     LOGI(std::dec << mBufferSize << "-byte Buffer initialized successfully");
     return true;

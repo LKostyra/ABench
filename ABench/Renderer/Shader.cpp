@@ -20,7 +20,7 @@ Shader::Shader(const Device* device)
 Shader::~Shader()
 {
     if (mShaderModule != VK_NULL_HANDLE)
-        vkDestroyShaderModule(mDevicePtr->mDevice, mShaderModule, nullptr);
+        vkDestroyShaderModule(mDevicePtr->GetDevice(), mShaderModule, nullptr);
 }
 
 bool Shader::Compile(ShaderLanguage lang, const std::string& path, std::unique_ptr<uint32_t[]>& code, size_t& codeSize)
@@ -74,8 +74,8 @@ bool Shader::Init(const ShaderDesc& desc)
     shaderInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     shaderInfo.pCode = code.get();
     shaderInfo.codeSize = codeSize;
-    VkResult result = vkCreateShaderModule(mDevicePtr->mDevice, &shaderInfo, nullptr, &mShaderModule);
-    CHECK_VKRESULT(result, "Failed to create shader module from file " << desc.path);
+    VkResult result = vkCreateShaderModule(mDevicePtr->GetDevice(), &shaderInfo, nullptr, &mShaderModule);
+    RETURN_FALSE_IF_FAILED(result, "Failed to create shader module from file " << desc.path);
 
     LOGI("Successfully initialized shader module from " << desc.path);
     return true;

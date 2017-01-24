@@ -21,13 +21,13 @@ SemaphoreManager::SemaphoreManager(Device* device)
 SemaphoreManager::~SemaphoreManager()
 {
     if (mPostPresentSemaphore)
-        vkDestroySemaphore(mDevice->mDevice, mPostPresentSemaphore, nullptr);
+        vkDestroySemaphore(mDevice->GetDevice(), mPostPresentSemaphore, nullptr);
     if (mPresentSemaphore)
-        vkDestroySemaphore(mDevice->mDevice, mPresentSemaphore, nullptr);
+        vkDestroySemaphore(mDevice->GetDevice(), mPresentSemaphore, nullptr);
     if (mPrePresentSemaphore)
-        vkDestroySemaphore(mDevice->mDevice, mPrePresentSemaphore, nullptr);
+        vkDestroySemaphore(mDevice->GetDevice(), mPrePresentSemaphore, nullptr);
     if (mRenderSemaphore)
-        vkDestroySemaphore(mDevice->mDevice, mRenderSemaphore, nullptr);
+        vkDestroySemaphore(mDevice->GetDevice(), mRenderSemaphore, nullptr);
 }
 
 bool SemaphoreManager::Init()
@@ -36,17 +36,17 @@ bool SemaphoreManager::Init()
     ZERO_MEMORY(semInfo);
     semInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-    VkResult result = vkCreateSemaphore(mDevice->mDevice, &semInfo, nullptr, &mRenderSemaphore);
-    CHECK_VKRESULT(result, "Failed to create Render Semaphore");
+    VkResult result = vkCreateSemaphore(mDevice->GetDevice(), &semInfo, nullptr, &mRenderSemaphore);
+    RETURN_FALSE_IF_FAILED(result, "Failed to create Render Semaphore");
 
-    result = vkCreateSemaphore(mDevice->mDevice, &semInfo, nullptr, &mPrePresentSemaphore);
-    CHECK_VKRESULT(result, "Failed to create Pre Present Semaphore");
+    result = vkCreateSemaphore(mDevice->GetDevice(), &semInfo, nullptr, &mPrePresentSemaphore);
+    RETURN_FALSE_IF_FAILED(result, "Failed to create Pre Present Semaphore");
 
-    result = vkCreateSemaphore(mDevice->mDevice, &semInfo, nullptr, &mPresentSemaphore);
-    CHECK_VKRESULT(result, "Failed to create Present Semaphore");
+    result = vkCreateSemaphore(mDevice->GetDevice(), &semInfo, nullptr, &mPresentSemaphore);
+    RETURN_FALSE_IF_FAILED(result, "Failed to create Present Semaphore");
 
-    result = vkCreateSemaphore(mDevice->mDevice, &semInfo, nullptr, &mPostPresentSemaphore);
-    CHECK_VKRESULT(result, "Failed to create Post Present Semaphore");
+    result = vkCreateSemaphore(mDevice->GetDevice(), &semInfo, nullptr, &mPostPresentSemaphore);
+    RETURN_FALSE_IF_FAILED(result, "Failed to create Post Present Semaphore");
 
     return true;
 }

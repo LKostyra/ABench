@@ -17,7 +17,7 @@ RenderPass::RenderPass(const Device* device)
 RenderPass::~RenderPass()
 {
     if (mRenderPass)
-        vkDestroyRenderPass(mDevicePtr->mDevice, mRenderPass, nullptr);
+        vkDestroyRenderPass(mDevicePtr->GetDevice(), mRenderPass, nullptr);
 }
 
 bool RenderPass::Init(const RenderPassDesc& desc)
@@ -76,8 +76,8 @@ bool RenderPass::Init(const RenderPassDesc& desc)
     rpInfo.subpassCount = 1;
     rpInfo.pSubpasses = &subpass;
 
-    VkResult result = vkCreateRenderPass(mDevicePtr->mDevice, &rpInfo, nullptr, &mRenderPass);
-    CHECK_VKRESULT(result, "Failed to create Render Pass");
+    VkResult result = vkCreateRenderPass(mDevicePtr->GetDevice(), &rpInfo, nullptr, &mRenderPass);
+    RETURN_FALSE_IF_FAILED(result, "Failed to create Render Pass");
 
     return true;
 }

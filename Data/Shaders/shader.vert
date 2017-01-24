@@ -15,6 +15,12 @@ layout (location = 0) out VertexShaderOutput
     vec4 Color;
 } Output;
 
+layout (set = 0, binding = 0) uniform cb
+{
+	mat4 viewMatrix;
+	mat4 projMatrix;
+} cbuffer;
+
 void main()
 {
     gl_Position = vec4(InPos, 1.0);

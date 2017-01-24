@@ -88,6 +88,10 @@ extern PFN_vkDestroyPipelineLayout vkDestroyPipelineLayout;
 extern PFN_vkCreateShaderModule vkCreateShaderModule;
 extern PFN_vkDestroyShaderModule vkDestroyShaderModule;
 
+// Descriptors
+extern PFN_vkCreateDescriptorPool vkCreateDescriptorPool;
+extern PFN_vkDestroyDescriptorPool vkDestroyDescriptorPool;
+
 // Commands
 extern PFN_vkCmdBeginRenderPass vkCmdBeginRenderPass;
 extern PFN_vkCmdBindPipeline vkCmdBindPipeline;

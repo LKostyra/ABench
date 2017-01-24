@@ -84,7 +84,7 @@ bool Debugger::InitReport(VkInstance instance, VkDebugReportFlagsEXT flags)
     debugInfo.pfnCallback = reinterpret_cast<PFN_vkDebugReportCallbackEXT>(DebugReport);
     debugInfo.flags = flags;
     VkResult result = vkCreateDebugReportCallbackEXT(mVkInstance, &debugInfo, nullptr, &mDebugCallback);
-    CHECK_VKRESULT(result, "Failed to allocate debug report callback");
+    RETURN_FALSE_IF_FAILED(result, "Failed to allocate debug report callback");
 
     LOGD("Vulkan debug report layer initialized successfully.");
     return true;

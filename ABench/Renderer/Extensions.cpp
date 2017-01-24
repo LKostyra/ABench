@@ -164,6 +164,10 @@ PFN_vkDestroyPipelineLayout vkDestroyPipelineLayout = VK_NULL_HANDLE;
 PFN_vkCreateShaderModule vkCreateShaderModule = VK_NULL_HANDLE;
 PFN_vkDestroyShaderModule vkDestroyShaderModule = VK_NULL_HANDLE;
 
+// Descriptors
+PFN_vkCreateDescriptorPool vkCreateDescriptorPool = VK_NULL_HANDLE;
+PFN_vkDestroyDescriptorPool vkDestroyDescriptorPool = VK_NULL_HANDLE;
+
 // Commands
 PFN_vkCmdBeginRenderPass vkCmdBeginRenderPass = VK_NULL_HANDLE;
 PFN_vkCmdBindPipeline vkCmdBindPipeline = VK_NULL_HANDLE;
@@ -233,6 +237,10 @@ bool InitDeviceExtensions(const VkDevice& device)
     // Shader
     VK_GET_DEVICEPROC(device, vkCreateShaderModule);
     VK_GET_DEVICEPROC(device, vkDestroyShaderModule);
+
+    // Descriptors
+    VK_GET_DEVICEPROC(device, vkCreateDescriptorPool);
+    VK_GET_DEVICEPROC(device, vkDestroyDescriptorPool);
 
     // Commands
     VK_GET_DEVICEPROC(device, vkCmdBeginRenderPass);

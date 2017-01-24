@@ -16,7 +16,7 @@ Pipeline::Pipeline(const Device* device)
 Pipeline::~Pipeline()
 {
     if (mPipeline != VK_NULL_HANDLE)
-        vkDestroyPipeline(mDevicePtr->mDevice, mPipeline, nullptr);
+        vkDestroyPipeline(mDevicePtr->GetDevice(), mPipeline, nullptr);
 }
 
 void Pipeline::BuildShaderStageInfo(const PipelineDesc& desc, std::vector<VkPipelineShaderStageCreateInfo>& stages)
@@ -208,12 +208,12 @@ bool Pipeline::Init(const PipelineDesc& desc)
     pipeInfo.pDepthStencilState = &depthStencilState;
     pipeInfo.pColorBlendState = &colorBlendState;
     pipeInfo.pDynamicState = &dynamicStateInfo;
-    pipeInfo.layout = desc.pipelineLayout->mPipelineLayout;
+    pipeInfo.layout = desc.pipelineLayout;
     pipeInfo.renderPass = desc.renderPass->mRenderPass;
     pipeInfo.subpass = 0;
     VkResult result = vkCreateGraphicsPipelines(mDevicePtr->mDevice, mDevicePtr->mPipelineCache, 1,
                                                 &pipeInfo, nullptr, &mPipeline);
-    CHECK_VKRESULT(result, "Failed to create a Graphics Pipeline");
+    RETURN_FALSE_IF_FAILED(result, "Failed to create a Graphics Pipeline");
 
     LOGI("Graphics Pipeline created successfully");
     return true;

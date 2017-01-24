@@ -9,6 +9,7 @@
 #include "Renderer/Buffer.hpp"
 #include "Renderer/Pipeline.hpp"
 #include "Renderer/VertexLayout.hpp"
+#include "Renderer/Tools.hpp"
 
 ABench::Common::Window gWindow;
 
@@ -34,6 +35,8 @@ int main()
     ABench::Renderer::Device dev;
     if (!dev.Init(inst))
         return -1;
+
+    ABench::Renderer::Tools tools(&dev);
 
     ABench::Renderer::Backbuffer bb(&inst, &dev);
     ABench::Renderer::BackbufferDesc bbDesc;
@@ -106,9 +109,8 @@ int main()
     if (!fragShader.Init(shaderDesc))
         return -1;
 
-    ABench::Renderer::PipelineLayout pipeLayout(&dev);
-    ABench::Renderer::PipelineLayoutDesc pipeLayoutDesc;
-    if (!pipeLayout.Init(pipeLayoutDesc))
+    VkPipelineLayout pipeLayout = tools.CreatePipelineLayout(nullptr, 0);
+    if (pipeLayout == VK_NULL_HANDLE)
         return -1;
 
     ABench::Renderer::Pipeline pipeline(&dev);
@@ -118,7 +120,7 @@ int main()
     pipeDesc.vertexLayout = &vertexLayout;
     pipeDesc.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     pipeDesc.renderPass = &rp;
-    pipeDesc.pipelineLayout = &pipeLayout;
+    pipeDesc.pipelineLayout = pipeLayout;
     pipeline.Init(pipeDesc);
 
     while(gWindow.IsOpen())

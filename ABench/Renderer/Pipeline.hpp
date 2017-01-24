@@ -4,7 +4,6 @@
 #include "Shader.hpp"
 #include "VertexLayout.hpp"
 #include "RenderPass.hpp"
-#include "PipelineLayout.hpp"
 
 
 namespace ABench {
@@ -25,7 +24,7 @@ struct PipelineDesc
     VertexLayout* vertexLayout;
     VkPrimitiveTopology topology;
     RenderPass* renderPass;
-    PipelineLayout* pipelineLayout;
+    VkPipelineLayout pipelineLayout;
 
     PipelineDesc()
         : vertexShader(nullptr)

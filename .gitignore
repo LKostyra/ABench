@@ -1,15 +1,6 @@
 #
-# nfEngine project - ignored files list
+# ABench project - ignored files list
 #
-
-# Documentation
-/Doc
-
-# CMake intermediate files
-CMakeFiles
-CMakeCache.txt
-cmake_install.cmake
-Makefile
 
 # Visual Studio precompiled headers
 /ipch
@@ -19,42 +10,16 @@ Makefile
 
 # Output dir and files
 /Bin
-*.a
-*.so
-
-# Non-versioned test resource files
-/nfEngineDemo/Data
-/nfEngineDemo/CookedData
-
-# Shader compilation results
-/ShaderCache
-/ShaderCache_Debug
 
 # Visual Studio Performance Analysis Results
 *.vsp
 *.psess
 
 # Other useless folders and file patterns
-/Logs
-/nfEngine/TestResources/ImageSamples/SaveTests
 *.opensdf
 *.opendb
 *.sdf
 *.suo
 *.vcxproj.user
-*.pyc
 *.VC.db
-
-# Eclipse project files
-.cproject
-.metadata
-.project
-.settings/
-local.properties
-*.bak
-*.tmp
-*.swp
-
-# script outputs
-cppcheck_result.txt
-clean_errors.txt
+log.txt

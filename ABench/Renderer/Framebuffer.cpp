@@ -19,7 +19,7 @@ Framebuffer::~Framebuffer()
 {
     if (mFramebuffers.size() > 0)
         for (auto& fb: mFramebuffers)
-            vkDestroyFramebuffer(mDevicePtr->mDevice, fb, nullptr);
+            vkDestroyFramebuffer(mDevicePtr->GetDevice(), fb, nullptr);
 }
 
 bool Framebuffer::Init(const FramebufferDesc& desc)
@@ -61,8 +61,8 @@ bool Framebuffer::Init(const FramebufferDesc& desc)
         }
 
         fbInfo.pAttachments = fbAtts;
-        result = vkCreateFramebuffer(mDevicePtr->mDevice, &fbInfo, nullptr, &mFramebuffers[i]);
-        CHECK_VKRESULT(result, "Failed to create Framebuffer #" << i << " for provided Texture");
+        result = vkCreateFramebuffer(mDevicePtr->GetDevice(), &fbInfo, nullptr, &mFramebuffers[i]);
+        RETURN_FALSE_IF_FAILED(result, "Failed to create Framebuffer #" << i << " for provided Texture");
     }
 
     mWidth = desc.colorTex->mWidth;

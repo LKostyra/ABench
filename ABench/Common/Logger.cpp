@@ -29,7 +29,7 @@ void Log(LogLevel level, const std::stringstream& msg)
     {
     case LogLevel::DEBUG:
         levelStr = "DEBUG";
-        SetConsoleTextAttribute(console, FOREGROUND_BLUE);
+        SetConsoleTextAttribute(console, FOREGROUND_BLUE | FOREGROUND_GREEN);
         break;
     case LogLevel::INFO:
         levelStr = " INF ";

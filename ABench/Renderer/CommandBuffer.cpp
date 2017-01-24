@@ -18,7 +18,7 @@ CommandBuffer::CommandBuffer(const Device* device)
 CommandBuffer::~CommandBuffer()
 {
     if (mCommandBuffer)
-        vkFreeCommandBuffers(mDevicePtr->mDevice, mDevicePtr->mCommandPool, 1, &mCommandBuffer);
+        vkFreeCommandBuffers(mDevicePtr->GetDevice(), mDevicePtr->GetCommandPool(), 1, &mCommandBuffer);
 }
 
 bool CommandBuffer::Init()
@@ -28,9 +28,9 @@ bool CommandBuffer::Init()
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = 1;
-    allocInfo.commandPool = mDevicePtr->mCommandPool;
-    VkResult result = vkAllocateCommandBuffers(mDevicePtr->mDevice, &allocInfo, &mCommandBuffer);
-    CHECK_VKRESULT(result, "Failed to allocate Command Buffer");
+    allocInfo.commandPool = mDevicePtr->GetCommandPool();
+    VkResult result = vkAllocateCommandBuffers(mDevicePtr->GetDevice(), &allocInfo, &mCommandBuffer);
+    RETURN_FALSE_IF_FAILED(result, "Failed to allocate Command Buffer");
 
     return true;
 }
@@ -104,7 +104,7 @@ void CommandBuffer::EndRenderPass()
 bool CommandBuffer::End()
 {
     VkResult result = vkEndCommandBuffer(mCommandBuffer);
-    CHECK_VKRESULT(result, "Failure during Command Buffer recording");
+    RETURN_FALSE_IF_FAILED(result, "Failure during Command Buffer recording");
     return true;
 }
 

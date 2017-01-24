@@ -40,7 +40,7 @@ VkPhysicalDevice Device::SelectPhysicalDevice(const Instance& inst)
 {
     unsigned int gpuCount = 0;
     VkResult result = vkEnumeratePhysicalDevices(inst.mInstance, &gpuCount, nullptr);
-    CHECK_VKRESULT(result, "Failed to acquire Physical Device count");
+    RETURN_FALSE_IF_FAILED(result, "Failed to acquire Physical Device count");
     if (gpuCount == 0)
     {
         LOGE("No physical devices detected");
@@ -49,7 +49,7 @@ VkPhysicalDevice Device::SelectPhysicalDevice(const Instance& inst)
 
     std::vector<VkPhysicalDevice> devices(gpuCount);
     result = vkEnumeratePhysicalDevices(inst.mInstance, &gpuCount, devices.data());
-    CHECK_VKRESULT(result, "Failed to acquire available Physical Devices");
+    RETURN_FALSE_IF_FAILED(result, "Failed to acquire available Physical Devices");
 
     VkPhysicalDeviceProperties devProps;
 
@@ -81,7 +81,7 @@ bool Device::CreatePipelineCache()
     ZERO_MEMORY(cacheInfo);
     cacheInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
     VkResult result = vkCreatePipelineCache(mDevice, &cacheInfo, nullptr, &mPipelineCache);
-    CHECK_VKRESULT(result, "Failed to create Pipeline Cache");
+    RETURN_FALSE_IF_FAILED(result, "Failed to create Pipeline Cache");
 
     return true;
 }
@@ -156,7 +156,7 @@ bool Device::Init(const Instance& inst)
     }
 
     VkResult result = vkCreateDevice(mPhysicalDevice, &devInfo, nullptr, &mDevice);
-    CHECK_VKRESULT(result, "Failed to create Vulkan Device");
+    RETURN_FALSE_IF_FAILED(result, "Failed to create Vulkan Device");
 
     if (!InitDeviceExtensions(mDevice))
     {
@@ -176,7 +176,7 @@ bool Device::Init(const Instance& inst)
     poolInfo.queueFamilyIndex = mGraphicsQueueIndex;
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     result = vkCreateCommandPool(mDevice, &poolInfo, nullptr, &mCommandPool);
-    CHECK_VKRESULT(result, "Failed to create main Command Pool");
+    RETURN_FALSE_IF_FAILED(result, "Failed to create main Command Pool");
 
     LOGI("Vulkan Device initialized successfully");
     return true;
@@ -213,7 +213,7 @@ bool Device::Execute(CommandBuffer* cmd) const
     submitInfo.pSignalSemaphores = &mSemaphores->mRenderSemaphore;
     submitInfo.pWaitDstStageMask = &pipelineStage;
     VkResult result = vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-    CHECK_VKRESULT(result, "Failed to submit graphics operation");
+    RETURN_FALSE_IF_FAILED(result, "Failed to submit graphics operation");
 
     return true;
 }

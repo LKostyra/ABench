@@ -20,12 +20,12 @@ Backbuffer::Backbuffer(const Instance* instance, const Device* device)
 Backbuffer::~Backbuffer()
 {
     if (mPresentCommandPool)
-        vkDestroyCommandPool(mDevicePtr->mDevice, mPresentCommandPool, nullptr);
+        vkDestroyCommandPool(mDevicePtr->GetDevice(), mPresentCommandPool, nullptr);
     if (mSwapchain)
     {
         for (auto& iv: mImageViews)
-            vkDestroyImageView(mDevicePtr->mDevice, iv, nullptr);
-        vkDestroySwapchainKHR(mDevicePtr->mDevice, mSwapchain, nullptr);
+            vkDestroyImageView(mDevicePtr->GetDevice(), iv, nullptr);
+        vkDestroySwapchainKHR(mDevicePtr->GetDevice(), mSwapchain, nullptr);
     }
     if (mSurface)
         vkDestroySurfaceKHR(mInstancePtr->GetVkInstance(), mSurface, nullptr);
@@ -39,7 +39,7 @@ bool Backbuffer::CreateSurface(const BackbufferDesc& desc)
     surfInfo.hinstance = desc.hInstance;
     surfInfo.hwnd = desc.hWnd;
     VkResult result = vkCreateWin32SurfaceKHR(mInstancePtr->GetVkInstance(), &surfInfo, nullptr, &mSurface);
-    CHECK_VKRESULT(result, "Failed to create Vulkan Surface for Win32");
+    RETURN_FALSE_IF_FAILED(result, "Failed to create Vulkan Surface for Win32");
 
     return true;
 }
@@ -73,7 +73,7 @@ bool Backbuffer::GetPresentQueue(const BackbufferDesc& desc)
     }
 
     LOGD("Selected queue #" << mPresentQueueIndex << " with Present support");
-    vkGetDeviceQueue(mDevicePtr->mDevice, mPresentQueueIndex, 0, &mPresentQueue);
+    vkGetDeviceQueue(mDevicePtr->GetDevice(), mPresentQueueIndex, 0, &mPresentQueue);
 
     return true;
 }
@@ -92,7 +92,7 @@ bool Backbuffer::SelectSurfaceFormat(const BackbufferDesc& desc)
     std::vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
     VkResult result = vkGetPhysicalDeviceSurfaceFormatsKHR(mDevicePtr->mPhysicalDevice, mSurface,
                                                            &formatCount, surfaceFormats.data());
-    CHECK_VKRESULT(result, "Failed to acquire physical device surface formats");
+    RETURN_FALSE_IF_FAILED(result, "Failed to acquire physical device surface formats");
 
     uint32_t formatIndex = 0;
     if ((formatCount > 1) || (surfaceFormats[0].format != VK_FORMAT_UNDEFINED))
@@ -122,7 +122,7 @@ bool Backbuffer::SelectPresentMode(const BackbufferDesc& desc)
     uint32_t presentModeCount = UINT32_MAX;
     VkResult result = vkGetPhysicalDeviceSurfacePresentModesKHR(mDevicePtr->mPhysicalDevice, mSurface,
                                                                 &presentModeCount, nullptr);
-    CHECK_VKRESULT(result, "Failed to acquire surface's present mode count");
+    RETURN_FALSE_IF_FAILED(result, "Failed to acquire surface's present mode count");
     if ((presentModeCount == 0) || (presentModeCount == UINT32_MAX)) 
     {
         LOGE("Failed to get present mode count for currently acquired surface");
@@ -132,7 +132,7 @@ bool Backbuffer::SelectPresentMode(const BackbufferDesc& desc)
     std::vector<VkPresentModeKHR> presentModes(presentModeCount);
     result = vkGetPhysicalDeviceSurfacePresentModesKHR(mDevicePtr->mPhysicalDevice, mSurface,
                                                        &presentModeCount, presentModes.data());
-    CHECK_VKRESULT(result, "Failed to acquire surface's present modes");
+    RETURN_FALSE_IF_FAILED(result, "Failed to acquire surface's present modes");
 
     // selection time
     // the default present mode will be FIFO (vsync on)
@@ -170,7 +170,7 @@ bool Backbuffer::SelectPresentMode(const BackbufferDesc& desc)
 bool Backbuffer::AcquireSurfaceCaps(const BackbufferDesc& desc)
 {
     VkResult result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mDevicePtr->mPhysicalDevice, mSurface, &mSurfCaps);
-    CHECK_VKRESULT(result, "Failed to extract surface's capabilities");
+    RETURN_FALSE_IF_FAILED(result, "Failed to extract surface's capabilities");
     return true;
 }
 
@@ -209,17 +209,17 @@ bool Backbuffer::CreateSwapchain(const BackbufferDesc& desc)
     chainInfo.oldSwapchain = VK_NULL_HANDLE;
     chainInfo.clipped = VK_TRUE;
     chainInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-    VkResult result = vkCreateSwapchainKHR(mDevicePtr->mDevice, &chainInfo, nullptr, &mSwapchain);
-    CHECK_VKRESULT(result, "Failed to create swapchain");
+    VkResult result = vkCreateSwapchainKHR(mDevicePtr->GetDevice(), &chainInfo, nullptr, &mSwapchain);
+    RETURN_FALSE_IF_FAILED(result, "Failed to create swapchain");
     return true;
 }
 
 bool Backbuffer::AllocateImageViews(const BackbufferDesc& desc)
 {
     uint32_t currentBufferCount = 0;
-    VkResult result = vkGetSwapchainImagesKHR(mDevicePtr->mDevice, mSwapchain,
+    VkResult result = vkGetSwapchainImagesKHR(mDevicePtr->GetDevice(), mSwapchain,
                                               &currentBufferCount, nullptr);
-    CHECK_VKRESULT(result, "Failed to acquire Swapchain image count");
+    RETURN_FALSE_IF_FAILED(result, "Failed to acquire Swapchain image count");
 
     if (currentBufferCount != mBufferCount)
     {
@@ -230,9 +230,9 @@ bool Backbuffer::AllocateImageViews(const BackbufferDesc& desc)
     mImages.resize(mBufferCount);
     mImageViews.resize(mBufferCount);
 
-    result = vkGetSwapchainImagesKHR(mDevicePtr->mDevice, mSwapchain,
+    result = vkGetSwapchainImagesKHR(mDevicePtr->GetDevice(), mSwapchain,
                                               &mBufferCount, mImages.data());
-    CHECK_VKRESULT(result, "Failed to acquire Swapchain images");
+    RETURN_FALSE_IF_FAILED(result, "Failed to acquire Swapchain images");
     LOGD(mBufferCount << " swapchain images acquired.");
 
     // we need image views to attach them to Render Targets later on
@@ -256,8 +256,8 @@ bool Backbuffer::AllocateImageViews(const BackbufferDesc& desc)
         ivInfo.subresourceRange.levelCount = 1;
         ivInfo.subresourceRange.baseArrayLayer = 0;
         ivInfo.subresourceRange.layerCount = 1;
-        result = vkCreateImageView(mDevicePtr->mDevice, &ivInfo, nullptr, &mImageViews[i]);
-        CHECK_VKRESULT(result, "Failed to generate Image View from Swapchain image");
+        result = vkCreateImageView(mDevicePtr->GetDevice(), &ivInfo, nullptr, &mImageViews[i]);
+        RETURN_FALSE_IF_FAILED(result, "Failed to generate Image View from Swapchain image");
     }
 
     return true;
@@ -271,9 +271,9 @@ bool Backbuffer::AllocateCommandBuffers(const BackbufferDesc& desc)
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.queueFamilyIndex = mPresentQueueIndex;
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-    VkResult result = vkCreateCommandPool(mDevicePtr->mDevice, &poolInfo,
+    VkResult result = vkCreateCommandPool(mDevicePtr->GetDevice(), &poolInfo,
                                           nullptr, &mPresentCommandPool);
-    CHECK_VKRESULT(result, "Failed to create command pool for present command buffers");
+    RETURN_FALSE_IF_FAILED(result, "Failed to create command pool for present command buffers");
 
     mPresentCommandBuffers.resize(mBufferCount);
     mPostPresentCommandBuffers.resize(mBufferCount);
@@ -284,11 +284,11 @@ bool Backbuffer::AllocateCommandBuffers(const BackbufferDesc& desc)
     cmdAllocInfo.commandPool = mPresentCommandPool;
     cmdAllocInfo.commandBufferCount = mBufferCount;
     cmdAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    result = vkAllocateCommandBuffers(mDevicePtr->mDevice, &cmdAllocInfo, mPresentCommandBuffers.data());
-    CHECK_VKRESULT(result, "Failed to allocate command buffers for present operation");
+    result = vkAllocateCommandBuffers(mDevicePtr->GetDevice(), &cmdAllocInfo, mPresentCommandBuffers.data());
+    RETURN_FALSE_IF_FAILED(result, "Failed to allocate command buffers for present operation");
 
-    result = vkAllocateCommandBuffers(mDevicePtr->mDevice, &cmdAllocInfo, mPostPresentCommandBuffers.data());
-    CHECK_VKRESULT(result, "Failed to allocate command buffers for post present operation");
+    result = vkAllocateCommandBuffers(mDevicePtr->GetDevice(), &cmdAllocInfo, mPostPresentCommandBuffers.data());
+    RETURN_FALSE_IF_FAILED(result, "Failed to allocate command buffers for post present operation");
 
     // building present command buffers
     VkImageMemoryBarrier barrier;
@@ -313,7 +313,7 @@ bool Backbuffer::AllocateCommandBuffers(const BackbufferDesc& desc)
     for (uint32_t i = 0; i < mBufferCount; ++i)
     {
         result = vkBeginCommandBuffer(mPresentCommandBuffers[i], &cmdBeginInfo);
-        CHECK_VKRESULT(result, "Failed to start recording present command buffer");
+        RETURN_FALSE_IF_FAILED(result, "Failed to start recording present command buffer");
 
         barrier.image = mImages[i];
 
@@ -323,7 +323,7 @@ bool Backbuffer::AllocateCommandBuffers(const BackbufferDesc& desc)
                              1, &barrier);
 
         result = vkEndCommandBuffer(mPresentCommandBuffers[i]);
-        CHECK_VKRESULT(result, "Error during present command buffer recording");
+        RETURN_FALSE_IF_FAILED(result, "Error during present command buffer recording");
     }
 
     barrier.srcAccessMask = 0;
@@ -333,7 +333,7 @@ bool Backbuffer::AllocateCommandBuffers(const BackbufferDesc& desc)
     for (uint32_t i = 0; i < mBufferCount; ++i)
     {
         result = vkBeginCommandBuffer(mPostPresentCommandBuffers[i], &cmdBeginInfo);
-        CHECK_VKRESULT(result, "Failed to start recording present command buffer");
+        RETURN_FALSE_IF_FAILED(result, "Failed to start recording present command buffer");
 
         barrier.image = mImages[i];
 
@@ -343,7 +343,7 @@ bool Backbuffer::AllocateCommandBuffers(const BackbufferDesc& desc)
                              1, &barrier);
 
         result = vkEndCommandBuffer(mPostPresentCommandBuffers[i]);
-        CHECK_VKRESULT(result, "Error during present command buffer recording");
+        RETURN_FALSE_IF_FAILED(result, "Error during present command buffer recording");
     }
 
     return true;
@@ -351,10 +351,10 @@ bool Backbuffer::AllocateCommandBuffers(const BackbufferDesc& desc)
 
 bool Backbuffer::AcquireNextImage()
 {
-    VkResult result = vkAcquireNextImageKHR(mDevicePtr->mDevice, mSwapchain, UINT64_MAX,
+    VkResult result = vkAcquireNextImageKHR(mDevicePtr->GetDevice(), mSwapchain, UINT64_MAX,
                                             mDevicePtr->mSemaphores->mPresentSemaphore, VK_NULL_HANDLE,
                                             &mCurrentBuffer);
-    CHECK_VKRESULT(result, "Failed to preacquire next image for presenting");
+    RETURN_FALSE_IF_FAILED(result, "Failed to preacquire next image for presenting");
 
     VkPipelineStageFlags pipelineStages = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
     VkSubmitInfo submitInfo;
@@ -368,7 +368,7 @@ bool Backbuffer::AcquireNextImage()
     submitInfo.pSignalSemaphores = &mDevicePtr->mSemaphores->mPostPresentSemaphore;
     submitInfo.pWaitDstStageMask = &pipelineStages;
     result = vkQueueSubmit(mPresentQueue, 1, &submitInfo, VK_NULL_HANDLE);
-    CHECK_VKRESULT(result, "Failed to submit post-acquire barrier operation");
+    RETURN_FALSE_IF_FAILED(result, "Failed to submit post-acquire barrier operation");
 
     return true;
 }
@@ -411,7 +411,7 @@ bool Backbuffer::Present()
     submitInfo.pSignalSemaphores = &mDevicePtr->mSemaphores->mPrePresentSemaphore;
     submitInfo.pWaitDstStageMask = &pipelineStages;
     result = vkQueueSubmit(mPresentQueue, 1, &submitInfo, VK_NULL_HANDLE);
-    CHECK_VKRESULT(result, "Failed to submit post-acquire barrier operation")
+    RETURN_FALSE_IF_FAILED(result, "Failed to submit post-acquire barrier operation")
 
     VkPresentInfoKHR presentInfo;
     ZERO_MEMORY(presentInfo);
@@ -423,7 +423,7 @@ bool Backbuffer::Present()
     presentInfo.pWaitSemaphores = &mDevicePtr->mSemaphores->mPrePresentSemaphore;
     presentInfo.pResults = &result;
     vkQueuePresentKHR(mPresentQueue, &presentInfo);
-    CHECK_VKRESULT(result, "Failed to present rendered image on screen");
+    RETURN_FALSE_IF_FAILED(result, "Failed to present rendered image on screen");
 
     return AcquireNextImage();
 }
