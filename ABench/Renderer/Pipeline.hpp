@@ -35,7 +35,7 @@ struct PipelineDesc
         , vertexLayout(nullptr)
         , topology(VK_PRIMITIVE_TOPOLOGY_POINT_LIST)
         , renderPass(nullptr)
-        , pipelineLayout(nullptr)
+        , pipelineLayout(VK_NULL_HANDLE)
     {
     }
 };

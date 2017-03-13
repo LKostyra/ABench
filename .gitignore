@@ -11,9 +11,10 @@
 # Output dir and files
 /Bin
 
-# Visual Studio Performance Analysis Results
+# Visual Studio
 *.vsp
 *.psess
+/.vs
 
 # Other useless folders and file patterns
 *.opensdf
@@ -22,4 +23,5 @@
 *.suo
 *.vcxproj.user
 *.VC.db
+*.spv
 log.txt

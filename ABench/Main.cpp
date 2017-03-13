@@ -100,12 +100,12 @@ int main()
     ABench::Renderer::Shader vertShader(&dev);
     ABench::Renderer::ShaderDesc shaderDesc;
     shaderDesc.language = ABench::Renderer::ShaderLanguage::SPIRV;
-    shaderDesc.path = "vert.spv";
+    shaderDesc.path = "Data/Shaders/vert.spv";
     if (!vertShader.Init(shaderDesc))
         return -1;
 
     ABench::Renderer::Shader fragShader(&dev);
-    shaderDesc.path = "frag.spv";
+    shaderDesc.path = "Data/Shaders/frag.spv";
     if (!fragShader.Init(shaderDesc))
         return -1;
 

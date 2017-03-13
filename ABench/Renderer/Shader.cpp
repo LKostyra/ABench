@@ -57,7 +57,7 @@ bool Shader::Init(const ShaderDesc& desc)
         }
 
         codeFile.seekg(0, std::ifstream::end);
-        codeSize = codeFile.tellg();
+        codeSize = static_cast<size_t>(codeFile.tellg());
         codeFile.seekg(0, std::ifstream::beg);
 
         code.reset(new uint32_t [codeSize/sizeof(uint32_t)]);
