@@ -8,6 +8,8 @@ namespace Renderer {
 
 struct RenderPassDesc
 {
+    Device* devicePtr;
+
     // TODO multiple render pass targets
     VkFormat colorFormat;
     VkFormat depthFormat;
@@ -25,12 +27,12 @@ class RenderPass
     friend class CommandBuffer;
     friend class Pipeline;
 
-    const Device* mDevicePtr;
+    Device* mDevicePtr;
 
     VkRenderPass mRenderPass;
 
 public:
-    RenderPass(const Device* device);
+    RenderPass();
     ~RenderPass();
 
     bool Init(const RenderPassDesc& desc);

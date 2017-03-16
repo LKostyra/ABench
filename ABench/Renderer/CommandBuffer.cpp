@@ -10,8 +10,8 @@
 namespace ABench {
 namespace Renderer {
 
-CommandBuffer::CommandBuffer(const Device* device)
-    : mDevicePtr(device)
+CommandBuffer::CommandBuffer()
+    : mDevicePtr(nullptr)
 {
 }
 
@@ -21,8 +21,10 @@ CommandBuffer::~CommandBuffer()
         vkFreeCommandBuffers(mDevicePtr->GetDevice(), mDevicePtr->GetCommandPool(), 1, &mCommandBuffer);
 }
 
-bool CommandBuffer::Init()
+bool CommandBuffer::Init(Device* devicePtr)
 {
+    mDevicePtr = devicePtr;
+
     VkCommandBufferAllocateInfo allocInfo;
     ZERO_MEMORY(allocInfo);
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;

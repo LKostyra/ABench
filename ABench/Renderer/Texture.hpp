@@ -22,6 +22,16 @@ class Texture
 public:
     Texture();
     ~Texture();
+
+    __forceinline uint32_t GetWidth() const
+    {
+        return mWidth;
+    }
+
+    __forceinline uint32_t GetHeight() const
+    {
+        return mHeight;
+    }
 };
 
 } // namespace Renderer

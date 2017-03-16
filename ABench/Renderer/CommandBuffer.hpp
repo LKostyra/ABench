@@ -16,16 +16,16 @@ class CommandBuffer
 {
     friend class Device;
 
-    const Device* mDevicePtr;
+    Device* mDevicePtr;
 
     VkCommandBuffer mCommandBuffer;
     Framebuffer* mCurrentFramebuffer;
 
 public:
-    CommandBuffer(const Device* device);
+    CommandBuffer();
     ~CommandBuffer();
 
-    bool Init();
+    bool Init(Device* devicePtr);
 
     void Begin();
     void BeginRenderPass(RenderPass* rp, Framebuffer* fb, float clearValues[4]);

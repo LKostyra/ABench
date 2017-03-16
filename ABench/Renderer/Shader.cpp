@@ -11,8 +11,8 @@
 namespace ABench {
 namespace Renderer {
 
-Shader::Shader(const Device* device)
-    : mDevicePtr(device)
+Shader::Shader()
+    : mDevicePtr(nullptr)
     , mShaderModule(VK_NULL_HANDLE)
 {
 }
@@ -36,6 +36,8 @@ bool Shader::Compile(ShaderLanguage lang, const std::string& path, std::unique_p
 
 bool Shader::Init(const ShaderDesc& desc)
 {
+    mDevicePtr = desc.devicePtr;
+
     std::unique_ptr<uint32_t[]> code;
     size_t codeSize;
 

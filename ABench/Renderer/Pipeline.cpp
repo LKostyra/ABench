@@ -8,8 +8,8 @@
 namespace ABench {
 namespace Renderer {
 
-Pipeline::Pipeline(const Device* device)
-    : mDevicePtr(device)
+Pipeline::Pipeline()
+    : mDevicePtr(nullptr)
 {
 }
 
@@ -17,10 +17,14 @@ Pipeline::~Pipeline()
 {
     if (mPipeline != VK_NULL_HANDLE)
         vkDestroyPipeline(mDevicePtr->GetDevice(), mPipeline, nullptr);
+
+    mDevicePtr = nullptr;
 }
 
 void Pipeline::BuildShaderStageInfo(const PipelineDesc& desc, std::vector<VkPipelineShaderStageCreateInfo>& stages)
 {
+    mDevicePtr = desc.devicePtr;
+
     VkPipelineShaderStageCreateInfo stage;
     ZERO_MEMORY(stage);
     stage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -157,6 +161,8 @@ VkPipelineDepthStencilStateCreateInfo Pipeline::BuildDepthStencilStateInfo(const
 
 bool Pipeline::Init(const PipelineDesc& desc)
 {
+    mDevicePtr = desc.devicePtr;
+
     std::vector<VkPipelineShaderStageCreateInfo> stages;
     BuildShaderStageInfo(desc, stages);
     VkPipelineVertexInputStateCreateInfo vertexInputState = BuildVertexInputStateInfo(desc);

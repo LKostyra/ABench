@@ -9,19 +9,33 @@
 namespace ABench {
 namespace Renderer {
 
-Tools::Tools(const Device* device)
-    : mDeviceRef(device)
+Tools::Tools()
+    : mDevicePtr(nullptr)
 {
 }
 
 Tools::~Tools()
 {
     for (auto& pipeLayout: mPipelineLayouts)
-        vkDestroyPipelineLayout(mDeviceRef->GetDevice(), pipeLayout, nullptr);
+        vkDestroyPipelineLayout(mDevicePtr->GetDevice(), pipeLayout, nullptr);
     for (auto& descLayout : mDescriptorLayouts)
-        vkDestroyDescriptorSetLayout(mDeviceRef->GetDevice(), descLayout, nullptr);
+        vkDestroyDescriptorSetLayout(mDevicePtr->GetDevice(), descLayout, nullptr);
     for (auto& descPool: mDescriptorPools)
-        vkDestroyDescriptorPool(mDeviceRef->GetDevice(), descPool, nullptr);
+        vkDestroyDescriptorPool(mDevicePtr->GetDevice(), descPool, nullptr);
+
+    mDevicePtr = nullptr;
+}
+
+bool Tools::Init(Device* devicePtr)
+{
+    if (devicePtr == nullptr)
+    {
+        LOGE("Valid pointer to Device must be provided");
+        return false;
+    }
+
+    mDevicePtr = devicePtr;
+    return true;
 }
 
 VkPipelineLayout Tools::CreatePipelineLayout(VkDescriptorSetLayout* sets, int setCount)
@@ -33,7 +47,7 @@ VkPipelineLayout Tools::CreatePipelineLayout(VkDescriptorSetLayout* sets, int se
     info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     info.pSetLayouts = sets;
     info.setLayoutCount = setCount;
-    VkResult result = vkCreatePipelineLayout(mDeviceRef->GetDevice(), &info, nullptr, &layout);
+    VkResult result = vkCreatePipelineLayout(mDevicePtr->GetDevice(), &info, nullptr, &layout);
     RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create Pipeline Layout");
 
     mPipelineLayouts.push_back(layout);
@@ -49,7 +63,7 @@ VkDescriptorPool Tools::CreateDescriptorPool(const std::vector<VkDescriptorPoolS
     info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     info.pPoolSizes = poolSizes.data();
     info.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-    VkResult result = vkCreateDescriptorPool(mDeviceRef->GetDevice(), &info, nullptr, &pool);
+    VkResult result = vkCreateDescriptorPool(mDevicePtr->GetDevice(), &info, nullptr, &pool);
     RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create Descriptor Pool");
 
     mDescriptorPools.push_back(pool);
@@ -74,7 +88,7 @@ VkDescriptorSetLayout Tools::CreateDescriptorSetLayout(VkDescriptorType type, Vk
     info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     info.bindingCount = 1;
     info.pBindings = &binding;
-    VkResult result = vkCreateDescriptorSetLayout(mDeviceRef->GetDevice(), &info, nullptr, &layout);
+    VkResult result = vkCreateDescriptorSetLayout(mDevicePtr->GetDevice(), &info, nullptr, &layout);
     RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create Descriptor Set Layout");
     
     mDescriptorLayouts.push_back(layout);
@@ -91,7 +105,7 @@ VkDescriptorSet Tools::AllocateDescriptorSet(VkDescriptorPool pool, VkDescriptor
     info.descriptorPool = pool;
     info.descriptorSetCount = 1;
     info.pSetLayouts = &layout;
-    VkResult result = vkAllocateDescriptorSets(mDeviceRef->GetDevice(), &info, &set);
+    VkResult result = vkAllocateDescriptorSets(mDevicePtr->GetDevice(), &info, &set);
     RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to allocate Descriptor Set");
 
     // no resource gathering here, as descriptor sets are freed with pool

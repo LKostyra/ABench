@@ -9,6 +9,9 @@ namespace Renderer {
 
 struct BackbufferDesc
 {
+    Instance* instancePtr;
+    Device* devicePtr;
+
     HINSTANCE hInstance;
     HWND hWnd;
     VkFormat requestedFormat;
@@ -31,8 +34,8 @@ struct BackbufferDesc
 
 class Backbuffer: public Texture
 {
-    const Instance* mInstancePtr;
-    const Device* mDevicePtr;
+    Instance* mInstancePtr;
+    Device* mDevicePtr;
 
     VkSurfaceKHR mSurface;
     uint32_t mPresentQueueIndex;
@@ -60,7 +63,7 @@ class Backbuffer: public Texture
     bool AcquireNextImage();
 
 public:
-    Backbuffer(const Instance* instance, const Device* device);
+    Backbuffer();
     ~Backbuffer();
 
     bool Init(const BackbufferDesc& desc);

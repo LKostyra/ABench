@@ -10,9 +10,9 @@
 namespace ABench {
 namespace Renderer {
 
-Backbuffer::Backbuffer(const Instance* instance, const Device* device)
-    : mInstancePtr(instance)
-    , mDevicePtr(device)
+Backbuffer::Backbuffer()
+    : mInstancePtr(nullptr)
+    , mDevicePtr(nullptr)
     , mSurface(VK_NULL_HANDLE)
 {
 }
@@ -29,6 +29,9 @@ Backbuffer::~Backbuffer()
     }
     if (mSurface)
         vkDestroySurfaceKHR(mInstancePtr->GetVkInstance(), mSurface, nullptr);
+
+    mDevicePtr = nullptr;
+    mInstancePtr = nullptr;
 }
 
 bool Backbuffer::CreateSurface(const BackbufferDesc& desc)
@@ -375,6 +378,8 @@ bool Backbuffer::AcquireNextImage()
 
 bool Backbuffer::Init(const BackbufferDesc& desc)
 {
+    mInstancePtr = desc.instancePtr;
+    mDevicePtr = desc.devicePtr;
     mWidth = desc.width;
     mHeight = desc.height;
 

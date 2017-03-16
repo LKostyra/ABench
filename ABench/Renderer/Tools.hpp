@@ -19,15 +19,17 @@ namespace Renderer {
  */
 class Tools
 {
-    const Device* mDeviceRef;
+    Device* mDevicePtr;
 
     std::list<VkPipelineLayout> mPipelineLayouts;
     std::list<VkDescriptorPool> mDescriptorPools;
     std::list<VkDescriptorSetLayout> mDescriptorLayouts;
 
 public:
-    Tools(const Device* device);
+    Tools();
     ~Tools();
+
+    bool Init(Device* devicePtr);
 
     // VkPipelineLayout creation. Sets and setCount can be null/zero.
     VkPipelineLayout CreatePipelineLayout(VkDescriptorSetLayout* sets, int setCount);

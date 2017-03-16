@@ -152,24 +152,6 @@ void Window::Close()
     mOpened = false;
 }
 
-HINSTANCE Window::GetInstance() const
-{
-    return mInstance;
-}
-
-HWND Window::GetHandle() const
-{
-    return mHWND;
-}
-
-
-// checks
-
-bool Window::IsOpen() const
-{
-    return mOpened;
-}
-
 
 // callbacks
 

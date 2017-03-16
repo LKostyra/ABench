@@ -8,8 +8,8 @@
 namespace ABench {
 namespace Renderer {
 
-RenderPass::RenderPass(const Device* device)
-    : mDevicePtr(device)
+RenderPass::RenderPass()
+    : mDevicePtr(nullptr)
     , mRenderPass(VK_NULL_HANDLE)
 {
 }
@@ -22,6 +22,8 @@ RenderPass::~RenderPass()
 
 bool RenderPass::Init(const RenderPassDesc& desc)
 {
+    mDevicePtr = desc.devicePtr;
+
     // TODO multiple color attachments
     VkAttachmentDescription atts[2];
     uint32_t attCount = 0;

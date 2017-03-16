@@ -8,8 +8,8 @@
 namespace ABench {
 namespace Renderer {
 
-Buffer::Buffer(const Device* device)
-    : mDevicePtr(device)
+Buffer::Buffer()
+    : mDevicePtr(nullptr)
 {
 }
 
@@ -19,6 +19,8 @@ Buffer::~Buffer()
         vkFreeMemory(mDevicePtr->GetDevice(), mBufferMemory, nullptr);
     if (mBuffer)
         vkDestroyBuffer(mDevicePtr->GetDevice(), mBuffer, nullptr);
+
+    mDevicePtr = nullptr;
 }
 
 bool Buffer::Init(const BufferDesc& desc)
@@ -29,6 +31,7 @@ bool Buffer::Init(const BufferDesc& desc)
         return false;
     }
 
+    mDevicePtr = desc.devicePtr;
 
     VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
     VkBuffer staging = VK_NULL_HANDLE;

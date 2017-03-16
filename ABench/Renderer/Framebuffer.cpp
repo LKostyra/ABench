@@ -10,8 +10,8 @@
 namespace ABench {
 namespace Renderer {
 
-Framebuffer::Framebuffer(const Device* device)
-    : mDevicePtr(device)
+Framebuffer::Framebuffer()
+    : mDevicePtr(nullptr)
 {
 }
 
@@ -20,10 +20,14 @@ Framebuffer::~Framebuffer()
     if (mFramebuffers.size() > 0)
         for (auto& fb: mFramebuffers)
             vkDestroyFramebuffer(mDevicePtr->GetDevice(), fb, nullptr);
+
+    mDevicePtr = nullptr;
 }
 
 bool Framebuffer::Init(const FramebufferDesc& desc)
 {
+    mDevicePtr = desc.devicePtr;
+
     mFramebuffers.resize(desc.colorTex->mImageViews.size());
 
     if (!desc.colorTex)

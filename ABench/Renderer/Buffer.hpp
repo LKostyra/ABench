@@ -7,6 +7,8 @@ namespace Renderer {
 
 struct BufferDesc
 {
+    Device* devicePtr;
+
     void* data;
     VkDeviceSize dataSize;
     VkBufferUsageFlags usage;
@@ -16,14 +18,14 @@ class Buffer
 {
     friend class CommandBuffer;
 
-    const Device* mDevicePtr;
+    Device* mDevicePtr;
 
     VkBuffer mBuffer;
     VkDeviceMemory mBufferMemory;
     VkDeviceSize mBufferSize;
 
 public:
-    Buffer(const Device* device);
+    Buffer();
     ~Buffer();
 
     bool Init(const BufferDesc& desc);

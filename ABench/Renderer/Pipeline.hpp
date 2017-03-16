@@ -15,6 +15,8 @@ class PipelineLayout;
 
 struct PipelineDesc
 {
+    Device* devicePtr;
+
     Shader* vertexShader;
     Shader* tessControlShader;
     Shader* tessEvalShader;
@@ -44,7 +46,7 @@ class Pipeline
 {
     friend class CommandBuffer;
 
-    const Device* mDevicePtr;
+    Device* mDevicePtr;
 
     VkPipeline mPipeline;
 
@@ -58,7 +60,7 @@ class Pipeline
     VkPipelineDepthStencilStateCreateInfo BuildDepthStencilStateInfo(const PipelineDesc& desc);
 
 public:
-    Pipeline(const Device* device);
+    Pipeline();
     ~Pipeline();
 
     bool Init(const PipelineDesc& desc);
