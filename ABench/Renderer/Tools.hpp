@@ -22,6 +22,8 @@ class Tools
     const Device* mDeviceRef;
 
     std::list<VkPipelineLayout> mPipelineLayouts;
+    std::list<VkDescriptorPool> mDescriptorPools;
+    std::list<VkDescriptorSetLayout> mDescriptorLayouts;
 
 public:
     Tools(const Device* device);
@@ -29,6 +31,15 @@ public:
 
     // VkPipelineLayout creation. Sets and setCount can be null/zero.
     VkPipelineLayout CreatePipelineLayout(VkDescriptorSetLayout* sets, int setCount);
+
+    // VkDescriptorPool creation.
+    VkDescriptorPool CreateDescriptorPool(const std::vector<VkDescriptorPoolSize>& poolSizes);
+
+    // VkDescriptorSetLayout creation. VkSampler is optional.
+    VkDescriptorSetLayout CreateDescriptorSetLayout(VkDescriptorType type, VkShaderStageFlags stage, VkSampler sampler = VK_NULL_HANDLE);
+
+    // Descriptor Sets allocation
+    VkDescriptorSet AllocateDescriptorSet(VkDescriptorPool pool, VkDescriptorSetLayout layout);
 };
 
 } // namespace Renderer

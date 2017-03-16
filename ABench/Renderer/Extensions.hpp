@@ -89,8 +89,12 @@ extern PFN_vkCreateShaderModule vkCreateShaderModule;
 extern PFN_vkDestroyShaderModule vkDestroyShaderModule;
 
 // Descriptors
+extern PFN_vkAllocateDescriptorSets vkAllocateDescriptorSets;
 extern PFN_vkCreateDescriptorPool vkCreateDescriptorPool;
+extern PFN_vkCreateDescriptorSetLayout vkCreateDescriptorSetLayout;
 extern PFN_vkDestroyDescriptorPool vkDestroyDescriptorPool;
+extern PFN_vkDestroyDescriptorSetLayout vkDestroyDescriptorSetLayout;
+extern PFN_vkFreeDescriptorSets vkFreeDescriptorSets;
 
 // Commands
 extern PFN_vkCmdBeginRenderPass vkCmdBeginRenderPass;

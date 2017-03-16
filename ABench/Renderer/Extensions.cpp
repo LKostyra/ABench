@@ -165,8 +165,12 @@ PFN_vkCreateShaderModule vkCreateShaderModule = VK_NULL_HANDLE;
 PFN_vkDestroyShaderModule vkDestroyShaderModule = VK_NULL_HANDLE;
 
 // Descriptors
+PFN_vkAllocateDescriptorSets vkAllocateDescriptorSets = VK_NULL_HANDLE;
 PFN_vkCreateDescriptorPool vkCreateDescriptorPool = VK_NULL_HANDLE;
+PFN_vkCreateDescriptorSetLayout vkCreateDescriptorSetLayout = VK_NULL_HANDLE;
 PFN_vkDestroyDescriptorPool vkDestroyDescriptorPool = VK_NULL_HANDLE;
+PFN_vkDestroyDescriptorSetLayout vkDestroyDescriptorSetLayout = VK_NULL_HANDLE;
+PFN_vkFreeDescriptorSets vkFreeDescriptorSets = VK_NULL_HANDLE;
 
 // Commands
 PFN_vkCmdBeginRenderPass vkCmdBeginRenderPass = VK_NULL_HANDLE;
@@ -239,8 +243,12 @@ bool InitDeviceExtensions(const VkDevice& device)
     VK_GET_DEVICEPROC(device, vkDestroyShaderModule);
 
     // Descriptors
+    VK_GET_DEVICEPROC(device, vkAllocateDescriptorSets);
     VK_GET_DEVICEPROC(device, vkCreateDescriptorPool);
+    VK_GET_DEVICEPROC(device, vkCreateDescriptorSetLayout);
     VK_GET_DEVICEPROC(device, vkDestroyDescriptorPool);
+    VK_GET_DEVICEPROC(device, vkDestroyDescriptorSetLayout);
+    VK_GET_DEVICEPROC(device, vkFreeDescriptorSets);
 
     // Commands
     VK_GET_DEVICEPROC(device, vkCmdBeginRenderPass);
