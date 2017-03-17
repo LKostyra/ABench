@@ -46,7 +46,7 @@ void CommandBuffer::Begin()
     vkBeginCommandBuffer(mCommandBuffer, &beginInfo);
 }
 
-void CommandBuffer::BeginRenderPass(RenderPass* rp, Framebuffer* fb, float clearValues[4])
+void CommandBuffer::BeginRenderPass(VkRenderPass rp, Framebuffer* fb, float clearValues[4])
 {
     VkClearValue clear;
     memcpy(clear.color.float32, clearValues, 4 * sizeof(float));
@@ -54,7 +54,7 @@ void CommandBuffer::BeginRenderPass(RenderPass* rp, Framebuffer* fb, float clear
     VkRenderPassBeginInfo rpInfo;
     ZERO_MEMORY(rpInfo);
     rpInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    rpInfo.renderPass = rp->mRenderPass;
+    rpInfo.renderPass = rp;
     rpInfo.renderArea.extent.width = fb->mWidth;
     rpInfo.renderArea.extent.height = fb->mHeight;
     rpInfo.clearValueCount = 1;

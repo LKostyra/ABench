@@ -1,6 +1,7 @@
 #include "../PCH.hpp"
 #include "Renderer.hpp"
 
+#include "Extensions.hpp"
 #include "Common/Logger.hpp"
 
 
@@ -8,11 +9,17 @@ namespace ABench {
 namespace Renderer {
 
 Renderer::Renderer()
+    : mRenderPass(VK_NULL_HANDLE)
+    , mPipelineLayout(VK_NULL_HANDLE)
 {
 }
 
 Renderer::~Renderer()
 {
+    if (mRenderPass != VK_NULL_HANDLE)
+        vkDestroyRenderPass(mDevice.GetDevice(), mRenderPass, nullptr);
+    if (mPipelineLayout != VK_NULL_HANDLE)
+        vkDestroyPipelineLayout(mDevice.GetDevice(), mPipelineLayout, nullptr);
 }
 
 bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVerbose)
@@ -47,18 +54,14 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (!mBackbuffer.Init(bbDesc))
         return false;
 
-    // TODO move to Tools
-    ABench::Renderer::RenderPassDesc rpDesc;
-    rpDesc.devicePtr = &mDevice;
-    rpDesc.colorFormat = bbDesc.requestedFormat;
-    if (!mRenderPass.Init(rpDesc))
+    mRenderPass = mTools.CreateRenderPass(bbDesc.requestedFormat, VK_FORMAT_UNDEFINED);
+    if (mRenderPass == VK_NULL_HANDLE)
         return false;
 
-    // TODO move to Tools
     ABench::Renderer::FramebufferDesc fbDesc;
     fbDesc.devicePtr = &mDevice;
     fbDesc.colorTex = &mBackbuffer;
-    fbDesc.renderPass = &mRenderPass;
+    fbDesc.renderPass = mRenderPass;
     if (!mFramebuffer.Init(fbDesc))
         return false;
 
@@ -98,12 +101,11 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     shaderDesc.path = "Data/Shaders/vert.spv";
     if (!mVertexShader.Init(shaderDesc))
         return false;
-
     shaderDesc.path = "Data/Shaders/frag.spv";
     if (!mFragmentShader.Init(shaderDesc))
         return false;
 
-    mPipelineLayout = mTools.CreatePipelineLayout(nullptr, 0);
+    mPipelineLayout = mTools.CreatePipelineLayout();
     if (mPipelineLayout == VK_NULL_HANDLE)
         return false;
 
@@ -113,7 +115,7 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     pipeDesc.fragmentShader = &mFragmentShader;
     pipeDesc.vertexLayout = &mVertexLayout;
     pipeDesc.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    pipeDesc.renderPass = &mRenderPass;
+    pipeDesc.renderPass = mRenderPass;
     pipeDesc.pipelineLayout = mPipelineLayout;
     mPipeline.Init(pipeDesc);
 
@@ -132,7 +134,7 @@ void Renderer::Draw()
         mCommandBuffer.SetScissor(0, 0, mBackbuffer.GetWidth(), mBackbuffer.GetHeight());
 
         float clearValue[] = {0.2f, 0.4f, 0.8f, 0.0f};
-        mCommandBuffer.BeginRenderPass(&mRenderPass, &mFramebuffer, clearValue);
+        mCommandBuffer.BeginRenderPass(mRenderPass, &mFramebuffer, clearValue);
 
         mCommandBuffer.BindPipeline(&mPipeline);
         mCommandBuffer.BindVertexBuffer(&mVertexBuffer);

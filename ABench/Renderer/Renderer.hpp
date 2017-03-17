@@ -4,7 +4,6 @@
 #include "Device.hpp"
 #include "Tools.hpp"
 #include "Backbuffer.hpp"
-#include "RenderPass.hpp"
 #include "Framebuffer.hpp"
 #include "Buffer.hpp"
 #include "Shader.hpp"
@@ -22,7 +21,6 @@ class Renderer final
     Device mDevice;
     Tools mTools;
     Backbuffer mBackbuffer;
-    RenderPass mRenderPass;
     Framebuffer mFramebuffer;
     Buffer mVertexBuffer;
     VertexLayout mVertexLayout;
@@ -31,6 +29,7 @@ class Renderer final
     Pipeline mPipeline;
     CommandBuffer mCommandBuffer;
 
+    VkRenderPass mRenderPass;
     VkPipelineLayout mPipelineLayout;
 
 public:

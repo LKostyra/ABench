@@ -53,9 +53,6 @@
     <ClCompile Include="Renderer\SemaphoreManager.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\RenderPass.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="Renderer\Framebuffer.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
@@ -129,9 +126,6 @@
       <Filter>Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Renderer\SemaphoreManager.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\RenderPass.hpp">
       <Filter>Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Renderer\Framebuffer.hpp">

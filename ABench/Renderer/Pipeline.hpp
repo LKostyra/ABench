@@ -3,7 +3,6 @@
 #include "Device.hpp"
 #include "Shader.hpp"
 #include "VertexLayout.hpp"
-#include "RenderPass.hpp"
 
 
 namespace ABench {
@@ -11,7 +10,6 @@ namespace Renderer {
 
 // TODO create Prerequisites.hpp
 class Shader;
-class PipelineLayout;
 
 struct PipelineDesc
 {
@@ -25,7 +23,7 @@ struct PipelineDesc
 
     VertexLayout* vertexLayout;
     VkPrimitiveTopology topology;
-    RenderPass* renderPass;
+    VkRenderPass renderPass;
     VkPipelineLayout pipelineLayout;
 
     PipelineDesc()
@@ -36,7 +34,7 @@ struct PipelineDesc
         , fragmentShader(nullptr)
         , vertexLayout(nullptr)
         , topology(VK_PRIMITIVE_TOPOLOGY_POINT_LIST)
-        , renderPass(nullptr)
+        , renderPass(VK_NULL_HANDLE)
         , pipelineLayout(VK_NULL_HANDLE)
     {
     }

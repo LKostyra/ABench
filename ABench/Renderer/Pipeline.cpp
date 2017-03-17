@@ -215,7 +215,7 @@ bool Pipeline::Init(const PipelineDesc& desc)
     pipeInfo.pColorBlendState = &colorBlendState;
     pipeInfo.pDynamicState = &dynamicStateInfo;
     pipeInfo.layout = desc.pipelineLayout;
-    pipeInfo.renderPass = desc.renderPass->mRenderPass;
+    pipeInfo.renderPass = desc.renderPass;
     pipeInfo.subpass = 0;
     VkResult result = vkCreateGraphicsPipelines(mDevicePtr->mDevice, mDevicePtr->mPipelineCache, 1,
                                                 &pipeInfo, nullptr, &mPipeline);

@@ -2,7 +2,6 @@
 
 #include "Device.hpp"
 #include "Texture.hpp"
-#include "RenderPass.hpp"
 
 
 namespace ABench {
@@ -14,7 +13,7 @@ struct FramebufferDesc
 
     Texture* colorTex;
     Texture* depthTex;
-    RenderPass* renderPass;
+    VkRenderPass renderPass;
 
     FramebufferDesc()
         : colorTex(nullptr)

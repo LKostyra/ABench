@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Device.hpp"
-#include "RenderPass.hpp"
 #include "Framebuffer.hpp"
 #include "Pipeline.hpp"
 #include "Buffer.hpp"
@@ -11,6 +10,8 @@ namespace ABench {
 namespace Renderer {
 
 class Buffer;
+class Pipeline;
+class Framebuffer;
 
 class CommandBuffer
 {
@@ -28,7 +29,7 @@ public:
     bool Init(Device* devicePtr);
 
     void Begin();
-    void BeginRenderPass(RenderPass* rp, Framebuffer* fb, float clearValues[4]);
+    void BeginRenderPass(VkRenderPass rp, Framebuffer* fb, float clearValues[4]);
     void BindVertexBuffer(Buffer* buffer);
     void BindPipeline(Pipeline* pipeline);
     void Clear(float clearValues[4]);

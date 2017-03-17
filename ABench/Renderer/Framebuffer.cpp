@@ -49,7 +49,7 @@ bool Framebuffer::Init(const FramebufferDesc& desc)
     fbInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
     fbInfo.width = desc.colorTex->mWidth;
     fbInfo.height = desc.colorTex->mHeight;
-    fbInfo.renderPass = desc.renderPass->mRenderPass;
+    fbInfo.renderPass = desc.renderPass;
     fbInfo.layers = 1;
 
     VkResult result;
