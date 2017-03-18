@@ -201,17 +201,13 @@ void Device::WaitForGPU() const
 
 bool Device::Execute(CommandBuffer* cmd) const
 {
-    VkPipelineStageFlags pipelineStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
     VkSubmitInfo submitInfo;
     ZERO_MEMORY(submitInfo);
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &cmd->mCommandBuffer;
-    submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores = &mSemaphores->mPostPresentSemaphore;
     submitInfo.signalSemaphoreCount = 1; // TODO semaphore management sucks, to redo
     submitInfo.pSignalSemaphores = &mSemaphores->mRenderSemaphore;
-    submitInfo.pWaitDstStageMask = &pipelineStage;
     VkResult result = vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
     RETURN_FALSE_IF_FAILED(result, "Failed to submit graphics operation");
 

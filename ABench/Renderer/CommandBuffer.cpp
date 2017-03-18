@@ -51,6 +51,9 @@ void CommandBuffer::BeginRenderPass(VkRenderPass rp, Framebuffer* fb, float clea
     VkClearValue clear;
     memcpy(clear.color.float32, clearValues, 4 * sizeof(float));
 
+    // Transition Framebuffer's texture to COLOR_ATTACHMENT layout
+    fb->mTexturePtr->Transition(mCommandBuffer, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
     VkRenderPassBeginInfo rpInfo;
     ZERO_MEMORY(rpInfo);
     rpInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -59,7 +62,7 @@ void CommandBuffer::BeginRenderPass(VkRenderPass rp, Framebuffer* fb, float clea
     rpInfo.renderArea.extent.height = fb->mHeight;
     rpInfo.clearValueCount = 1;
     rpInfo.pClearValues = &clear;
-    rpInfo.framebuffer = fb->mFramebuffers[*(fb->mCurrentBufferPtr)];
+    rpInfo.framebuffer = fb->mFramebuffers[fb->mTexturePtr->GetCurrentBuffer()];
     vkCmdBeginRenderPass(mCommandBuffer, &rpInfo, VK_SUBPASS_CONTENTS_INLINE);
 
     mCurrentFramebuffer = fb;
@@ -101,6 +104,10 @@ void CommandBuffer::Draw(uint32_t vertCount)
 void CommandBuffer::EndRenderPass()
 {
     vkCmdEndRenderPass(mCommandBuffer);
+
+    // revert texture to its default layout
+    mCurrentFramebuffer->mTexturePtr->Transition(mCommandBuffer);
+    mCurrentFramebuffer = nullptr;
 }
 
 bool CommandBuffer::End()

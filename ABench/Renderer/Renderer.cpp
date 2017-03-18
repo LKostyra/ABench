@@ -127,6 +127,9 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
 
 void Renderer::Draw()
 {
+    if (!mBackbuffer.AcquireNextImage())
+        LOGE("Failed to acquire next image for rendering");
+
     {
         mCommandBuffer.Begin();
 
@@ -149,10 +152,10 @@ void Renderer::Draw()
         }
     }
 
-
     mDevice.Execute(&mCommandBuffer);
 
-    mBackbuffer.Present();
+    if (!mBackbuffer.Present())
+        LOGE("Error during image presentation");
 
     mDevice.WaitForGPU();
 }

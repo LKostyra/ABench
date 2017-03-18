@@ -59,8 +59,12 @@ extern PFN_vkMapMemory vkMapMemory;
 extern PFN_vkUnmapMemory vkUnmapMemory;
 
 // Synchronization
+extern PFN_vkCreateFence vkCreateFence;
 extern PFN_vkCreateSemaphore vkCreateSemaphore;
+extern PFN_vkDestroyFence vkDestroyFence;
 extern PFN_vkDestroySemaphore vkDestroySemaphore;
+extern PFN_vkResetFences vkResetFences;
+extern PFN_vkWaitForFences vkWaitForFences;
 
 // Command Buffers
 extern PFN_vkAllocateCommandBuffers vkAllocateCommandBuffers;

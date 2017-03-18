@@ -28,7 +28,7 @@ bool Framebuffer::Init(const FramebufferDesc& desc)
 {
     mDevicePtr = desc.devicePtr;
 
-    mFramebuffers.resize(desc.colorTex->mImageViews.size());
+    mFramebuffers.resize(desc.colorTex->mImages.size());
 
     if (!desc.colorTex)
     {
@@ -56,11 +56,11 @@ bool Framebuffer::Init(const FramebufferDesc& desc)
     VkImageView fbAtts[2];
     for (uint32_t i = 0; i < mFramebuffers.size(); ++i)
     {
-        fbAtts[0] = desc.colorTex->mImageViews[i];
+        fbAtts[0] = desc.colorTex->mImages[i].view;
         fbInfo.attachmentCount = 1;
         if (desc.depthTex)
         {
-            fbAtts[1] = desc.depthTex->mImageViews[0];
+            fbAtts[1] = desc.depthTex->mImages[0].view;
             fbInfo.attachmentCount = 2;
         }
 
@@ -71,7 +71,7 @@ bool Framebuffer::Init(const FramebufferDesc& desc)
 
     mWidth = desc.colorTex->mWidth;
     mHeight = desc.colorTex->mHeight;
-    mCurrentBufferPtr = &desc.colorTex->mCurrentBuffer;
+    mTexturePtr = desc.colorTex;
     return true;
 }
 

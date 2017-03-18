@@ -35,7 +35,6 @@ struct BackbufferDesc
 class Backbuffer: public Texture
 {
     Instance* mInstancePtr;
-    Device* mDevicePtr;
 
     VkSurfaceKHR mSurface;
     uint32_t mPresentQueueIndex;
@@ -45,10 +44,7 @@ class Backbuffer: public Texture
     VkSurfaceCapabilitiesKHR mSurfCaps;
     uint32_t mBufferCount;
     VkSwapchainKHR mSwapchain;
-
-    VkCommandPool mPresentCommandPool;
-    std::vector<VkCommandBuffer> mPresentCommandBuffers;
-    std::vector<VkCommandBuffer> mPostPresentCommandBuffers;
+    VkFence mImageAcquireFence;
 
     bool CreateSurface(const BackbufferDesc& desc);
     bool GetPresentQueue(const BackbufferDesc& desc);
@@ -58,16 +54,19 @@ class Backbuffer: public Texture
     void SelectBufferCount(const BackbufferDesc& desc);
     bool CreateSwapchain(const BackbufferDesc& desc);
     bool AllocateImageViews(const BackbufferDesc& desc);
-    bool AllocateCommandBuffers(const BackbufferDesc& desc);
-
-    bool AcquireNextImage();
+    bool CreateImageAcquireFences();
 
 public:
     Backbuffer();
     ~Backbuffer();
 
     bool Init(const BackbufferDesc& desc);
+
+    // Present current image on screen. This should be usually called at the end of current frame.
     bool Present();
+
+    // Acquire new image. This should be called at the beginning of the frame.
+    bool AcquireNextImage();
 };
 
 } // namespace Renderer

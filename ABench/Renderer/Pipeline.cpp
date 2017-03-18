@@ -207,7 +207,8 @@ bool Pipeline::Init(const PipelineDesc& desc)
     pipeInfo.pStages = stages.data();
     pipeInfo.pVertexInputState = &vertexInputState;
     pipeInfo.pInputAssemblyState = &inputAssemblyState;
-    pipeInfo.pTessellationState = &tessellationState;
+    if ((desc.tessEvalShader != nullptr) && (desc.tessControlShader != nullptr))
+        pipeInfo.pTessellationState = &tessellationState;
     pipeInfo.pViewportState = &viewportState;
     pipeInfo.pRasterizationState = &rasterizationState;
     pipeInfo.pMultisampleState = &multisampleState;

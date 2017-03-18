@@ -7,6 +7,8 @@
 namespace ABench {
 namespace Renderer {
 
+class Texture;
+
 struct FramebufferDesc
 {
     Device* devicePtr;
@@ -32,7 +34,7 @@ class Framebuffer
     std::vector<VkFramebuffer> mFramebuffers;
     uint32_t mWidth;
     uint32_t mHeight;
-    uint32_t* mCurrentBufferPtr;
+    Texture* mTexturePtr;
 
 public:
     Framebuffer();

@@ -1,8 +1,8 @@
 #include "../PCH.hpp"
 #include "Logger.hpp"
 
-#include <iostream>
-#include <fstream>
+#include "Common.hpp"
+
 
 namespace ABench {
 namespace Logger {
@@ -51,6 +51,11 @@ void Log(LogLevel level, const std::stringstream& msg)
         logFile << fullMsg.str();
 
     SetConsoleTextAttribute(console, conInfo.wAttributes);
+
+    std::wstring wideMsg;
+    Common::UTF8ToUTF16(fullMsg.str(), wideMsg);
+
+    OutputDebugStringW(wideMsg.c_str());
 }
 
 } // namespace Logger

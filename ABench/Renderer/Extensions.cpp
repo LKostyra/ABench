@@ -120,6 +120,7 @@ PFN_vkQueuePresentKHR vkQueuePresentKHR = VK_NULL_HANDLE;
 // Queues
 PFN_vkGetDeviceQueue vkGetDeviceQueue = VK_NULL_HANDLE;
 PFN_vkQueueSubmit vkQueueSubmit = VK_NULL_HANDLE;
+PFN_vkQueueWaitIdle vkQueueWaitIdle = VK_NULL_HANDLE;
 
 // Buffers and Images
 PFN_vkAllocateMemory vkAllocateMemory = VK_NULL_HANDLE;
@@ -134,9 +135,12 @@ PFN_vkMapMemory vkMapMemory = VK_NULL_HANDLE;
 PFN_vkUnmapMemory vkUnmapMemory = VK_NULL_HANDLE;
 
 // Synchronization
+PFN_vkCreateFence vkCreateFence = VK_NULL_HANDLE;
 PFN_vkCreateSemaphore vkCreateSemaphore = VK_NULL_HANDLE;
+PFN_vkDestroyFence vkDestroyFence = VK_NULL_HANDLE;
 PFN_vkDestroySemaphore vkDestroySemaphore = VK_NULL_HANDLE;
-PFN_vkQueueWaitIdle vkQueueWaitIdle = VK_NULL_HANDLE;
+PFN_vkResetFences vkResetFences = VK_NULL_HANDLE;
+PFN_vkWaitForFences vkWaitForFences = VK_NULL_HANDLE;
 
 // Command Buffers
 PFN_vkAllocateCommandBuffers vkAllocateCommandBuffers = VK_NULL_HANDLE;
@@ -213,8 +217,12 @@ bool InitDeviceExtensions(const VkDevice& device)
     VK_GET_DEVICEPROC(device, vkUnmapMemory);
 
     // Synchronization
+    VK_GET_DEVICEPROC(device, vkCreateFence);
     VK_GET_DEVICEPROC(device, vkCreateSemaphore);
+    VK_GET_DEVICEPROC(device, vkDestroyFence);
     VK_GET_DEVICEPROC(device, vkDestroySemaphore);
+    VK_GET_DEVICEPROC(device, vkResetFences);
+    VK_GET_DEVICEPROC(device, vkWaitForFences);
 
     // Command Buffers
     VK_GET_DEVICEPROC(device, vkAllocateCommandBuffers);
