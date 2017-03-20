@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Device.hpp"
-#include <list>
+#include "Buffer.hpp"
+
 
 namespace ABench {
 namespace Renderer {
@@ -38,6 +39,9 @@ public:
 
     // Descriptor Sets allocation
     VkDescriptorSet AllocateDescriptorSet(VkDescriptorPool pool, VkDescriptorSetLayout layout);
+
+    // Updating descriptor sets
+    void UpdateBufferDescriptorSet(VkDescriptorSet set, VkDescriptorType type, const Buffer& buffer);
 };
 
 } // namespace Renderer

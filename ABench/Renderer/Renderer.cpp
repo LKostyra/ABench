@@ -3,19 +3,35 @@
 
 #include "Extensions.hpp"
 #include "Common/Logger.hpp"
-
+#include "Math/Matrix.hpp"
 
 namespace ABench {
 namespace Renderer {
 
+
+// TODO move to Camera class
+struct VertexShaderCBuffer
+{
+    Math::Matrix viewMatrix;
+    Math::Matrix projMatrix;
+};
+
+
 Renderer::Renderer()
     : mRenderPass(VK_NULL_HANDLE)
     , mPipelineLayout(VK_NULL_HANDLE)
+    , mVertexShaderSet(VK_NULL_HANDLE)
+    , mVertexShaderLayout(VK_NULL_HANDLE)
+    , mDescriptorPool(VK_NULL_HANDLE)
 {
 }
 
 Renderer::~Renderer()
 {
+    if (mVertexShaderLayout != VK_NULL_HANDLE)
+        vkDestroyDescriptorSetLayout(mDevice.GetDevice(), mVertexShaderLayout, nullptr);
+    if (mDescriptorPool != VK_NULL_HANDLE)
+        vkDestroyDescriptorPool(mDevice.GetDevice(), mDescriptorPool, nullptr);
     if (mRenderPass != VK_NULL_HANDLE)
         vkDestroyRenderPass(mDevice.GetDevice(), mRenderPass, nullptr);
     if (mPipelineLayout != VK_NULL_HANDLE)
@@ -42,7 +58,7 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (!mTools.Init(&mDevice))
         return false;
 
-    ABench::Renderer::BackbufferDesc bbDesc;
+    BackbufferDesc bbDesc;
     bbDesc.instancePtr = &mInstance;
     bbDesc.devicePtr = &mDevice;
     bbDesc.hInstance = window.GetInstance();
@@ -58,7 +74,7 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (mRenderPass == VK_NULL_HANDLE)
         return false;
 
-    ABench::Renderer::FramebufferDesc fbDesc;
+    FramebufferDesc fbDesc;
     fbDesc.devicePtr = &mDevice;
     fbDesc.colorTex = &mBackbuffer;
     fbDesc.renderPass = mRenderPass;
@@ -76,17 +92,18 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
         -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, // 4
     };
 
-    ABench::Renderer::BufferDesc vbDesc;
+    BufferDesc vbDesc;
     vbDesc.devicePtr = &mDevice;
     vbDesc.data = vertices;
     vbDesc.dataSize = sizeof(vertices);
     vbDesc.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    vbDesc.type = BufferType::Static;
     if (!mVertexBuffer.Init(vbDesc))
         return false;
 
-    ABench::Renderer::VertexLayoutDesc vlDesc;
+    VertexLayoutDesc vlDesc;
 
-    std::vector<ABench::Renderer::VertexLayoutEntry> vlEntries;
+    std::vector<VertexLayoutEntry> vlEntries;
     vlEntries.push_back({VK_FORMAT_R32G32B32_SFLOAT, 0, 0, 28, false});
     vlEntries.push_back({VK_FORMAT_R32G32B32A32_SFLOAT, 12, 0, 28, false});
 
@@ -95,7 +112,7 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (!mVertexLayout.Init(vlDesc))
         return false;
 
-    ABench::Renderer::ShaderDesc shaderDesc;
+    ShaderDesc shaderDesc;
     shaderDesc.devicePtr = &mDevice;
     shaderDesc.language = ABench::Renderer::ShaderLanguage::SPIRV;
     shaderDesc.path = "Data/Shaders/vert.spv";
@@ -105,11 +122,32 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (!mFragmentShader.Init(shaderDesc))
         return false;
 
-    mPipelineLayout = mTools.CreatePipelineLayout();
+    // shader resources initialization
+    mVertexShaderLayout = mTools.CreateDescriptorSetLayout(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
+    if (mVertexShaderLayout == VK_NULL_HANDLE)
+        return false;
+
+    mPipelineLayout = mTools.CreatePipelineLayout(&mVertexShaderLayout, 1);
     if (mPipelineLayout == VK_NULL_HANDLE)
         return false;
 
-    ABench::Renderer::PipelineDesc pipeDesc;
+    std::vector<VkDescriptorPoolSize> poolSizes;
+    VkDescriptorPoolSize poolSize;
+
+    // vertex shader binding - one uniform buffer set
+    poolSize.descriptorCount = 1;
+    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSizes.push_back(poolSize);
+
+    mDescriptorPool = mTools.CreateDescriptorPool(poolSizes);
+    if (mDescriptorPool == VK_NULL_HANDLE)
+        return false;
+
+    mVertexShaderSet = mTools.AllocateDescriptorSet(mDescriptorPool, mVertexShaderLayout);
+    if (mVertexShaderSet == VK_NULL_HANDLE)
+        return false;
+
+    PipelineDesc pipeDesc;
     pipeDesc.devicePtr = &mDevice;
     pipeDesc.vertexShader = &mVertexShader;
     pipeDesc.fragmentShader = &mFragmentShader;
@@ -122,11 +160,34 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (!mCommandBuffer.Init(&mDevice))
         return false;
 
+
+    VertexShaderCBuffer cbuffer;
+    cbuffer.viewMatrix = Math::CreateRotationMatrixZ(1.0f);
+
+    BufferDesc vsBufferDesc;
+    vsBufferDesc.devicePtr = &mDevice;
+    vsBufferDesc.data = &cbuffer;
+    vsBufferDesc.dataSize = sizeof(VertexShaderCBuffer);
+    vsBufferDesc.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+    vsBufferDesc.type = BufferType::Dynamic;
+    if (!mVertexShaderCBuffer.Init(vsBufferDesc))
+        return false;
+
+    // Update vertex shader set
+    mTools.UpdateBufferDescriptorSet(mVertexShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, mVertexShaderCBuffer);
+
     return true;
 }
 
 void Renderer::Draw()
 {
+    static float angle = 0.0f;
+    angle += 0.01f;
+
+    VertexShaderCBuffer buf;
+    buf.viewMatrix = Math::CreateRotationMatrixZ(angle);
+    mVertexShaderCBuffer.Write(&buf, sizeof(VertexShaderCBuffer));
+
     if (!mBackbuffer.AcquireNextImage())
         LOGE("Failed to acquire next image for rendering");
 
@@ -141,6 +202,7 @@ void Renderer::Draw()
 
         mCommandBuffer.BindPipeline(&mPipeline);
         mCommandBuffer.BindVertexBuffer(&mVertexBuffer);
+        mCommandBuffer.BindDescriptorSet(mVertexShaderSet, mPipelineLayout);
         mCommandBuffer.Draw(6);
 
         mCommandBuffer.EndRenderPass();

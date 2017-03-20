@@ -99,9 +99,11 @@ extern PFN_vkCreateDescriptorSetLayout vkCreateDescriptorSetLayout;
 extern PFN_vkDestroyDescriptorPool vkDestroyDescriptorPool;
 extern PFN_vkDestroyDescriptorSetLayout vkDestroyDescriptorSetLayout;
 extern PFN_vkFreeDescriptorSets vkFreeDescriptorSets;
+extern PFN_vkUpdateDescriptorSets vkUpdateDescriptorSets;
 
 // Commands
 extern PFN_vkCmdBeginRenderPass vkCmdBeginRenderPass;
+extern PFN_vkCmdBindDescriptorSets vkCmdBindDescriptorSets;
 extern PFN_vkCmdBindPipeline vkCmdBindPipeline;
 extern PFN_vkCmdBindVertexBuffers vkCmdBindVertexBuffers;
 extern PFN_vkCmdClearAttachments vkCmdClearAttachments;

@@ -20,7 +20,7 @@ struct FramebufferDesc
     FramebufferDesc()
         : colorTex(nullptr)
         , depthTex(nullptr)
-        , renderPass(nullptr)
+        , renderPass(VK_NULL_HANDLE)
     {
     }
 };

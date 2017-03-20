@@ -79,6 +79,11 @@ void CommandBuffer::BindPipeline(Pipeline* pipeline)
     vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->mPipeline);
 }
 
+void CommandBuffer::BindDescriptorSet(VkDescriptorSet set, VkPipelineLayout layout)
+{
+    vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &set, 0, nullptr);
+}
+
 void CommandBuffer::Clear(float clearValues[4])
 {
     VkClearAttachment clearAtt;

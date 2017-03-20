@@ -32,6 +32,11 @@ class Renderer final
     VkRenderPass mRenderPass;
     VkPipelineLayout mPipelineLayout;
 
+    VkDescriptorSet mVertexShaderSet;
+    VkDescriptorSetLayout mVertexShaderLayout;
+    VkDescriptorPool mDescriptorPool;
+    Buffer mVertexShaderCBuffer;
+
 public:
     Renderer();
     ~Renderer();

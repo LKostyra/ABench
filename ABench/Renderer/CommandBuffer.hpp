@@ -32,6 +32,7 @@ public:
     void BeginRenderPass(VkRenderPass rp, Framebuffer* fb, float clearValues[4]);
     void BindVertexBuffer(Buffer* buffer);
     void BindPipeline(Pipeline* pipeline);
+    void BindDescriptorSet(VkDescriptorSet set, VkPipelineLayout layout);
     void Clear(float clearValues[4]);
     void Draw(uint32_t vertCount);
     void EndRenderPass();

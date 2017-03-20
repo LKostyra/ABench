@@ -175,9 +175,11 @@ PFN_vkCreateDescriptorSetLayout vkCreateDescriptorSetLayout = VK_NULL_HANDLE;
 PFN_vkDestroyDescriptorPool vkDestroyDescriptorPool = VK_NULL_HANDLE;
 PFN_vkDestroyDescriptorSetLayout vkDestroyDescriptorSetLayout = VK_NULL_HANDLE;
 PFN_vkFreeDescriptorSets vkFreeDescriptorSets = VK_NULL_HANDLE;
+PFN_vkUpdateDescriptorSets vkUpdateDescriptorSets = VK_NULL_HANDLE;
 
 // Commands
 PFN_vkCmdBeginRenderPass vkCmdBeginRenderPass = VK_NULL_HANDLE;
+PFN_vkCmdBindDescriptorSets vkCmdBindDescriptorSets = VK_NULL_HANDLE;
 PFN_vkCmdBindPipeline vkCmdBindPipeline = VK_NULL_HANDLE;
 PFN_vkCmdBindVertexBuffers vkCmdBindVertexBuffers = VK_NULL_HANDLE;
 PFN_vkCmdClearAttachments vkCmdClearAttachments = VK_NULL_HANDLE;
@@ -257,9 +259,11 @@ bool InitDeviceExtensions(const VkDevice& device)
     VK_GET_DEVICEPROC(device, vkDestroyDescriptorPool);
     VK_GET_DEVICEPROC(device, vkDestroyDescriptorSetLayout);
     VK_GET_DEVICEPROC(device, vkFreeDescriptorSets);
+    VK_GET_DEVICEPROC(device, vkUpdateDescriptorSets);
 
     // Commands
     VK_GET_DEVICEPROC(device, vkCmdBeginRenderPass);
+    VK_GET_DEVICEPROC(device, vkCmdBindDescriptorSets);
     VK_GET_DEVICEPROC(device, vkCmdBindPipeline);
     VK_GET_DEVICEPROC(device, vkCmdBindVertexBuffers);
     VK_GET_DEVICEPROC(device, vkCmdClearAttachments);
