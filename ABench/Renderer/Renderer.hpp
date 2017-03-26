@@ -11,6 +11,7 @@
 #include "VertexLayout.hpp"
 
 #include "Common/Window.hpp"
+#include "Common/Timer.hpp"
 
 namespace ABench {
 namespace Renderer {
@@ -36,6 +37,9 @@ class Renderer final
     VkDescriptorSetLayout mVertexShaderLayout;
     VkDescriptorPool mDescriptorPool;
     Buffer mVertexShaderCBuffer;
+
+    Common::Timer mTimer;
+    double mFrameTime;
 
 public:
     Renderer();

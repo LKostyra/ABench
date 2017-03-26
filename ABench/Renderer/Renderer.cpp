@@ -181,8 +181,11 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
 
 void Renderer::Draw()
 {
+    mFrameTime = mTimer.Stop();
+    mTimer.Start();
+
     static float angle = 0.0f;
-    angle += 0.01f;
+    angle += 0.1f * static_cast<float>(mFrameTime);
 
     VertexShaderCBuffer buf;
     buf.viewMatrix = Math::CreateRotationMatrixZ(angle);

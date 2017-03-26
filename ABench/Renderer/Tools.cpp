@@ -92,7 +92,7 @@ VkRenderPass Tools::CreateRenderPass(VkFormat colorFormat, VkFormat depthFormat)
     VkResult result = vkCreateRenderPass(mDevicePtr->GetDevice(), &rpInfo, nullptr, &rp);
     RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create Render Pass");
 
-    LOGD("Created Render Pass 0x" << std::hex << reinterpret_cast<size_t>(rp));
+    LOGD("Created Render Pass 0x" << std::hex << reinterpret_cast<size_t*>(rp));
     return rp;
 }
 
@@ -108,7 +108,7 @@ VkPipelineLayout Tools::CreatePipelineLayout(VkDescriptorSetLayout* sets, int se
     VkResult result = vkCreatePipelineLayout(mDevicePtr->GetDevice(), &info, nullptr, &layout);
     RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create Pipeline Layout");
 
-    LOGD("Created Pipeline Layout 0x" << std::hex << reinterpret_cast<size_t>(layout));
+    LOGD("Created Pipeline Layout 0x" << std::hex << reinterpret_cast<size_t*>(layout));
     return layout;
 }
 
@@ -130,7 +130,7 @@ VkDescriptorPool Tools::CreateDescriptorPool(const std::vector<VkDescriptorPoolS
     VkResult result = vkCreateDescriptorPool(mDevicePtr->GetDevice(), &info, nullptr, &pool);
     RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create Descriptor Pool");
 
-    LOGD("Created Descriptor Pool 0x" << std::hex << reinterpret_cast<size_t>(pool));
+    LOGD("Created Descriptor Pool 0x" << std::hex << reinterpret_cast<size_t*>(pool));
     return pool;
 }
 
@@ -155,7 +155,7 @@ VkDescriptorSetLayout Tools::CreateDescriptorSetLayout(VkDescriptorType type, Vk
     VkResult result = vkCreateDescriptorSetLayout(mDevicePtr->GetDevice(), &info, nullptr, &layout);
     RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create Descriptor Set Layout");
 
-    LOGD("Created Descriptor Set Layout 0x" << std::hex << reinterpret_cast<size_t>(layout));
+    LOGD("Created Descriptor Set Layout 0x" << std::hex << reinterpret_cast<size_t*>(layout));
     return layout;
 }
 
@@ -172,8 +172,8 @@ VkDescriptorSet Tools::AllocateDescriptorSet(VkDescriptorPool pool, VkDescriptor
     VkResult result = vkAllocateDescriptorSets(mDevicePtr->GetDevice(), &info, &set);
     RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to allocate Descriptor Set");
 
-    LOGD("Allocated Descriptor Set 0x" << std::hex << reinterpret_cast<size_t>(set) <<
-         " from Pool 0x" << reinterpret_cast<size_t>(pool));
+    LOGD("Allocated Descriptor Set 0x" << std::hex << reinterpret_cast<size_t*>(set) <<
+         " from Pool 0x" << reinterpret_cast<size_t*>(pool));
     return set;
 }
 
