@@ -1,17 +1,65 @@
 #include "PCH.hpp"
 #include <iostream>
 #include "Common/Window.hpp"
+#include "Common/Timer.hpp"
 #include "Renderer/Renderer.hpp"
+#include "Scene/Camera.hpp"
 
-ABench::Common::Window gWindow;
 
 uint32_t windowWidth = 800;
 uint32_t windowHeight = 600;
 
+class ABenchWindow: public ABench::Common::Window
+{
+    ABench::Scene::Camera mCamera;
+
+    void OnOpen() override
+    {
+        ABench::Scene::CameraDesc desc;
+        desc.view.pos = ABench::Math::Vector(0.0f, 0.0f, 2.0f, 1.0f);
+        desc.view.at = ABench::Math::Vector(0.0f, 0.0f, 0.0f, 1.0f);
+        desc.view.up = ABench::Math::Vector(0.0f, 1.0f, 0.0f, 0.0f);
+        desc.fov = 60.0f;
+        desc.aspect = static_cast<float>(GetWidth()) / static_cast<float>(GetHeight());
+        desc.nearZ = 0.1f;
+        desc.farZ = 1000.0f;
+        mCamera.Init(desc);
+    }
+
+    void OnUpdate(float deltaTime) override
+    {
+        ABench::Math::Vector updateDir;
+
+        ABench::Math::Vector cameraFrontDir = mCamera.GetAtPosition() - mCamera.GetPosition();
+        cameraFrontDir.Normalize();
+        ABench::Math::Vector cameraRightDir = cameraFrontDir.Cross(mCamera.GetUpVector());
+
+        if (mKeys['W']) updateDir += cameraFrontDir;
+        if (mKeys['S']) updateDir -= cameraFrontDir;
+        if (mKeys['D']) updateDir += cameraRightDir;
+        if (mKeys['A']) updateDir -= cameraRightDir;
+
+        // TODO it would be better to update the position in a more friendly way
+        ABench::Scene::CameraUpdateDesc desc;
+        desc.pos = mCamera.GetPosition() + (updateDir * 2.0f * deltaTime);
+        desc.at = mCamera.GetAtPosition();
+        desc.up = mCamera.GetUpVector();
+        mCamera.Update(desc);
+    }
+
+public:
+    __forceinline const ABench::Scene::Camera& GetCamera() const
+    {
+        return mCamera;
+    }
+};
+
 int main()
 {
-    gWindow.Init();
-    if (!gWindow.Open(300, 300, windowWidth, windowHeight, "ABench"))
+    ABenchWindow window;
+
+    window.Init();
+    if (!window.Open(300, 300, windowWidth, windowHeight, "ABench"))
         return -1;
 
     bool debug = false;
@@ -21,13 +69,19 @@ int main()
 #endif
 
     ABench::Renderer::Renderer rend;
-    if (!rend.Init(gWindow, debug, false))
+    if (!rend.Init(window, debug, false))
         return -1;
 
-    while(gWindow.IsOpen())
+    ABench::Common::Timer timer;
+    timer.Start();
+
+    while(window.IsOpen())
     {
-        gWindow.ProcessMessages();
-        rend.Draw();
+        float frameTime = static_cast<float>(timer.Stop());
+        timer.Start();
+
+        window.Update(frameTime);
+        rend.Draw(window.GetCamera());
     }
 
     system("PAUSE");

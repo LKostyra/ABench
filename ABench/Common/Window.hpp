@@ -1,5 +1,6 @@
 #pragma once
 
+
 namespace ABench {
 namespace Common {
 
@@ -14,13 +15,24 @@ class Window
 
     static LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+protected:
+    bool mKeys[255];
+
+    // callbacks
+    virtual void OnInit();
+    virtual void OnOpen();
+    virtual void OnClose();
+    virtual void OnKeyDown(int key);
+    virtual void OnKeyUp(int key);
+    virtual void OnUpdate(float deltaTime);
+
 public:
     Window();
     ~Window();
 
     bool Init();
     bool Open(int x, int y, int width, int height, const std::string& title);
-    void ProcessMessages();
+    void Update(float deltaTime);
     void Close();
 
     __forceinline HINSTANCE GetInstance() const
@@ -47,9 +59,6 @@ public:
     {
         return mOpened;
     }
-
-protected: // callbacks
-    virtual void OnClose();
 };
 
 } // namespace Common

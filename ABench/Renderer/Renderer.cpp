@@ -173,24 +173,22 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (!mVertexShaderCBuffer.Init(vsBufferDesc))
         return false;
 
-    // Update vertex shader set
+    // Point vertex shader set to our dynamic buffer
     mTools.UpdateBufferDescriptorSet(mVertexShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, mVertexShaderCBuffer);
 
     return true;
 }
 
-void Renderer::Draw()
+void Renderer::Draw(const Scene::Camera& camera)
 {
-    mFrameTime = mTimer.Stop();
-    mTimer.Start();
-
-    static float angle = 0.0f;
-    angle += 0.1f * static_cast<float>(mFrameTime);
-
+    // Update viewport
     VertexShaderCBuffer buf;
-    buf.viewMatrix = Math::CreateRotationMatrixZ(angle);
+    buf.viewMatrix = camera.GetView();
+    buf.projMatrix = camera.GetProjection();
     mVertexShaderCBuffer.Write(&buf, sizeof(VertexShaderCBuffer));
 
+
+    // Rendering
     if (!mBackbuffer.AcquireNextImage())
         LOGE("Failed to acquire next image for rendering");
 

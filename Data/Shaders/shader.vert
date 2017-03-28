@@ -17,12 +17,13 @@ layout (location = 0) out VertexShaderOutput
 
 layout (std140, set = 0, binding = 0) uniform cb
 {
-	mat4 viewMatrix;
-	mat4 projMatrix;
+    mat4 viewMatrix;
+    mat4 projMatrix;
 } cbuffer;
 
 void main()
 {
-    gl_Position = cbuffer.viewMatrix * vec4(InPos, 1.0);
+    mat4 viewProj = cbuffer.projMatrix * cbuffer.viewMatrix;
+    gl_Position = viewProj * vec4(InPos, 1.0);
     Output.Color = InColor;
 }

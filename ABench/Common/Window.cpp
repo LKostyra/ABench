@@ -1,6 +1,7 @@
 #include "../PCH.hpp"
 #include "Window.hpp"
 #include "Common.hpp"
+#include "Logger.hpp"
 
 
 namespace ABench {
@@ -36,6 +37,16 @@ LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
     case WM_CLOSE:
         wnd->OnClose();
         wnd->Close();
+        break;
+
+    case WM_KEYDOWN:
+        wnd->mKeys[wParam] = true;
+        wnd->OnKeyDown(static_cast<int>(wParam));
+        break;
+
+    case WM_KEYUP:
+        wnd->mKeys[wParam] = false;
+        wnd->OnKeyUp(static_cast<int>(wParam));
         break;
 
     default: break;
@@ -81,6 +92,8 @@ bool Window::Init()
     ShowWindow(mConsole, SW_HIDE);
 #endif
 
+    OnInit();
+
     return true;
 }
 
@@ -110,7 +123,8 @@ bool Window::Open(int x, int y, int width, int height, const std::string& title)
                            mInstance, nullptr);
     if (!mHWND)
     {
-        // LOG ERROR
+        DWORD error = GetLastError();
+        LOGE("Failed to create Window: " << std::to_string(static_cast<int>(error)));
         return false;
     }
 
@@ -125,10 +139,12 @@ bool Window::Open(int x, int y, int width, int height, const std::string& title)
     mWidth = width;
     mHeight = height;
 
+    OnOpen();
+
     return true;
 }
 
-void Window::ProcessMessages()
+void Window::Update(float deltaTime)
 {
     MSG msg;
     while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
@@ -141,6 +157,8 @@ void Window::ProcessMessages()
             DispatchMessage(&msg);
         }
     }
+
+    OnUpdate(deltaTime);
 }
 
 void Window::Close()
@@ -155,8 +173,31 @@ void Window::Close()
 
 // callbacks
 
+void Window::OnInit()
+{
+}
+
+void Window::OnOpen()
+{
+}
+
 void Window::OnClose()
 {
+}
+
+void Window::OnKeyDown(int key)
+{
+    UNUSED(key);
+}
+
+void Window::OnKeyUp(int key)
+{
+    UNUSED(key);
+}
+
+void Window::OnUpdate(float deltaTime)
+{
+    UNUSED(deltaTime);
 }
 
 } // namespace Common

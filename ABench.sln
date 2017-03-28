@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26228.4
+VisualStudioVersion = 15.0.26228.9
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ABench", "ABench\ABench.vcxproj", "{C8A489CA-E63A-45F4-AE34-8D87D54D9B1A}"
 EndProject
@@ -12,6 +12,14 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ABenchTest", "ABenchTest\AB
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gtest", "gtest\gtest.vcxproj", "{B5346744-FB8E-4AF6-807E-65540BF32395}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Data", "Data", "{10964C43-D579-4F04-8594-368411156E41}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shaders", "Shaders", "{F41931CC-35C5-4C74-A4EC-606A4BA87036}"
+	ProjectSection(SolutionItems) = preProject
+		Data\Shaders\shader.frag = Data\Shaders\shader.frag
+		Data\Shaders\shader.vert = Data\Shaders\shader.vert
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,5 +56,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F41931CC-35C5-4C74-A4EC-606A4BA87036} = {10964C43-D579-4F04-8594-368411156E41}
 	EndGlobalSection
 EndGlobal
