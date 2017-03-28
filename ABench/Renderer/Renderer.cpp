@@ -83,13 +83,25 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
 
     float vertices[] =
     {
-        -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // 1
-         0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, // 2
-         0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, // 3
+        -0.5f,-0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, // 0        7----6
+         0.5f,-0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, // 1      3----2 |
+         0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 0.0f, 1.0f, // 2      | 4--|-5
+        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, // 3      0----1
 
-        -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // 1
-         0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, // 3
-        -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, // 4
+        -0.5f,-0.5f,-0.5f, 1.0f, 0.0f, 0.0f, 1.0f, // 4
+         0.5f,-0.5f,-0.5f, 0.0f, 1.0f, 0.0f, 1.0f, // 5
+         0.5f, 0.5f,-0.5f, 1.0f, 1.0f, 0.0f, 1.0f, // 6
+        -0.5f, 0.5f,-0.5f, 0.0f, 0.0f, 1.0f, 1.0f, // 7
+    };
+
+    uint32_t indices[] =
+    {
+        0, 1, 2, 0, 2, 3, // front
+        3, 2, 6, 3, 6, 7, // top
+        7, 6, 5, 7, 5, 4, // back
+        4, 5, 1, 4, 1, 0, // bottom
+        1, 5, 6, 1, 6, 2, // right
+        4, 0, 3, 4, 3, 7, // left
     };
 
     BufferDesc vbDesc;
@@ -99,6 +111,15 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     vbDesc.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
     vbDesc.type = BufferType::Static;
     if (!mVertexBuffer.Init(vbDesc))
+        return false;
+
+    BufferDesc ibDesc;
+    ibDesc.devicePtr = &mDevice;
+    ibDesc.data = indices;
+    ibDesc.dataSize = sizeof(indices);
+    ibDesc.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+    ibDesc.type = BufferType::Static;
+    if (!mIndexBuffer.Init(ibDesc))
         return false;
 
     VertexLayoutDesc vlDesc;
@@ -203,9 +224,9 @@ void Renderer::Draw(const Scene::Camera& camera)
 
         mCommandBuffer.BindPipeline(&mPipeline);
         mCommandBuffer.BindVertexBuffer(&mVertexBuffer);
+        mCommandBuffer.BindIndexBuffer(&mIndexBuffer);
         mCommandBuffer.BindDescriptorSet(mVertexShaderSet, mPipelineLayout);
-        mCommandBuffer.Draw(6);
-
+        mCommandBuffer.DrawIndexed(36);
         mCommandBuffer.EndRenderPass();
 
         if (!mCommandBuffer.End())

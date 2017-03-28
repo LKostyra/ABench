@@ -17,6 +17,7 @@ class Window
 
 protected:
     bool mKeys[255];
+    bool mMouseButtons[3];
 
     // callbacks
     virtual void OnInit();
@@ -25,6 +26,9 @@ protected:
     virtual void OnKeyDown(int key);
     virtual void OnKeyUp(int key);
     virtual void OnUpdate(float deltaTime);
+    virtual void OnMouseDown(int key);
+    virtual void OnMouseMove(int deltaX, int deltaY);
+    virtual void OnMouseUp(int key);
 
 public:
     Window();

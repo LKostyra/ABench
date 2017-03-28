@@ -49,6 +49,36 @@ LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
         wnd->OnKeyUp(static_cast<int>(wParam));
         break;
 
+    case WM_LBUTTONDOWN:
+        wnd->mMouseButtons[0] = true;
+        wnd->OnMouseDown(0);
+        break;
+
+    case WM_LBUTTONUP:
+        wnd->mMouseButtons[0] = false;
+        wnd->OnMouseUp(0);
+        break;
+
+    case WM_RBUTTONDOWN:
+        wnd->mMouseButtons[1] = true;
+        wnd->OnMouseDown(1);
+        break;
+
+    case WM_RBUTTONUP:
+        wnd->mMouseButtons[1] = false;
+        wnd->OnMouseUp(1);
+        break;
+
+    case WM_MBUTTONDOWN:
+        wnd->mMouseButtons[2] = true;
+        wnd->OnMouseDown(2);
+        break;
+
+    case WM_MBUTTONUP:
+        wnd->mMouseButtons[2] = false;
+        wnd->OnMouseUp(2);
+        break;
+
     default: break;
     }
 
@@ -68,7 +98,8 @@ bool Window::Init()
     mInstance = GetModuleHandle(0);
     if (!mInstance)
     {
-        // LOG ERROR
+        DWORD error = GetLastError();
+        LOGE("Failed to get application's Instance: " << static_cast<int>(error));
         return false;
     }
 
@@ -82,7 +113,8 @@ bool Window::Init()
     wc.lpszClassName = mClassName.c_str();
     if (!RegisterClassEx(&wc))
     {
-        // LOG ERROR
+        DWORD error = GetLastError();
+        LOGE("Failed to register application's class: " << static_cast<int>(error));
         return false;
     }
 
@@ -124,7 +156,7 @@ bool Window::Open(int x, int y, int width, int height, const std::string& title)
     if (!mHWND)
     {
         DWORD error = GetLastError();
-        LOGE("Failed to create Window: " << std::to_string(static_cast<int>(error)));
+        LOGE("Failed to create Window: " << static_cast<int>(error));
         return false;
     }
 
@@ -198,6 +230,22 @@ void Window::OnKeyUp(int key)
 void Window::OnUpdate(float deltaTime)
 {
     UNUSED(deltaTime);
+}
+
+void Window::OnMouseDown(int key)
+{
+    UNUSED(key);
+}
+
+void Window::OnMouseMove(int deltaX, int deltaY)
+{
+    UNUSED(deltaX);
+    UNUSED(deltaY);
+}
+
+void Window::OnMouseUp(int key)
+{
+    UNUSED(key);
 }
 
 } // namespace Common

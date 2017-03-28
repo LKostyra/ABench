@@ -26,6 +26,7 @@ class Renderer final
     Backbuffer mBackbuffer;
     Framebuffer mFramebuffer;
     Buffer mVertexBuffer;
+    Buffer mIndexBuffer;
     VertexLayout mVertexLayout;
     Shader mVertexShader;
     Shader mFragmentShader;

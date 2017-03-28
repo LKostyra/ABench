@@ -31,10 +31,12 @@ public:
     void Begin();
     void BeginRenderPass(VkRenderPass rp, Framebuffer* fb, float clearValues[4]);
     void BindVertexBuffer(Buffer* buffer);
+    void BindIndexBuffer(Buffer* buffer);
     void BindPipeline(Pipeline* pipeline);
     void BindDescriptorSet(VkDescriptorSet set, VkPipelineLayout layout);
     void Clear(float clearValues[4]);
     void Draw(uint32_t vertCount);
+    void DrawIndexed(uint32_t vertCount);
     void EndRenderPass();
     bool End();
     void SetViewport(int32_t x, int32_t y, uint32_t width, uint32_t height, float minDepth, float maxDepth);

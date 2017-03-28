@@ -104,11 +104,13 @@ extern PFN_vkUpdateDescriptorSets vkUpdateDescriptorSets;
 // Commands
 extern PFN_vkCmdBeginRenderPass vkCmdBeginRenderPass;
 extern PFN_vkCmdBindDescriptorSets vkCmdBindDescriptorSets;
+extern PFN_vkCmdBindIndexBuffer vkCmdBindIndexBuffer;
 extern PFN_vkCmdBindPipeline vkCmdBindPipeline;
 extern PFN_vkCmdBindVertexBuffers vkCmdBindVertexBuffers;
 extern PFN_vkCmdClearAttachments vkCmdClearAttachments;
 extern PFN_vkCmdCopyBuffer vkCmdCopyBuffer;
 extern PFN_vkCmdDraw vkCmdDraw;
+extern PFN_vkCmdDrawIndexed vkCmdDrawIndexed;
 extern PFN_vkCmdEndRenderPass vkCmdEndRenderPass;
 extern PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier;
 extern PFN_vkCmdSetScissor vkCmdSetScissor;

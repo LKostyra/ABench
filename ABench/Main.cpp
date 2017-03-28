@@ -33,15 +33,18 @@ class ABenchWindow: public ABench::Common::Window
         ABench::Math::Vector cameraFrontDir = mCamera.GetAtPosition() - mCamera.GetPosition();
         cameraFrontDir.Normalize();
         ABench::Math::Vector cameraRightDir = cameraFrontDir.Cross(mCamera.GetUpVector());
+        ABench::Math::Vector cameraUpDir = cameraRightDir.Cross(cameraFrontDir);
 
         if (mKeys['W']) updateDir += cameraFrontDir;
         if (mKeys['S']) updateDir -= cameraFrontDir;
         if (mKeys['D']) updateDir += cameraRightDir;
         if (mKeys['A']) updateDir -= cameraRightDir;
+        if (mKeys['R']) updateDir += cameraUpDir;
+        if (mKeys['F']) updateDir -= cameraUpDir;
 
         // TODO it would be better to update the position in a more friendly way
         ABench::Scene::CameraUpdateDesc desc;
-        desc.pos = mCamera.GetPosition() + (updateDir * 2.0f * deltaTime);
+        desc.pos = mCamera.GetPosition() + (updateDir * 3.0f * deltaTime);
         desc.at = mCamera.GetAtPosition();
         desc.up = mCamera.GetUpVector();
         mCamera.Update(desc);

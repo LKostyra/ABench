@@ -74,6 +74,11 @@ void CommandBuffer::BindVertexBuffer(Buffer* buffer)
     vkCmdBindVertexBuffers(mCommandBuffer, 0, 1, &buffer->mBuffer, &offset);
 }
 
+void CommandBuffer::BindIndexBuffer(Buffer* buffer)
+{
+    vkCmdBindIndexBuffer(mCommandBuffer, buffer->mBuffer, 0, VK_INDEX_TYPE_UINT32);
+}
+
 void CommandBuffer::BindPipeline(Pipeline* pipeline)
 {
     vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->mPipeline);
@@ -104,6 +109,11 @@ void CommandBuffer::Clear(float clearValues[4])
 void CommandBuffer::Draw(uint32_t vertCount)
 {
     vkCmdDraw(mCommandBuffer, vertCount, 1, 0, 0);
+}
+
+void CommandBuffer::DrawIndexed(uint32_t indexCount)
+{
+    vkCmdDrawIndexed(mCommandBuffer, indexCount, 1, 0, 0, 0);
 }
 
 void CommandBuffer::EndRenderPass()
