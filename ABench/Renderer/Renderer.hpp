@@ -9,10 +9,12 @@
 #include "Shader.hpp"
 #include "CommandBuffer.hpp"
 #include "VertexLayout.hpp"
+#include "RingBuffer.hpp"
 
 #include "Common/Window.hpp"
 
 #include "Scene/Camera.hpp"
+#include "Scene/Mesh.hpp"
 
 
 namespace ABench {
@@ -25,13 +27,12 @@ class Renderer final
     Tools mTools;
     Backbuffer mBackbuffer;
     Framebuffer mFramebuffer;
-    Buffer mVertexBuffer;
-    Buffer mIndexBuffer;
     VertexLayout mVertexLayout;
     Shader mVertexShader;
     Shader mFragmentShader;
     Pipeline mPipeline;
     CommandBuffer mCommandBuffer;
+    RingBuffer mRingBuffer;
 
     VkRenderPass mRenderPass;
     VkPipelineLayout mPipelineLayout;
@@ -41,12 +42,25 @@ class Renderer final
     VkDescriptorPool mDescriptorPool;
     Buffer mVertexShaderCBuffer;
 
+
+    std::vector<Scene::Mesh*> mMeshes;
+
 public:
     Renderer();
     ~Renderer();
 
     bool Init(const Common::Window& window, bool debugEnable = false, bool debugVerbose = false);
     void Draw(const Scene::Camera& camera);
+
+    __forceinline Device* GetDevice()
+    {
+        return &mDevice;
+    }
+
+    __forceinline void AddMesh(Scene::Mesh* mesh)
+    {
+        mMeshes.push_back(mesh);
+    }
 };
 
 } // namespace Renderer

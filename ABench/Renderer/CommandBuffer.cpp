@@ -68,13 +68,13 @@ void CommandBuffer::BeginRenderPass(VkRenderPass rp, Framebuffer* fb, float clea
     mCurrentFramebuffer = fb;
 }
 
-void CommandBuffer::BindVertexBuffer(Buffer* buffer)
+void CommandBuffer::BindVertexBuffer(const Buffer* buffer)
 {
     VkDeviceSize offset = 0;
     vkCmdBindVertexBuffers(mCommandBuffer, 0, 1, &buffer->mBuffer, &offset);
 }
 
-void CommandBuffer::BindIndexBuffer(Buffer* buffer)
+void CommandBuffer::BindIndexBuffer(const Buffer* buffer)
 {
     vkCmdBindIndexBuffer(mCommandBuffer, buffer->mBuffer, 0, VK_INDEX_TYPE_UINT32);
 }
@@ -87,6 +87,11 @@ void CommandBuffer::BindPipeline(Pipeline* pipeline)
 void CommandBuffer::BindDescriptorSet(VkDescriptorSet set, VkPipelineLayout layout)
 {
     vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &set, 0, nullptr);
+}
+
+void CommandBuffer::BindDescriptorSet(VkDescriptorSet set, VkPipelineLayout layout, uint32_t dynamicOffset)
+{
+    vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &set, 1, &dynamicOffset);
 }
 
 void CommandBuffer::Clear(float clearValues[4])

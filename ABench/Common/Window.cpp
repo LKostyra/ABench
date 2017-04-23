@@ -134,14 +134,10 @@ bool Window::Open(int x, int y, int width, int height, const std::string& title)
     if (mOpened)
         return false; // we cannot open a new window - we are already opened
 
-    // Convert title to UTF16
+    // TODO FULLSCREEN
     std::wstring wideTitle;
     if (!UTF8ToUTF16(title, wideTitle))
-    {
         return false;
-    }
-
-    // TODO FULLSCREEN
 
     RECT wr;
     wr.left = (long)x;
@@ -161,7 +157,6 @@ bool Window::Open(int x, int y, int width, int height, const std::string& title)
     }
 
     SetWindowLongPtr(mHWND, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
-    SetWindowText(mHWND, wideTitle.c_str());
 
     ShowWindow(mHWND, SW_SHOW);
     UpdateWindow(mHWND);
@@ -174,6 +169,30 @@ bool Window::Open(int x, int y, int width, int height, const std::string& title)
     OnOpen();
 
     return true;
+}
+
+bool Window::SetTitle(const std::wstring& title)
+{
+    if (!SetWindowText(mHWND, title.c_str()))
+    {
+        DWORD error = GetLastError();
+        LOGE("Failed to set title string: " << static_cast<int>(error));
+        return false;
+    }
+
+    return true;
+}
+
+bool Window::SetTitle(const std::string& title)
+{
+    // Convert title to UTF16
+    std::wstring wideTitle;
+    if (!UTF8ToUTF16(title, wideTitle))
+    {
+        return false;
+    }
+
+    return SetTitle(wideTitle);
 }
 
 void Window::Update(float deltaTime)

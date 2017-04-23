@@ -92,6 +92,12 @@
     <ClCompile Include="Scene\Object.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
+    <ClCompile Include="Scene\Mesh.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\RingBuffer.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\Window.hpp">
@@ -175,6 +181,12 @@
     </ClInclude>
     <ClInclude Include="Scene\Object.hpp">
       <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Mesh.hpp">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\RingBuffer.hpp">
+      <Filter>Renderer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

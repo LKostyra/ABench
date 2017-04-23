@@ -30,10 +30,11 @@ public:
 
     void Begin();
     void BeginRenderPass(VkRenderPass rp, Framebuffer* fb, float clearValues[4]);
-    void BindVertexBuffer(Buffer* buffer);
-    void BindIndexBuffer(Buffer* buffer);
+    void BindVertexBuffer(const Buffer* buffer);
+    void BindIndexBuffer(const Buffer* buffer);
     void BindPipeline(Pipeline* pipeline);
     void BindDescriptorSet(VkDescriptorSet set, VkPipelineLayout layout);
+    void BindDescriptorSet(VkDescriptorSet set, VkPipelineLayout layout, uint32_t dynamicOffset);
     void Clear(float clearValues[4]);
     void Draw(uint32_t vertCount);
     void DrawIndexed(uint32_t vertCount);

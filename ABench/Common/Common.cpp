@@ -1,5 +1,6 @@
 #include "../PCH.hpp"
 #include "Common.hpp"
+#include "Logger.hpp"
 
 #include <strsafe.h>
 
@@ -17,7 +18,7 @@ bool UTF8ToUTF16(const std::string& in, std::wstring& out)
     if (FAILED(hr))
     {
         DWORD err = GetLastError();
-        std::cerr << "Failed with error " << err << std::endl;
+        LOGE("Acquiring UTF16 string length failed with error " << err);
         return false;
     }
 
@@ -28,7 +29,7 @@ bool UTF8ToUTF16(const std::string& in, std::wstring& out)
     if (!result)
     {
         DWORD err = GetLastError();
-        std::cerr << "Failed with error " << err << std::endl;
+        LOGE("UTF8 to UTF16 conversion failed with error " << err);
         return false;
     }
 

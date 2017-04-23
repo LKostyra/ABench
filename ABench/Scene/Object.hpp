@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Math/Matrix.hpp"
+#include "Renderer/CommandBuffer.hpp"
 
 namespace ABench {
 namespace Scene {

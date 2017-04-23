@@ -7,6 +7,27 @@
 namespace ABench {
 namespace Renderer {
 
+struct DescriptorSetLayoutDesc
+{
+    VkDescriptorType type;
+    VkShaderStageFlags stage;
+    VkSampler sampler;
+
+    DescriptorSetLayoutDesc()
+        : type(VK_DESCRIPTOR_TYPE_SAMPLER)
+        , stage(0)
+        , sampler(VK_NULL_HANDLE)
+    {
+    }
+
+    DescriptorSetLayoutDesc(VkDescriptorType type, VkShaderStageFlags stage, VkSampler sampler)
+        : type(type)
+        , stage(stage)
+        , sampler(sampler)
+    {
+    }
+};
+
 /**
  * A collection of "tools" - single functions creating Vulkan object in one-line.
  *
@@ -35,13 +56,13 @@ public:
     VkDescriptorPool CreateDescriptorPool(const std::vector<VkDescriptorPoolSize>& poolSizes);
 
     // VkDescriptorSetLayout creation, VkSampler is optional
-    VkDescriptorSetLayout CreateDescriptorSetLayout(VkDescriptorType type, VkShaderStageFlags stage, VkSampler sampler = VK_NULL_HANDLE);
+    VkDescriptorSetLayout CreateDescriptorSetLayout(std::vector<DescriptorSetLayoutDesc>& descriptors);
 
     // Descriptor Sets allocation
     VkDescriptorSet AllocateDescriptorSet(VkDescriptorPool pool, VkDescriptorSetLayout layout);
 
     // Updating descriptor sets
-    void UpdateBufferDescriptorSet(VkDescriptorSet set, VkDescriptorType type, const Buffer& buffer);
+    void UpdateBufferDescriptorSet(VkDescriptorSet set, VkDescriptorType type, uint32_t binding, VkBuffer buffer, VkDeviceSize size);
 };
 
 } // namespace Renderer

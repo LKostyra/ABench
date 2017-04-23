@@ -15,15 +15,21 @@ layout (location = 0) out VertexShaderOutput
     vec4 Color;
 } Output;
 
-layout (std140, set = 0, binding = 0) uniform cb
+layout (std140, set = 0, binding = 0) uniform dynamicCb
+{
+    mat4 worldMatrix;
+} dynamicCBuffer;
+
+layout (std140, set = 0, binding = 1) uniform cb
 {
     mat4 viewMatrix;
     mat4 projMatrix;
-} cbuffer;
+} CBuffer;
 
 void main()
 {
-    mat4 viewProj = cbuffer.projMatrix * cbuffer.viewMatrix;
-    gl_Position = viewProj * vec4(InPos, 1.0);
+    mat4 worldView = CBuffer.viewMatrix * dynamicCBuffer.worldMatrix;
+    mat4 worldViewProj = CBuffer.projMatrix * worldView;
+    gl_Position = worldViewProj * vec4(InPos, 1.0);
     Output.Color = InColor;
 }

@@ -16,6 +16,9 @@
 *.psess
 /.vs
 
+# Junction links to dependencies
+/Deps/fbxsdk
+
 # Other useless folders and file patterns
 *.opensdf
 *.opendb

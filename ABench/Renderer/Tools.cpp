@@ -134,28 +134,37 @@ VkDescriptorPool Tools::CreateDescriptorPool(const std::vector<VkDescriptorPoolS
     return pool;
 }
 
-VkDescriptorSetLayout Tools::CreateDescriptorSetLayout(VkDescriptorType type, VkShaderStageFlags stage, VkSampler sampler)
+VkDescriptorSetLayout Tools::CreateDescriptorSetLayout(std::vector<DescriptorSetLayoutDesc>& descriptors)
 {
     VkDescriptorSetLayout layout = VK_NULL_HANDLE;
 
-    VkDescriptorSetLayoutBinding binding;
-    ZERO_MEMORY(binding);
-    binding.descriptorCount = 1;
-    binding.binding = 0;
-    binding.descriptorType = type;
-    binding.stageFlags = stage;
-    if (sampler != VK_NULL_HANDLE)
-        binding.pImmutableSamplers = &sampler;
+    std::vector<VkDescriptorSetLayoutBinding> bindings;
+
+    for (uint32_t i = 0; i < descriptors.size(); ++i)
+    {
+        VkDescriptorSetLayoutBinding binding;
+        ZERO_MEMORY(binding);
+        binding.descriptorCount = 1;
+        binding.binding = i;
+        binding.descriptorType = descriptors[i].type;
+        binding.stageFlags = descriptors[i].stage;
+        if (descriptors[i].sampler != VK_NULL_HANDLE)
+            binding.pImmutableSamplers = &descriptors[i].sampler;
+
+        bindings.push_back(binding);
+    }
 
     VkDescriptorSetLayoutCreateInfo info;
     ZERO_MEMORY(info);
     info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    info.bindingCount = 1;
-    info.pBindings = &binding;
+    info.bindingCount = static_cast<uint32_t>(bindings.size());
+    info.pBindings = bindings.data();
     VkResult result = vkCreateDescriptorSetLayout(mDevicePtr->GetDevice(), &info, nullptr, &layout);
     RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create Descriptor Set Layout");
 
-    LOGD("Created Descriptor Set Layout 0x" << std::hex << reinterpret_cast<size_t*>(layout));
+    LOGD("Created Descriptor Set Layout 0x" << std::hex << reinterpret_cast<size_t*>(layout) <<
+         " with " << std::dec << bindings.size() << " bindings.");
+
     return layout;
 }
 
@@ -177,18 +186,18 @@ VkDescriptorSet Tools::AllocateDescriptorSet(VkDescriptorPool pool, VkDescriptor
     return set;
 }
 
-void Tools::UpdateBufferDescriptorSet(VkDescriptorSet set, VkDescriptorType type, const Buffer& buffer)
+void Tools::UpdateBufferDescriptorSet(VkDescriptorSet set, VkDescriptorType type, uint32_t binding, VkBuffer buffer, VkDeviceSize size)
 {
     VkDescriptorBufferInfo info;
     ZERO_MEMORY(info);
-    info.buffer = buffer.GetVkBuffer();
-    info.range = buffer.GetSize();
+    info.buffer = buffer;
+    info.range = size;
 
     VkWriteDescriptorSet write;
     ZERO_MEMORY(write);
     write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     write.dstSet = set;
-    write.dstBinding = 0;
+    write.dstBinding = binding;
     write.dstArrayElement = 0;
     write.descriptorType = type;
     write.descriptorCount = 1;

@@ -8,6 +8,10 @@
 namespace ABench {
 namespace Renderer {
 
+struct VertexShaderDynamicCBuffer
+{
+    Math::Matrix worldMatrix;
+};
 
 // TODO move to Camera class
 struct VertexShaderCBuffer
@@ -70,6 +74,9 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (!mBackbuffer.Init(bbDesc))
         return false;
 
+    if (!mRingBuffer.Init(&mDevice, 1024*1024))
+        return false;
+
     mRenderPass = mTools.CreateRenderPass(bbDesc.requestedFormat, VK_FORMAT_UNDEFINED);
     if (mRenderPass == VK_NULL_HANDLE)
         return false;
@@ -79,47 +86,6 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     fbDesc.colorTex = &mBackbuffer;
     fbDesc.renderPass = mRenderPass;
     if (!mFramebuffer.Init(fbDesc))
-        return false;
-
-    float vertices[] =
-    {
-        -0.5f,-0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, // 0        7----6
-         0.5f,-0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, // 1      3----2 |
-         0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 0.0f, 1.0f, // 2      | 4--|-5
-        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, // 3      0----1
-
-        -0.5f,-0.5f,-0.5f, 1.0f, 0.0f, 0.0f, 1.0f, // 4
-         0.5f,-0.5f,-0.5f, 0.0f, 1.0f, 0.0f, 1.0f, // 5
-         0.5f, 0.5f,-0.5f, 1.0f, 1.0f, 0.0f, 1.0f, // 6
-        -0.5f, 0.5f,-0.5f, 0.0f, 0.0f, 1.0f, 1.0f, // 7
-    };
-
-    uint32_t indices[] =
-    {
-        0, 1, 2, 0, 2, 3, // front
-        3, 2, 6, 3, 6, 7, // top
-        7, 6, 5, 7, 5, 4, // back
-        4, 5, 1, 4, 1, 0, // bottom
-        1, 5, 6, 1, 6, 2, // right
-        4, 0, 3, 4, 3, 7, // left
-    };
-
-    BufferDesc vbDesc;
-    vbDesc.devicePtr = &mDevice;
-    vbDesc.data = vertices;
-    vbDesc.dataSize = sizeof(vertices);
-    vbDesc.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-    vbDesc.type = BufferType::Static;
-    if (!mVertexBuffer.Init(vbDesc))
-        return false;
-
-    BufferDesc ibDesc;
-    ibDesc.devicePtr = &mDevice;
-    ibDesc.data = indices;
-    ibDesc.dataSize = sizeof(indices);
-    ibDesc.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-    ibDesc.type = BufferType::Static;
-    if (!mIndexBuffer.Init(ibDesc))
         return false;
 
     VertexLayoutDesc vlDesc;
@@ -144,7 +110,10 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
         return false;
 
     // shader resources initialization
-    mVertexShaderLayout = mTools.CreateDescriptorSetLayout(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
+    std::vector<DescriptorSetLayoutDesc> layoutDesc;
+    layoutDesc.push_back({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT, VK_NULL_HANDLE});
+    layoutDesc.push_back({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, VK_NULL_HANDLE});
+    mVertexShaderLayout = mTools.CreateDescriptorSetLayout(layoutDesc);
     if (mVertexShaderLayout == VK_NULL_HANDLE)
         return false;
 
@@ -152,11 +121,13 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (mPipelineLayout == VK_NULL_HANDLE)
         return false;
 
+    // vertex shader binding - one uniform buffer set with two bindings
     std::vector<VkDescriptorPoolSize> poolSizes;
-    VkDescriptorPoolSize poolSize;
 
-    // vertex shader binding - one uniform buffer set
+    VkDescriptorPoolSize poolSize;
     poolSize.descriptorCount = 1;
+    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+    poolSizes.push_back(poolSize);
     poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSizes.push_back(poolSize);
 
@@ -164,6 +135,7 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (mDescriptorPool == VK_NULL_HANDLE)
         return false;
 
+    // set allocation
     mVertexShaderSet = mTools.AllocateDescriptorSet(mDescriptorPool, mVertexShaderLayout);
     if (mVertexShaderSet == VK_NULL_HANDLE)
         return false;
@@ -195,7 +167,10 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
         return false;
 
     // Point vertex shader set to our dynamic buffer
-    mTools.UpdateBufferDescriptorSet(mVertexShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, mVertexShaderCBuffer);
+    mTools.UpdateBufferDescriptorSet(mVertexShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 0,
+                                     mRingBuffer.GetVkBuffer(), sizeof(VertexShaderDynamicCBuffer));
+    mTools.UpdateBufferDescriptorSet(mVertexShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
+                                     mVertexShaderCBuffer.GetVkBuffer(), sizeof(VertexShaderCBuffer));
 
     return true;
 }
@@ -221,12 +196,17 @@ void Renderer::Draw(const Scene::Camera& camera)
 
         float clearValue[] = {0.2f, 0.4f, 0.8f, 0.0f};
         mCommandBuffer.BeginRenderPass(mRenderPass, &mFramebuffer, clearValue);
-
         mCommandBuffer.BindPipeline(&mPipeline);
-        mCommandBuffer.BindVertexBuffer(&mVertexBuffer);
-        mCommandBuffer.BindIndexBuffer(&mIndexBuffer);
-        mCommandBuffer.BindDescriptorSet(mVertexShaderSet, mPipelineLayout);
-        mCommandBuffer.DrawIndexed(36);
+
+        for (auto& mesh : mMeshes)
+        {
+            uint32_t offset = mRingBuffer.Write(mesh->GetWorldMatrix(), sizeof(ABench::Math::Matrix));
+            mCommandBuffer.BindDescriptorSet(mVertexShaderSet, mPipelineLayout, offset);
+            mCommandBuffer.BindVertexBuffer(mesh->GetVertexBuffer());
+            mCommandBuffer.BindIndexBuffer(mesh->GetIndexBuffer());
+            mCommandBuffer.DrawIndexed(36);
+        }
+
         mCommandBuffer.EndRenderPass();
 
         if (!mCommandBuffer.End())

@@ -6,8 +6,8 @@
 #include "Scene/Camera.hpp"
 
 
-uint32_t windowWidth = 800;
-uint32_t windowHeight = 600;
+uint32_t windowWidth = 1280;
+uint32_t windowHeight = 720;
 
 class ABenchWindow: public ABench::Common::Window
 {
@@ -75,6 +75,20 @@ int main()
     if (!rend.Init(window, debug, false))
         return -1;
 
+    std::vector<std::unique_ptr<ABench::Scene::Mesh>> meshes;
+
+    for (int x = -5; x < 5; ++x)
+    {
+        for (int y = -5; y < 5; ++y)
+        {
+            meshes.emplace_back(new ABench::Scene::Mesh());
+
+            meshes.back()->Init(rend.GetDevice(), "");
+            meshes.back()->SetPosition(x*1.5f, y*1.5f, 0.0f);
+            rend.AddMesh(meshes.back().get());
+        }
+    }
+
     ABench::Common::Timer timer;
     timer.Start();
 
@@ -82,7 +96,9 @@ int main()
     {
         float frameTime = static_cast<float>(timer.Stop());
         timer.Start();
+        float fps = 1.0f / frameTime;
 
+        window.SetTitle("ABench - " + std::to_string(fps) + " FPS (" + std::to_string(frameTime * 1000.0f) + " ms)"); 
         window.Update(frameTime);
         rend.Draw(window.GetCamera());
     }

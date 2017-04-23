@@ -36,6 +36,8 @@ public:
 
     bool Init();
     bool Open(int x, int y, int width, int height, const std::string& title);
+    bool SetTitle(const std::wstring& title);
+    bool SetTitle(const std::string& title);
     void Update(float deltaTime);
     void Close();
 
