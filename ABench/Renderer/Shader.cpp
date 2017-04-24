@@ -1,4 +1,4 @@
-#include "../PCH.hpp"
+#include "PCH.hpp"
 #include "Shader.hpp"
 #include "Util.hpp"
 #include "Extensions.hpp"
@@ -29,6 +29,8 @@ bool Shader::Compile(ShaderLanguage lang, const std::string& path, std::unique_p
     // a little warning to not forget before release
     LOGW("Shaders should not be compiled, rather taken in precompiled SPIRV form!");
 #endif
+
+    UNUSED(lang); UNUSED(path); UNUSED(code); UNUSED(codeSize);
 
     // TODO
     return false;

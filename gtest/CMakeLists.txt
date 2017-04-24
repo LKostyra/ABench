@@ -1,7 +1,3 @@
-# @file
-# @author LKostyra (costyrra.xl@gmail.com)
-# @brief  CMake for gtest
-
 FILE(GLOB_RECURSE GTEST_SOURCES *.cc)
 FILE(GLOB_RECURSE GTEST_HEADERS *.h)
 
@@ -17,4 +13,4 @@ SET_TARGET_PROPERTIES(gtest PROPERTIES
 
 ADD_CUSTOM_COMMAND(TARGET gtest POST_BUILD COMMAND
                    ${CMAKE_COMMAND} -E copy $<TARGET_FILE:gtest>
-                   ${MZPR_OUTPUT_DIRECTORY}/${targetfile})
+                   ${ABENCH_OUTPUT_DIRECTORY}/${targetfile})

@@ -22,17 +22,17 @@ public:
 
     void SetPosition(float x, float y, float z);
 
-    __forceinline const ABench::Renderer::Buffer* GetVertexBuffer() const
+    ABENCH_INLINE const ABench::Renderer::Buffer* GetVertexBuffer() const
     {
         return &mVertexBuffer;
     }
 
-    __forceinline const ABench::Renderer::Buffer* GetIndexBuffer() const
+    ABENCH_INLINE const ABench::Renderer::Buffer* GetIndexBuffer() const
     {
         return &mIndexBuffer;
     }
 
-    __forceinline const ABench::Math::Matrix* GetWorldMatrix() const
+    ABENCH_INLINE const ABench::Math::Matrix* GetWorldMatrix() const
     {
         return &mWorldMatrix;
     }

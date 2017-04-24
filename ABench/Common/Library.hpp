@@ -5,7 +5,13 @@ namespace Common {
 
 class Library
 {
+#ifdef WIN32
     HMODULE mModule;
+#elif defined(__linux__) | defined(__LINUX__)
+#else
+#error "Target platform not supported."
+#endif
+
 
 public:
     Library();

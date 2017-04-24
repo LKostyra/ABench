@@ -51,11 +51,11 @@ class Pipeline
     void BuildShaderStageInfo(const PipelineDesc& desc, std::vector<VkPipelineShaderStageCreateInfo>& stages);
     VkPipelineVertexInputStateCreateInfo BuildVertexInputStateInfo(const PipelineDesc& desc);
     VkPipelineInputAssemblyStateCreateInfo BuildInputAssemblyStateInfo(const PipelineDesc& desc);
-    VkPipelineTessellationStateCreateInfo BuildTessellationStateInfo(const PipelineDesc& desc);
-    VkPipelineViewportStateCreateInfo BuildViewportStateInfo(const PipelineDesc& desc);
-    VkPipelineRasterizationStateCreateInfo BuildRasterizationStateInfo(const PipelineDesc& desc);
-    VkPipelineMultisampleStateCreateInfo BuildMultisampleStateInfo(const PipelineDesc& desc);
-    VkPipelineDepthStencilStateCreateInfo BuildDepthStencilStateInfo(const PipelineDesc& desc);
+    VkPipelineTessellationStateCreateInfo BuildTessellationStateInfo();
+    VkPipelineViewportStateCreateInfo BuildViewportStateInfo();
+    VkPipelineRasterizationStateCreateInfo BuildRasterizationStateInfo();
+    VkPipelineMultisampleStateCreateInfo BuildMultisampleStateInfo();
+    VkPipelineDepthStencilStateCreateInfo BuildDepthStencilStateInfo();
 
 public:
     Pipeline();

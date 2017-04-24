@@ -13,7 +13,7 @@ class Object
 protected:
     Math::Matrix mTransform;
 
-    __forceinline const Math::Matrix& GetTransform() const
+    ABENCH_INLINE const Math::Matrix& GetTransform() const
     {
         return mTransform;
     }

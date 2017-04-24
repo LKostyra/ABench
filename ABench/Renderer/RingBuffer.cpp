@@ -1,4 +1,4 @@
-#include "../PCH.hpp"
+#include "PCH.hpp"
 #include "RingBuffer.hpp"
 #include "Extensions.hpp"
 #include "Util.hpp"
@@ -32,9 +32,6 @@ RingBuffer::~RingBuffer()
 bool RingBuffer::Init(Device* devicePtr, VkDeviceSize bufferSize)
 {
     mDevicePtr = devicePtr;
-
-    VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
-    VkBuffer staging = VK_NULL_HANDLE;
 
     // create our buffer
     VkBufferCreateInfo bufInfo;

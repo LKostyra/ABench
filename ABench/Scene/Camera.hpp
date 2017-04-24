@@ -46,27 +46,27 @@ public:
     bool Init(const CameraDesc& desc);
     void Update(const CameraUpdateDesc& desc);
 
-    __forceinline const Math::Vector& GetPosition() const
+    ABENCH_INLINE const Math::Vector& GetPosition() const
     {
         return mPosition;
     }
 
-    __forceinline const Math::Vector& GetAtPosition() const
+    ABENCH_INLINE const Math::Vector& GetAtPosition() const
     {
         return mAtPosition;
     }
 
-    __forceinline const Math::Vector& GetUpVector() const
+    ABENCH_INLINE const Math::Vector& GetUpVector() const
     {
         return mUpVector;
     }
 
-    __forceinline const Math::Matrix& GetView() const
+    ABENCH_INLINE const Math::Matrix& GetView() const
     {
         return mView;
     }
 
-    __forceinline const Math::Matrix& GetProjection() const
+    ABENCH_INLINE const Math::Matrix& GetProjection() const
     {
         return mProjection;
     }

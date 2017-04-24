@@ -1,7 +1,6 @@
-#include "../PCH.hpp"
-#include "Logger.hpp"
-
-#include "Common.hpp"
+#include "PCH.hpp"
+#include "../Common.hpp"
+#include "../Logger.hpp"
 
 
 namespace ABench {
@@ -16,11 +15,6 @@ void Log(LogLevel level, const std::stringstream& msg)
     static HANDLE console = 0;
     if (!console)
         console = GetStdHandle(STD_OUTPUT_HANDLE);
-
-    if (!logFile.is_open())
-    {
-        logFile.open("log.txt");
-    }
 
     CONSOLE_SCREEN_BUFFER_INFO conInfo;
     GetConsoleScreenBufferInfo(console, &conInfo);

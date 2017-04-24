@@ -1,4 +1,4 @@
-#include "../PCH.hpp"
+#include "PCH.hpp"
 #include "VertexLayout.hpp"
 #include "Util.hpp"
 #include "Translations.hpp"

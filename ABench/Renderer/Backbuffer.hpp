@@ -4,6 +4,14 @@
 #include "Device.hpp"
 #include "Texture.hpp"
 
+#ifdef WIN32
+#include "Win/WinBackbuffer.hpp"
+#elif defined(__linux__) | defined(__LINUX__)
+#include "Linux/LinuxBackbuffer.hpp"
+#else
+#error "Target platform not supported."
+#endif
+
 namespace ABench {
 namespace Renderer {
 
@@ -12,8 +20,8 @@ struct BackbufferDesc
     Instance* instancePtr;
     Device* devicePtr;
 
-    HINSTANCE hInstance;
-    HWND hWnd;
+    BackbufferWindowDesc windowDesc;
+
     VkFormat requestedFormat;
     bool vsync;
     uint32_t bufferCount;
@@ -21,9 +29,7 @@ struct BackbufferDesc
     uint32_t height;
 
     BackbufferDesc()
-        : hInstance(0)
-        , hWnd(0)
-        , requestedFormat(VK_FORMAT_UNDEFINED)
+        : requestedFormat(VK_FORMAT_UNDEFINED)
         , vsync(false)
         , bufferCount(2)
         , width(800)
@@ -47,13 +53,13 @@ class Backbuffer: public Texture
     VkFence mImageAcquireFence;
 
     bool CreateSurface(const BackbufferDesc& desc);
-    bool GetPresentQueue(const BackbufferDesc& desc);
+    bool GetPresentQueue();
     bool SelectSurfaceFormat(const BackbufferDesc& desc);
     bool SelectPresentMode(const BackbufferDesc& desc);
-    bool AcquireSurfaceCaps(const BackbufferDesc& desc);
+    bool AcquireSurfaceCaps();
     void SelectBufferCount(const BackbufferDesc& desc);
     bool CreateSwapchain(const BackbufferDesc& desc);
-    bool AllocateImageViews(const BackbufferDesc& desc);
+    bool AllocateImageViews();
     bool CreateImageAcquireFences();
 
 public:

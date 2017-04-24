@@ -13,11 +13,14 @@
     <Filter Include="Scene">
       <UniqueIdentifier>{8c636787-4a62-4303-b10f-d68f25582ee7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Renderer\Win">
+      <UniqueIdentifier>{11347a3d-10e8-4c2a-9988-0f8b9e1b1fe4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common\Win">
+      <UniqueIdentifier>{40ce5f05-4845-4384-875b-c333f300d9a1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Common\Window.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="PCH.cpp" />
     <ClCompile Include="Renderer\Device.cpp">
@@ -29,12 +32,6 @@
     <ClCompile Include="Renderer\Instance.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="Common\Library.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="Common\Logger.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="Renderer\Backbuffer.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
@@ -43,9 +40,6 @@
     </ClCompile>
     <ClCompile Include="Math\Vector.cpp">
       <Filter>Math</Filter>
-    </ClCompile>
-    <ClCompile Include="Common\Common.cpp">
-      <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="Renderer\Translations.cpp">
       <Filter>Renderer</Filter>
@@ -83,9 +77,6 @@
     <ClCompile Include="Renderer\Renderer.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="Common\Timer.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="Scene\Camera.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
@@ -97,6 +88,27 @@
     </ClCompile>
     <ClCompile Include="Renderer\RingBuffer.cpp">
       <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Util.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\Win\Common.cpp">
+      <Filter>Common\Win</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\Win\Library.cpp">
+      <Filter>Common\Win</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\Win\Logger.cpp">
+      <Filter>Common\Win</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\Win\Timer.cpp">
+      <Filter>Common\Win</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\Win\Window.cpp">
+      <Filter>Common\Win</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Win\WinBackbuffer.cpp">
+      <Filter>Renderer\Win</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -187,6 +199,9 @@
     </ClInclude>
     <ClInclude Include="Renderer\RingBuffer.hpp">
       <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Win\WinBackbuffer.hpp">
+      <Filter>Renderer\Win</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

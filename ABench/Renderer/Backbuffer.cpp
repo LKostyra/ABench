@@ -1,4 +1,4 @@
-#include "../PCH.hpp"
+#include "PCH.hpp"
 #include "Backbuffer.hpp"
 
 #include "Util.hpp"
@@ -43,20 +43,7 @@ Backbuffer::~Backbuffer()
     mInstancePtr = nullptr;
 }
 
-bool Backbuffer::CreateSurface(const BackbufferDesc& desc)
-{
-    VkWin32SurfaceCreateInfoKHR surfInfo;
-    ZERO_MEMORY(surfInfo);
-    surfInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-    surfInfo.hinstance = desc.hInstance;
-    surfInfo.hwnd = desc.hWnd;
-    VkResult result = vkCreateWin32SurfaceKHR(mInstancePtr->GetVkInstance(), &surfInfo, nullptr, &mSurface);
-    RETURN_FALSE_IF_FAILED(result, "Failed to create Vulkan Surface for Win32");
-
-    return true;
-}
-
-bool Backbuffer::GetPresentQueue(const BackbufferDesc& desc)
+bool Backbuffer::GetPresentQueue()
 {
      // TODO to be replaced by Queue Manager
     uint32_t queueCount = 0;
@@ -135,7 +122,7 @@ bool Backbuffer::SelectPresentMode(const BackbufferDesc& desc)
     VkResult result = vkGetPhysicalDeviceSurfacePresentModesKHR(mDevicePtr->mPhysicalDevice, mSurface,
                                                                 &presentModeCount, nullptr);
     RETURN_FALSE_IF_FAILED(result, "Failed to acquire surface's present mode count");
-    if ((presentModeCount == 0) || (presentModeCount == UINT32_MAX)) 
+    if ((presentModeCount == 0) || (presentModeCount == UINT32_MAX))
     {
         LOGE("Failed to get present mode count for currently acquired surface");
         return false;
@@ -179,7 +166,7 @@ bool Backbuffer::SelectPresentMode(const BackbufferDesc& desc)
     return true;
 }
 
-bool Backbuffer::AcquireSurfaceCaps(const BackbufferDesc& desc)
+bool Backbuffer::AcquireSurfaceCaps()
 {
     VkResult result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mDevicePtr->mPhysicalDevice, mSurface, &mSurfCaps);
     RETURN_FALSE_IF_FAILED(result, "Failed to extract surface's capabilities");
@@ -226,7 +213,7 @@ bool Backbuffer::CreateSwapchain(const BackbufferDesc& desc)
     return true;
 }
 
-bool Backbuffer::AllocateImageViews(const BackbufferDesc& desc)
+bool Backbuffer::AllocateImageViews()
 {
     uint32_t currentBufferCount = 0;
     VkResult result = vkGetSwapchainImagesKHR(mDevicePtr->GetDevice(), mSwapchain,
@@ -324,13 +311,13 @@ bool Backbuffer::Init(const BackbufferDesc& desc)
     mHeight = desc.height;
 
     if (!CreateSurface(desc)) return false;
-    if (!GetPresentQueue(desc)) return false;
+    if (!GetPresentQueue()) return false;
     if (!SelectSurfaceFormat(desc)) return false;
     if (!SelectPresentMode(desc)) return false;
-    if (!AcquireSurfaceCaps(desc)) return false;
+    if (!AcquireSurfaceCaps()) return false;
     SelectBufferCount(desc);
     if (!CreateSwapchain(desc)) return false;
-    if (!AllocateImageViews(desc)) return false;
+    if (!AllocateImageViews()) return false;
     if (!CreateImageAcquireFences()) return false;
 
     LOGI("Backbuffer initialized successfully");

@@ -1,4 +1,4 @@
-#include "../PCH.hpp"
+#include "PCH.hpp"
 #include "Extensions.hpp"
 
 #include "Common/Logger.hpp"
@@ -11,7 +11,8 @@
  */
 #ifndef VK_GET_LIBPROC
 #define VK_GET_LIBPROC(lib, x) do { \
-    if (!(x = (PFN_##x)lib.GetSymbol(#x))) \
+    x = (PFN_##x)lib.GetSymbol(#x); \
+    if (!x) \
     { \
         LOGE("Unable to retrieve Library function " #x); \
         allExtensionsAvailable = false; \
@@ -84,8 +85,15 @@ PFN_vkGetPhysicalDeviceSurfaceSupportKHR vkGetPhysicalDeviceSurfaceSupportKHR = 
 PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr = VK_NULL_HANDLE;
 PFN_vkCreateDevice vkCreateDevice = VK_NULL_HANDLE;
 PFN_vkDestroyDevice vkDestroyDevice = VK_NULL_HANDLE;
-PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR = VK_NULL_HANDLE;
 PFN_vkDestroySurfaceKHR vkDestroySurfaceKHR = VK_NULL_HANDLE;
+
+#ifdef WIN32
+PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR = VK_NULL_HANDLE;
+#elif defined(__linux__) | defined(__LINUX__)
+PFN_vkCreateXcbSurfaceKHR vkCreateXcbSurfaceKHR = VK_NULL_HANDLE;
+#else
+#error "Target platform not supported"
+#endif
 
 bool InitInstanceExtensions(const VkInstance& instance)
 {
@@ -103,8 +111,15 @@ bool InitInstanceExtensions(const VkInstance& instance)
     VK_GET_INSTANCEPROC(instance, vkGetDeviceProcAddr);
     VK_GET_INSTANCEPROC(instance, vkCreateDevice);
     VK_GET_INSTANCEPROC(instance, vkDestroyDevice);
-    VK_GET_INSTANCEPROC(instance, vkCreateWin32SurfaceKHR);
     VK_GET_INSTANCEPROC(instance, vkDestroySurfaceKHR);
+
+#ifdef WIN32
+    VK_GET_INSTANCEPROC(instance, vkCreateWin32SurfaceKHR);
+#elif defined(__linux__) | defined(__LINUX__)
+    VK_GET_INSTANCEPROC(instance, vkCreateXcbSurfaceKHR);
+#else
+#error "Target platform not supported"
+#endif
 
     return allExtensionsAvailable;
 }

@@ -46,7 +46,7 @@ public:
     bool MarkFinishedFrame(VkFence waitFence);
 
 
-    __forceinline VkBuffer GetVkBuffer() const
+    ABENCH_INLINE VkBuffer GetVkBuffer() const
     {
         return mBuffer;
     }

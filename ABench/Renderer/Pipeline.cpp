@@ -1,4 +1,4 @@
-#include "../PCH.hpp"
+#include "PCH.hpp"
 #include "Pipeline.hpp"
 #include "Util.hpp"
 #include "Extensions.hpp"
@@ -88,7 +88,7 @@ VkPipelineInputAssemblyStateCreateInfo Pipeline::BuildInputAssemblyStateInfo(con
     return info;
 }
 
-VkPipelineTessellationStateCreateInfo Pipeline::BuildTessellationStateInfo(const PipelineDesc& desc)
+VkPipelineTessellationStateCreateInfo Pipeline::BuildTessellationStateInfo()
 {
     VkPipelineTessellationStateCreateInfo info;
     ZERO_MEMORY(info);
@@ -97,7 +97,7 @@ VkPipelineTessellationStateCreateInfo Pipeline::BuildTessellationStateInfo(const
     return info;
 }
 
-VkPipelineViewportStateCreateInfo Pipeline::BuildViewportStateInfo(const PipelineDesc& desc)
+VkPipelineViewportStateCreateInfo Pipeline::BuildViewportStateInfo()
 {
     VkPipelineViewportStateCreateInfo info;
     ZERO_MEMORY(info);
@@ -108,7 +108,7 @@ VkPipelineViewportStateCreateInfo Pipeline::BuildViewportStateInfo(const Pipelin
     return info;
 }
 
-VkPipelineRasterizationStateCreateInfo Pipeline::BuildRasterizationStateInfo(const PipelineDesc& desc)
+VkPipelineRasterizationStateCreateInfo Pipeline::BuildRasterizationStateInfo()
 {
     VkPipelineRasterizationStateCreateInfo info;
     ZERO_MEMORY(info);
@@ -123,7 +123,7 @@ VkPipelineRasterizationStateCreateInfo Pipeline::BuildRasterizationStateInfo(con
     return info;
 }
 
-VkPipelineMultisampleStateCreateInfo Pipeline::BuildMultisampleStateInfo(const PipelineDesc& desc)
+VkPipelineMultisampleStateCreateInfo Pipeline::BuildMultisampleStateInfo()
 {
     VkPipelineMultisampleStateCreateInfo info;
     ZERO_MEMORY(info);
@@ -135,7 +135,7 @@ VkPipelineMultisampleStateCreateInfo Pipeline::BuildMultisampleStateInfo(const P
     return info;
 }
 
-VkPipelineDepthStencilStateCreateInfo Pipeline::BuildDepthStencilStateInfo(const PipelineDesc& desc)
+VkPipelineDepthStencilStateCreateInfo Pipeline::BuildDepthStencilStateInfo()
 {
     VkPipelineDepthStencilStateCreateInfo info;
     ZERO_MEMORY(info);
@@ -167,11 +167,11 @@ bool Pipeline::Init(const PipelineDesc& desc)
     BuildShaderStageInfo(desc, stages);
     VkPipelineVertexInputStateCreateInfo vertexInputState = BuildVertexInputStateInfo(desc);
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = BuildInputAssemblyStateInfo(desc);
-    VkPipelineTessellationStateCreateInfo tessellationState = BuildTessellationStateInfo(desc);
-    VkPipelineViewportStateCreateInfo viewportState = BuildViewportStateInfo(desc);
-    VkPipelineRasterizationStateCreateInfo rasterizationState = BuildRasterizationStateInfo(desc);
-    VkPipelineMultisampleStateCreateInfo multisampleState = BuildMultisampleStateInfo(desc);
-    VkPipelineDepthStencilStateCreateInfo depthStencilState = BuildDepthStencilStateInfo(desc);
+    VkPipelineTessellationStateCreateInfo tessellationState = BuildTessellationStateInfo();
+    VkPipelineViewportStateCreateInfo viewportState = BuildViewportStateInfo();
+    VkPipelineRasterizationStateCreateInfo rasterizationState = BuildRasterizationStateInfo();
+    VkPipelineMultisampleStateCreateInfo multisampleState = BuildMultisampleStateInfo();
+    VkPipelineDepthStencilStateCreateInfo depthStencilState = BuildDepthStencilStateInfo();
 
     // due to pAttachments, color blend state must be built here
     VkPipelineColorBlendStateCreateInfo colorBlendState;

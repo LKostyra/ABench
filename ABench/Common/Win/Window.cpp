@@ -1,7 +1,7 @@
-#include "../PCH.hpp"
-#include "Window.hpp"
-#include "Common.hpp"
-#include "Logger.hpp"
+#include "PCH.hpp"
+#include "../Window.hpp"
+#include "../Common.hpp"
+#include "../Logger.hpp"
 
 
 namespace ABench {
@@ -91,9 +91,9 @@ bool Window::Init()
         return true;
 
     const void* addr = static_cast<const void*>(this);
-    std::wstringstream ss;
-    ss << addr;
-    mClassName = L"ABench_Class_" + ss.str();
+    std::wstringstream sstream;
+    sstream << addr;
+    mClassName = L"ABench_Class_" + sstream.str();
 
     mInstance = GetModuleHandle(0);
     if (!mInstance)

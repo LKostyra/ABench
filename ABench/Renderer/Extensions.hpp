@@ -26,8 +26,15 @@ extern PFN_vkGetPhysicalDeviceSurfaceSupportKHR vkGetPhysicalDeviceSurfaceSuppor
 extern PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr;
 extern PFN_vkCreateDevice vkCreateDevice;
 extern PFN_vkDestroyDevice vkDestroyDevice;
-extern PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
 extern PFN_vkDestroySurfaceKHR vkDestroySurfaceKHR;
+
+#ifdef WIN32
+extern PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
+#elif defined(__linux__) | defined(__LINUX__)
+extern PFN_vkCreateXcbSurfaceKHR vkCreateXcbSurfaceKHR;
+#else
+#error "Target platform not supported"
+#endif
 
 bool InitInstanceExtensions(const VkInstance& instance);
 

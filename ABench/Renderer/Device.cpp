@@ -1,4 +1,4 @@
-#include "../PCH.hpp"
+#include "PCH.hpp"
 #include "Device.hpp"
 
 #include "Util.hpp"
@@ -40,16 +40,16 @@ VkPhysicalDevice Device::SelectPhysicalDevice(const Instance& inst)
 {
     unsigned int gpuCount = 0;
     VkResult result = vkEnumeratePhysicalDevices(inst.mInstance, &gpuCount, nullptr);
-    RETURN_FALSE_IF_FAILED(result, "Failed to acquire Physical Device count");
+    RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to acquire Physical Device count");
     if (gpuCount == 0)
     {
         LOGE("No physical devices detected");
-        return false;
+        return VK_NULL_HANDLE;
     }
 
     std::vector<VkPhysicalDevice> devices(gpuCount);
     result = vkEnumeratePhysicalDevices(inst.mInstance, &gpuCount, devices.data());
-    RETURN_FALSE_IF_FAILED(result, "Failed to acquire available Physical Devices");
+    RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to acquire available Physical Devices");
 
     VkPhysicalDeviceProperties devProps;
 

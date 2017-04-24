@@ -1,10 +1,11 @@
 #pragma once
 
+#ifdef WIN32
 // WinAPI & other Windows internals
 #include <Windows.h>
+#endif
 
 // Vulkan SDK
-#define VK_USE_PLATFORM_WIN32_KHR
 #include <vulkan/vulkan.h>
 
 // STL
@@ -14,3 +15,12 @@
 #include <fstream>
 #include <vector>
 #include <memory>
+
+// Common defines
+#ifdef WIN32
+#define ABENCH_INLINE __forceinline
+#elif defined(__linux__) | defined(__LINUX__)
+#define ABENCH_INLINE __attribute__((always_inline))
+#else
+#error "Target platform not supported"
+#endif

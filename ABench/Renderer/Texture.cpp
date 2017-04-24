@@ -1,4 +1,4 @@
-#include "../PCH.hpp"
+#include "PCH.hpp"
 #include "Texture.hpp"
 
 #include "Util.hpp"
@@ -22,6 +22,7 @@ Texture::~Texture()
 
 bool Texture::Init(const TextureDesc& desc)
 {
+    UNUSED(desc);
     return true;
 }
 

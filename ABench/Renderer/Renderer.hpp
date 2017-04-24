@@ -52,12 +52,12 @@ public:
     bool Init(const Common::Window& window, bool debugEnable = false, bool debugVerbose = false);
     void Draw(const Scene::Camera& camera);
 
-    __forceinline Device* GetDevice()
+    ABENCH_INLINE Device* GetDevice()
     {
         return &mDevice;
     }
 
-    __forceinline void AddMesh(Scene::Mesh* mesh)
+    ABENCH_INLINE void AddMesh(Scene::Mesh* mesh)
     {
         mMeshes.push_back(mesh);
     }

@@ -42,17 +42,17 @@ public:
 
     bool Init(const TextureDesc& desc);
 
-    __forceinline uint32_t GetWidth() const
+    ABENCH_INLINE uint32_t GetWidth() const
     {
         return mWidth;
     }
 
-    __forceinline uint32_t GetHeight() const
+    ABENCH_INLINE uint32_t GetHeight() const
     {
         return mHeight;
     }
 
-    __forceinline uint32_t GetCurrentBuffer() const
+    ABENCH_INLINE uint32_t GetCurrentBuffer() const
     {
         return mCurrentBuffer;
     }

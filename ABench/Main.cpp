@@ -51,7 +51,7 @@ class ABenchWindow: public ABench::Common::Window
     }
 
 public:
-    __forceinline const ABench::Scene::Camera& GetCamera() const
+    ABENCH_INLINE const ABench::Scene::Camera& GetCamera() const
     {
         return mCamera;
     }
@@ -98,7 +98,7 @@ int main()
         timer.Start();
         float fps = 1.0f / frameTime;
 
-        window.SetTitle("ABench - " + std::to_string(fps) + " FPS (" + std::to_string(frameTime * 1000.0f) + " ms)"); 
+        window.SetTitle("ABench - " + std::to_string(fps) + " FPS (" + std::to_string(frameTime * 1000.0f) + " ms)");
         window.Update(frameTime);
         rend.Draw(window.GetCamera());
     }

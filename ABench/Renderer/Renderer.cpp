@@ -1,4 +1,4 @@
-#include "../PCH.hpp"
+#include "PCH.hpp"
 #include "Renderer.hpp"
 
 #include "Extensions.hpp"
@@ -62,11 +62,19 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (!mTools.Init(&mDevice))
         return false;
 
+    BackbufferWindowDesc bbWindowDesc;
+#ifdef WIN32
+    bbWindowDesc.hInstance = window.GetInstance();
+    bbWindowDesc.hWnd = window.GetHandle();
+#elif defined(__linux__) | defined(__LINUX__)
+#else
+#error "Target platform not supported"
+#endif
+
     BackbufferDesc bbDesc;
     bbDesc.instancePtr = &mInstance;
     bbDesc.devicePtr = &mDevice;
-    bbDesc.hInstance = window.GetInstance();
-    bbDesc.hWnd = window.GetHandle();
+    bbDesc.windowDesc = bbWindowDesc;
     bbDesc.requestedFormat = VK_FORMAT_B8G8R8A8_UNORM;
     bbDesc.width = window.GetWidth();
     bbDesc.height = window.GetHeight();

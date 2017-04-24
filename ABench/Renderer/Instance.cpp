@@ -1,4 +1,4 @@
-#include "../PCH.hpp"
+#include "PCH.hpp"
 #include "Instance.hpp"
 
 #include "Util.hpp"
@@ -52,11 +52,19 @@ bool Instance::Init(VkDebugReportFlagsEXT debugFlags)
     appInfo.apiVersion = VK_API_VERSION_1_0;
     appInfo.applicationVersion = 1;
 
-    const char* enabledExtensions[] = {
-        VK_KHR_SURFACE_EXTENSION_NAME,
-        VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
-        VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
-    };
+    std::vector<const char*> enabledExtensions;
+    enabledExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+
+    if (debugFlags)
+        enabledExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+
+#ifdef WIN32
+    enabledExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+#elif defined(__linux__) | defined(__LINUX__)
+    enabledExtensions.push_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
+#else
+    #error "Target platform not supported."
+#endif
 
     const char* enabledLayers[] = {
         "VK_LAYER_LUNARG_standard_validation"
@@ -67,10 +75,8 @@ bool Instance::Init(VkDebugReportFlagsEXT debugFlags)
     instInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     instInfo.pNext = nullptr;
     instInfo.pApplicationInfo = &appInfo;
-    instInfo.enabledExtensionCount = sizeof(enabledExtensions) / sizeof(enabledExtensions[0]);
-    if (!debugFlags)
-        instInfo.enabledExtensionCount--; // to disable debug report flag
-    instInfo.ppEnabledExtensionNames = enabledExtensions;
+    instInfo.enabledExtensionCount = static_cast<uint32_t>(enabledExtensions.size());
+    instInfo.ppEnabledExtensionNames = enabledExtensions.data();
     instInfo.enabledLayerCount = 1;
     instInfo.ppEnabledLayerNames = enabledLayers;
 

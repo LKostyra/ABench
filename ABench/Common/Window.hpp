@@ -6,14 +6,20 @@ namespace Common {
 
 class Window
 {
+#ifdef WIN32
     HINSTANCE mInstance;
     HWND mHWND;
+
+    static LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+#elif defined(__linux__) | defined(__LINUX__)
+
+#else
+#error "Target platform not supported"
+#endif
     int mWidth;
     int mHeight;
     bool mOpened;
     std::wstring mClassName;
-
-    static LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 protected:
     bool mKeys[255];
@@ -41,27 +47,29 @@ public:
     void Update(float deltaTime);
     void Close();
 
-    __forceinline HINSTANCE GetInstance() const
+#ifdef WIN32
+    ABENCH_INLINE HINSTANCE GetInstance() const
     {
         return mInstance;
     }
 
-    __forceinline HWND GetHandle() const
+    ABENCH_INLINE HWND GetHandle() const
     {
         return mHWND;
     }
+#endif
 
-    __forceinline uint32_t GetWidth() const
+    ABENCH_INLINE uint32_t GetWidth() const
     {
         return mWidth;
     }
 
-    __forceinline uint32_t GetHeight() const
+    ABENCH_INLINE uint32_t GetHeight() const
     {
         return mHeight;
     }
 
-    __forceinline bool IsOpen() const
+    ABENCH_INLINE bool IsOpen() const
     {
         return mOpened;
     }

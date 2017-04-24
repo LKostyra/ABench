@@ -48,12 +48,12 @@ public:
 
     bool Init(const BufferDesc& desc);
 
-    __forceinline VkBuffer GetVkBuffer() const
+    ABENCH_INLINE VkBuffer GetVkBuffer() const
     {
         return mBuffer;
     }
 
-    __forceinline VkDeviceSize GetSize() const
+    ABENCH_INLINE VkDeviceSize GetSize() const
     {
         return mBufferSize;
     }

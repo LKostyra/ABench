@@ -39,12 +39,12 @@ public:
 
     bool Execute(CommandBuffer* cmd) const;
 
-    __forceinline VkDevice GetDevice() const
+    ABENCH_INLINE VkDevice GetDevice() const
     {
         return mDevice;
     }
 
-    __forceinline VkCommandPool GetCommandPool() const
+    ABENCH_INLINE VkCommandPool GetCommandPool() const
     {
         return mCommandPool;
     }

@@ -11,6 +11,9 @@
 # Output dir and files
 /Bin
 
+# Common name for build directory
+/build
+
 # Visual Studio
 *.vsp
 *.psess

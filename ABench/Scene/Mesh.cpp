@@ -1,5 +1,7 @@
-#include "../PCH.hpp"
+#include "PCH.hpp"
 #include "Mesh.hpp"
+
+#include "Common/Common.hpp"
 
 using namespace ABench::Renderer;
 
@@ -17,6 +19,8 @@ Mesh::~Mesh()
 
 bool Mesh::Init(ABench::Renderer::Device* devicePtr, const std::string& path)
 {
+    UNUSED(path);
+
     float vertices[] =
     {
         -0.5f,-0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, // 0        7----6

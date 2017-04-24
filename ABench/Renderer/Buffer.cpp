@@ -1,4 +1,4 @@
-#include "../PCH.hpp"
+#include "PCH.hpp"
 #include "Buffer.hpp"
 #include "Util.hpp"
 #include "Extensions.hpp"
@@ -77,7 +77,7 @@ bool Buffer::Init(const BufferDesc& desc)
     {
         // create a staging buffer for copy operations
         bufInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-        VkResult result = vkCreateBuffer(mDevicePtr->GetDevice(), &bufInfo, nullptr, &staging);
+        result = vkCreateBuffer(mDevicePtr->GetDevice(), &bufInfo, nullptr, &staging);
         RETURN_FALSE_IF_FAILED(result, "Failed to create staging buffer");
 
         // get staging buffer's memory requirements

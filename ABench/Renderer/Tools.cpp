@@ -1,4 +1,4 @@
-#include "../PCH.hpp"
+#include "PCH.hpp"
 #include "Tools.hpp"
 
 #include "Util.hpp"
