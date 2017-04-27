@@ -30,8 +30,9 @@ ADD_EXECUTABLE(ABench
                ${ABENCH_COMMON_LINUX_SOURCES} ${ABENCH_COMMON_LINUX_HEADERS}
                ${ABENCH_RENDERER_LINUX_SOURCES} ${ABENCH_RENDERER_LINUX_HEADERS})
 
-# TODO uncomment when glslang will be added               
+# TODO uncomment when glslang will be added
 #TARGET_LINK_LIBRARIES(ABench glslang hlsl SPIRV OGLCompiler OSDependent)
+TARGET_LINK_LIBRARIES(ABench dl)
 
 ADD_CUSTOM_COMMAND(TARGET ABench POST_BUILD COMMAND
                    ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ABench> ${ABENCH_OUTPUT_DIRECTORY}/${targetfile})
