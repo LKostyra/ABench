@@ -60,7 +60,7 @@ VkRenderPass Tools::CreateRenderPass(VkFormat colorFormat, VkFormat depthFormat)
         ZERO_MEMORY(atts[attCount]);
         atts[attCount].format = depthFormat;
         atts[attCount].samples = VK_SAMPLE_COUNT_1_BIT;
-        atts[attCount].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        atts[attCount].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         atts[attCount].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         atts[attCount].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         atts[attCount].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;

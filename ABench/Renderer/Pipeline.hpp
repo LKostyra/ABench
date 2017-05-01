@@ -26,6 +26,8 @@ struct PipelineDesc
     VkRenderPass renderPass;
     VkPipelineLayout pipelineLayout;
 
+    bool enableDepth;
+
     PipelineDesc()
         : vertexShader(nullptr)
         , tessControlShader(nullptr)
@@ -36,6 +38,7 @@ struct PipelineDesc
         , topology(VK_PRIMITIVE_TOPOLOGY_POINT_LIST)
         , renderPass(VK_NULL_HANDLE)
         , pipelineLayout(VK_NULL_HANDLE)
+        , enableDepth(false)
     {
     }
 };
@@ -55,7 +58,7 @@ class Pipeline
     VkPipelineViewportStateCreateInfo BuildViewportStateInfo();
     VkPipelineRasterizationStateCreateInfo BuildRasterizationStateInfo();
     VkPipelineMultisampleStateCreateInfo BuildMultisampleStateInfo();
-    VkPipelineDepthStencilStateCreateInfo BuildDepthStencilStateInfo();
+    VkPipelineDepthStencilStateCreateInfo BuildDepthStencilStateInfo(const PipelineDesc& desc);
 
 public:
     Pipeline();

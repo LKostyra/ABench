@@ -35,6 +35,7 @@ class Framebuffer
     uint32_t mWidth;
     uint32_t mHeight;
     Texture* mTexturePtr;
+    Texture* mDepthTexturePtr;
 
 public:
     Framebuffer();

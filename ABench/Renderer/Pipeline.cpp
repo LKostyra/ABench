@@ -135,14 +135,15 @@ VkPipelineMultisampleStateCreateInfo Pipeline::BuildMultisampleStateInfo()
     return info;
 }
 
-VkPipelineDepthStencilStateCreateInfo Pipeline::BuildDepthStencilStateInfo()
+VkPipelineDepthStencilStateCreateInfo Pipeline::BuildDepthStencilStateInfo(const PipelineDesc& desc)
 {
     VkPipelineDepthStencilStateCreateInfo info;
     ZERO_MEMORY(info);
     info.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-    info.depthTestEnable = VK_FALSE;
-    info.depthWriteEnable = VK_FALSE;
-    info.depthCompareOp = VK_COMPARE_OP_ALWAYS;
+    info.depthTestEnable = desc.enableDepth ? VK_TRUE : VK_FALSE;
+    info.depthWriteEnable = desc.enableDepth ? VK_TRUE : VK_FALSE;
+    info.depthCompareOp = desc.enableDepth ? VK_COMPARE_OP_LESS : VK_COMPARE_OP_ALWAYS;
+    info.depthBoundsTestEnable = false;
     info.stencilTestEnable = VK_FALSE;
 
     VkStencilOpState stencil;
@@ -171,7 +172,7 @@ bool Pipeline::Init(const PipelineDesc& desc)
     VkPipelineViewportStateCreateInfo viewportState = BuildViewportStateInfo();
     VkPipelineRasterizationStateCreateInfo rasterizationState = BuildRasterizationStateInfo();
     VkPipelineMultisampleStateCreateInfo multisampleState = BuildMultisampleStateInfo();
-    VkPipelineDepthStencilStateCreateInfo depthStencilState = BuildDepthStencilStateInfo();
+    VkPipelineDepthStencilStateCreateInfo depthStencilState = BuildDepthStencilStateInfo(desc);
 
     // due to pAttachments, color blend state must be built here
     VkPipelineColorBlendStateCreateInfo colorBlendState;

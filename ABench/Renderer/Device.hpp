@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Instance.hpp"
-#include "SemaphoreManager.hpp"
 #include "CommandBuffer.hpp"
 
 namespace ABench {
@@ -13,9 +12,6 @@ class Device
 {
     friend class Backbuffer;
     friend class Pipeline;
-    friend class Buffer; // TODO remove
-
-    SemaphoreManager* mSemaphores;
 
     VkDevice mDevice;
     VkPhysicalDevice mPhysicalDevice;

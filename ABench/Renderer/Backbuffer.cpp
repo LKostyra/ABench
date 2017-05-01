@@ -33,7 +33,10 @@ Backbuffer::~Backbuffer()
         for (auto& img: mImages)
         {
             if (img.view != VK_NULL_HANDLE)
+            {
                 vkDestroyImageView(mDevicePtr->GetDevice(), img.view, nullptr);
+                img.view = VK_NULL_HANDLE;
+            }
         }
         vkDestroySwapchainKHR(mDevicePtr->GetDevice(), mSwapchain, nullptr);
     }
@@ -269,6 +272,7 @@ bool Backbuffer::AllocateImageViews()
     }
 
     mDefaultLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    mFromSwapchain = true;
 
     return true;
 }
@@ -334,8 +338,6 @@ bool Backbuffer::Present()
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = &mSwapchain;
     presentInfo.pImageIndices = &mCurrentBuffer;
-    presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = &mDevicePtr->mSemaphores->mRenderSemaphore;
     presentInfo.pResults = &result;
     vkQueuePresentKHR(mPresentQueue, &presentInfo);
     RETURN_FALSE_IF_FAILED(result, "Failed to present rendered image on screen");

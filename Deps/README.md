@@ -3,7 +3,7 @@ ABench Dependencies README
 
 Current ABench dependencies are:
 
-* FBX SDK 2017.1
+* FBX SDK 2018.1.1
 * Google Test
 * Vulkan
 

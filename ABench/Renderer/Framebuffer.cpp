@@ -72,6 +72,8 @@ bool Framebuffer::Init(const FramebufferDesc& desc)
     mWidth = desc.colorTex->mWidth;
     mHeight = desc.colorTex->mHeight;
     mTexturePtr = desc.colorTex;
+    if (desc.depthTex)
+        mDepthTexturePtr = desc.depthTex;
     return true;
 }
 

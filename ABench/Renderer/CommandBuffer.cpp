@@ -46,13 +46,26 @@ void CommandBuffer::Begin()
     vkBeginCommandBuffer(mCommandBuffer, &beginInfo);
 }
 
-void CommandBuffer::BeginRenderPass(VkRenderPass rp, Framebuffer* fb, float clearValues[4])
+void CommandBuffer::BeginRenderPass(VkRenderPass rp, Framebuffer* fb, ClearTypes types, float clearValues[4], float depthValue)
 {
-    VkClearValue clear;
-    memcpy(clear.color.float32, clearValues, 4 * sizeof(float));
+    VkClearValue clear[2];
+    uint32_t clearCount = 0;
+
+    if (types & ABENCH_CLEAR_COLOR)
+    {
+        memcpy(clear[clearCount].color.float32, clearValues, 4 * sizeof(float));
+        clearCount++;
+    }
+
+    if (types & ABENCH_CLEAR_DEPTH)
+    {
+        clear[clearCount].depthStencil.depth = depthValue;
+        clearCount++;
+    }
 
     // Transition Framebuffer's texture to COLOR_ATTACHMENT layout
     fb->mTexturePtr->Transition(mCommandBuffer, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    fb->mDepthTexturePtr->Transition(mCommandBuffer, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
     VkRenderPassBeginInfo rpInfo;
     ZERO_MEMORY(rpInfo);
@@ -60,8 +73,8 @@ void CommandBuffer::BeginRenderPass(VkRenderPass rp, Framebuffer* fb, float clea
     rpInfo.renderPass = rp;
     rpInfo.renderArea.extent.width = fb->mWidth;
     rpInfo.renderArea.extent.height = fb->mHeight;
-    rpInfo.clearValueCount = 1;
-    rpInfo.pClearValues = &clear;
+    rpInfo.clearValueCount = clearCount;
+    rpInfo.pClearValues = clear;
     rpInfo.framebuffer = fb->mFramebuffers[fb->mTexturePtr->GetCurrentBuffer()];
     vkCmdBeginRenderPass(mCommandBuffer, &rpInfo, VK_SUBPASS_CONTENTS_INLINE);
 
@@ -94,13 +107,27 @@ void CommandBuffer::BindDescriptorSet(VkDescriptorSet set, VkPipelineLayout layo
     vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &set, 1, &dynamicOffset);
 }
 
-void CommandBuffer::Clear(float clearValues[4])
+void CommandBuffer::Clear(ClearTypes types, float clearValues[4], float depthValue)
 {
-    VkClearAttachment clearAtt;
+    VkClearAttachment clearAtt[2];
+    uint32_t clearAttCount = 0;
 
-    clearAtt.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    clearAtt.colorAttachment = 0;
-    memcpy(clearAtt.clearValue.color.float32, clearValues, 4 * sizeof(float));
+    if (types & ABENCH_CLEAR_COLOR)
+    {
+        ZERO_MEMORY(clearAtt[clearAttCount]);
+        clearAtt[clearAttCount].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        clearAtt[clearAttCount].colorAttachment = 0;
+        memcpy(clearAtt[clearAttCount].clearValue.color.float32, clearValues, 4 * sizeof(float));
+        clearAttCount++;
+    }
+
+    if (types & ABENCH_CLEAR_DEPTH)
+    {
+        ZERO_MEMORY(clearAtt[clearAttCount]);
+        clearAtt[clearAttCount].aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+        clearAtt[clearAttCount].clearValue.depthStencil.depth = depthValue;
+        clearAttCount++;
+    }
 
     VkClearRect rect;
     rect.rect.offset = { 0, 0 };
@@ -108,7 +135,15 @@ void CommandBuffer::Clear(float clearValues[4])
     rect.baseArrayLayer = 0;
     rect.layerCount = 1;
 
-    vkCmdClearAttachments(mCommandBuffer, 1, &clearAtt, 1, &rect);
+    vkCmdClearAttachments(mCommandBuffer, clearAttCount, clearAtt, 1, &rect);
+}
+
+void CommandBuffer::CopyBuffer(VkBuffer src, VkBuffer dst, VkDeviceSize size)
+{
+    VkBufferCopy region;
+    ZERO_MEMORY(region);
+    region.size = size;
+    vkCmdCopyBuffer(mCommandBuffer, src, dst, 1, &region);
 }
 
 void CommandBuffer::Draw(uint32_t vertCount)

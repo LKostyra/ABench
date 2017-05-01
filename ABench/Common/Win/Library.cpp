@@ -1,6 +1,8 @@
 #include "PCH.hpp"
 #include "../Library.hpp"
 #include "../Common.hpp"
+#include "../Logger.hpp"
+
 
 namespace ABench {
 namespace Common {
@@ -32,7 +34,10 @@ bool Library::Open(const std::string& path)
 
     mModule = LoadLibrary(widePath.c_str());
     if (!mModule)
+    {
+        LOGE("Failed to load library " << path);
         return false;
+    }
 
     return true;
 }
@@ -45,7 +50,7 @@ void* Library::GetSymbol(const std::string& name)
     FARPROC p = GetProcAddress(mModule, name.c_str());
     if (!p)
     {
-        // LOG
+        LOGE("Failed to acquire address for symbol " << name << ": " << GetLastError());
         return nullptr;
     }
 

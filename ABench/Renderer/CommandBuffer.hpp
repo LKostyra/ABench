@@ -13,9 +13,16 @@ class Buffer;
 class Pipeline;
 class Framebuffer;
 
+enum ClearTypes
+{
+    ABENCH_CLEAR_COLOR = 1,
+    ABENCH_CLEAR_DEPTH = 2,
+};
+
 class CommandBuffer
 {
     friend class Device;
+    friend class Texture;
 
     Device* mDevicePtr;
 
@@ -29,13 +36,14 @@ public:
     bool Init(Device* devicePtr);
 
     void Begin();
-    void BeginRenderPass(VkRenderPass rp, Framebuffer* fb, float clearValues[4]);
+    void BeginRenderPass(VkRenderPass rp, Framebuffer* fb, ClearTypes types, float clearValues[4], float depthValue = 0.0f);
     void BindVertexBuffer(const Buffer* buffer);
     void BindIndexBuffer(const Buffer* buffer);
     void BindPipeline(Pipeline* pipeline);
     void BindDescriptorSet(VkDescriptorSet set, VkPipelineLayout layout);
     void BindDescriptorSet(VkDescriptorSet set, VkPipelineLayout layout, uint32_t dynamicOffset);
-    void Clear(float clearValues[4]);
+    void Clear(ClearTypes types, float clearValues[4], float depthValue);
+    void CopyBuffer(VkBuffer src, VkBuffer dst, VkDeviceSize size);
     void Draw(uint32_t vertCount);
     void DrawIndexed(uint32_t vertCount);
     void EndRenderPass();

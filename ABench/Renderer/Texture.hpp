@@ -9,6 +9,20 @@ namespace Renderer {
 struct TextureDesc
 {
     Device* devicePtr;
+
+    VkFormat format;
+    uint32_t width;
+    uint32_t height;
+    VkImageUsageFlags usage;
+
+    TextureDesc()
+        : devicePtr(nullptr)
+        , format(VK_FORMAT_UNDEFINED)
+        , width(0)
+        , height(0)
+        , usage(0)
+    {
+    }
 };
 
 struct ImageData
@@ -17,6 +31,14 @@ struct ImageData
     VkImageView view;
     VkDeviceMemory memory;
     VkImageLayout currentLayout;
+
+    ImageData()
+        : image(VK_NULL_HANDLE)
+        , view(VK_NULL_HANDLE)
+        , memory(VK_NULL_HANDLE)
+        , currentLayout(VK_IMAGE_LAYOUT_UNDEFINED)
+    {
+    }
 };
 
 class Texture
@@ -31,6 +53,8 @@ class Texture
     uint32_t mHeight;
     VkFormat mFormat;
     std::vector<ImageData> mImages;
+    bool mFromSwapchain;
+
     uint32_t mCurrentBuffer;
 
     VkImageLayout mDefaultLayout;

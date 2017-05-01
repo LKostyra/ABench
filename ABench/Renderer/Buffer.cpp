@@ -2,6 +2,7 @@
 #include "Buffer.hpp"
 #include "Util.hpp"
 #include "Extensions.hpp"
+#include "CommandBuffer.hpp"
 
 #include "Common/Common.hpp"
 
@@ -101,46 +102,20 @@ bool Buffer::Init(const BufferDesc& desc)
         result = vkBindBufferMemory(mDevicePtr->GetDevice(), staging, stagingMemory, 0);
         RETURN_FALSE_IF_FAILED(result, "Failed to bind staging memory to staging buffer");
 
-
         // copy data from staging buffer to device
         // TODO OPTIMIZE this uses graphics queue and waits; after implementing queue manager, switch to Transfer queue
-        // TODO this probably should be built and done somewhere else
-        VkCommandBuffer copyCommand;
-        VkCommandBufferAllocateInfo cmdInfo;
-        ZERO_MEMORY(cmdInfo);
-        cmdInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        cmdInfo.commandPool = mDevicePtr->GetCommandPool();
-        cmdInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        cmdInfo.commandBufferCount = 1;
-        result = vkAllocateCommandBuffers(mDevicePtr->GetDevice(), &cmdInfo, &copyCommand);
-        RETURN_FALSE_IF_FAILED(result, "Failed to allcoate command buffer for copy between staging and device");
+        CommandBuffer copyCmdBuffer;
+        if (!copyCmdBuffer.Init(mDevicePtr))
+            return false;
 
-        VkCommandBufferBeginInfo cmdBeginInfo;
-        ZERO_MEMORY(cmdBeginInfo);
-        cmdBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        cmdBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-        result = vkBeginCommandBuffer(copyCommand, &cmdBeginInfo);
-        RETURN_FALSE_IF_FAILED(result, "Failed to begin copy command buffer");
+        copyCmdBuffer.Begin();
+        copyCmdBuffer.CopyBuffer(staging, mBuffer, deviceMemReqs.size);
+        copyCmdBuffer.End();
 
-        VkBufferCopy region;
-        ZERO_MEMORY(region);
-        region.size = deviceMemReqs.size;
-        vkCmdCopyBuffer(copyCommand, staging, mBuffer, 1, &region);
-
-        result = vkEndCommandBuffer(copyCommand);
-        RETURN_FALSE_IF_FAILED(result, "Error during copy command buffer record");
-
-        VkSubmitInfo submitInfo;
-        ZERO_MEMORY(submitInfo);
-        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &copyCommand;
-        vkQueueSubmit(mDevicePtr->mGraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-
-        mDevicePtr->WaitForGPU();
+        mDevicePtr->Execute(&copyCmdBuffer);
+        mDevicePtr->WaitForGPU(); // TODO this should be removed
 
         // cleanup
-        vkFreeCommandBuffers(mDevicePtr->GetDevice(), mDevicePtr->mCommandPool, 1, &copyCommand);
         vkFreeMemory(mDevicePtr->GetDevice(), stagingMemory, nullptr);
         vkDestroyBuffer(mDevicePtr->GetDevice(), staging, nullptr);
     }

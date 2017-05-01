@@ -56,12 +56,16 @@ extern PFN_vkQueueWaitIdle vkQueueWaitIdle;
 // Buffers and Images
 extern PFN_vkAllocateMemory vkAllocateMemory;
 extern PFN_vkBindBufferMemory vkBindBufferMemory;
+extern PFN_vkBindImageMemory vkBindImageMemory;
 extern PFN_vkCreateBuffer vkCreateBuffer;
+extern PFN_vkCreateImage vkCreateImage;
 extern PFN_vkCreateImageView vkCreateImageView;
 extern PFN_vkDestroyBuffer vkDestroyBuffer;
+extern PFN_vkDestroyImage vkDestroyImage;
 extern PFN_vkDestroyImageView vkDestroyImageView;
 extern PFN_vkFreeMemory vkFreeMemory;
 extern PFN_vkGetBufferMemoryRequirements vkGetBufferMemoryRequirements;
+extern PFN_vkGetImageMemoryRequirements vkGetImageMemoryRequirements;
 extern PFN_vkMapMemory vkMapMemory;
 extern PFN_vkUnmapMemory vkUnmapMemory;
 

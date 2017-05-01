@@ -78,20 +78,30 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     bbDesc.requestedFormat = VK_FORMAT_B8G8R8A8_UNORM;
     bbDesc.width = window.GetWidth();
     bbDesc.height = window.GetHeight();
-    bbDesc.vsync = true;
+    bbDesc.vsync = false;
     if (!mBackbuffer.Init(bbDesc))
+        return false;
+
+    TextureDesc depthTexDesc;
+    depthTexDesc.devicePtr = &mDevice;
+    depthTexDesc.width = window.GetWidth();
+    depthTexDesc.height = window.GetHeight();
+    depthTexDesc.format = VK_FORMAT_D32_SFLOAT;
+    depthTexDesc.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+    if (!mDepthTexture.Init(depthTexDesc))
         return false;
 
     if (!mRingBuffer.Init(&mDevice, 1024*1024))
         return false;
 
-    mRenderPass = mTools.CreateRenderPass(bbDesc.requestedFormat, VK_FORMAT_UNDEFINED);
+    mRenderPass = mTools.CreateRenderPass(bbDesc.requestedFormat, VK_FORMAT_D32_SFLOAT);
     if (mRenderPass == VK_NULL_HANDLE)
         return false;
 
     FramebufferDesc fbDesc;
     fbDesc.devicePtr = &mDevice;
     fbDesc.colorTex = &mBackbuffer;
+    fbDesc.depthTex = &mDepthTexture;
     fbDesc.renderPass = mRenderPass;
     if (!mFramebuffer.Init(fbDesc))
         return false;
@@ -156,6 +166,7 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     pipeDesc.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     pipeDesc.renderPass = mRenderPass;
     pipeDesc.pipelineLayout = mPipelineLayout;
+    pipeDesc.enableDepth = true;
     mPipeline.Init(pipeDesc);
 
     if (!mCommandBuffer.Init(&mDevice))
@@ -203,7 +214,8 @@ void Renderer::Draw(const Scene::Camera& camera)
         mCommandBuffer.SetScissor(0, 0, mBackbuffer.GetWidth(), mBackbuffer.GetHeight());
 
         float clearValue[] = {0.2f, 0.4f, 0.8f, 0.0f};
-        mCommandBuffer.BeginRenderPass(mRenderPass, &mFramebuffer, clearValue);
+        mCommandBuffer.BeginRenderPass(mRenderPass, &mFramebuffer,
+                                       static_cast<ClearTypes>(ABENCH_CLEAR_COLOR | ABENCH_CLEAR_DEPTH), clearValue, 1.0f);
         mCommandBuffer.BindPipeline(&mPipeline);
 
         for (auto& mesh : mMeshes)

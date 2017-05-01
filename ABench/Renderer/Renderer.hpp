@@ -26,6 +26,7 @@ class Renderer final
     Device mDevice;
     Tools mTools;
     Backbuffer mBackbuffer;
+    Texture mDepthTexture;
     Framebuffer mFramebuffer;
     VertexLayout mVertexLayout;
     Shader mVertexShader;

@@ -4,7 +4,6 @@
 #include "Util.hpp"
 #include "Extensions.hpp"
 #include "Translations.hpp"
-#include "SemaphoreManager.hpp"
 
 #include "Common/Logger.hpp"
 #include "Common/Common.hpp"
@@ -14,8 +13,7 @@ namespace ABench {
 namespace Renderer {
 
 Device::Device()
-    : mSemaphores(nullptr)
-    , mDevice(VK_NULL_HANDLE)
+    : mDevice(VK_NULL_HANDLE)
     , mPhysicalDevice(VK_NULL_HANDLE)
     , mMemoryProperties()
     , mGraphicsQueueIndex(UINT32_MAX)
@@ -26,8 +24,6 @@ Device::Device()
 
 Device::~Device()
 {
-    delete mSemaphores;
-
     if (mPipelineCache != VK_NULL_HANDLE)
         vkDestroyPipelineCache(mDevice, mPipelineCache, nullptr);
     if (mCommandPool != VK_NULL_HANDLE)
@@ -167,9 +163,6 @@ bool Device::Init(const Instance& inst)
     // extract queue (might be useful later on when ex. submitting commands)
     vkGetDeviceQueue(mDevice, mGraphicsQueueIndex, 0, &mGraphicsQueue);
 
-    mSemaphores = new SemaphoreManager(this);
-    mSemaphores->Init();
-
     VkCommandPoolCreateInfo poolInfo;
     ZERO_MEMORY(poolInfo);
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -206,8 +199,6 @@ bool Device::Execute(CommandBuffer* cmd) const
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &cmd->mCommandBuffer;
-    submitInfo.signalSemaphoreCount = 1; // TODO semaphore management sucks, to redo
-    submitInfo.pSignalSemaphores = &mSemaphores->mRenderSemaphore;
     VkResult result = vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
     RETURN_FALSE_IF_FAILED(result, "Failed to submit graphics operation");
 
