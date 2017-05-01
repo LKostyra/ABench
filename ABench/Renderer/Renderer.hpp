@@ -4,6 +4,7 @@
 #include "Device.hpp"
 #include "Tools.hpp"
 #include "Backbuffer.hpp"
+#include "Texture.hpp"
 #include "Framebuffer.hpp"
 #include "Buffer.hpp"
 #include "Shader.hpp"

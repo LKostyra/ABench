@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <cmath>
 
 namespace ABench {
 namespace Math {

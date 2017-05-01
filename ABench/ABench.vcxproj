@@ -333,6 +333,7 @@
     <ClInclude Include="Renderer\Framebuffer.hpp" />
     <ClInclude Include="Renderer\Instance.hpp" />
     <ClInclude Include="Renderer\Pipeline.hpp" />
+    <ClInclude Include="Renderer\Prerequisites.hpp" />
     <ClInclude Include="Renderer\Renderer.hpp" />
     <ClInclude Include="Renderer\RingBuffer.hpp" />
     <ClInclude Include="Renderer\Shader.hpp" />

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Prerequisites.hpp"
 #include "Device.hpp"
 #include "Framebuffer.hpp"
 #include "Pipeline.hpp"
@@ -8,10 +9,6 @@
 
 namespace ABench {
 namespace Renderer {
-
-class Buffer;
-class Pipeline;
-class Framebuffer;
 
 enum ClearTypes
 {

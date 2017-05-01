@@ -197,5 +197,8 @@
     <ClInclude Include="Renderer\Win\WinBackbuffer.hpp">
       <Filter>Renderer\Win</Filter>
     </ClInclude>
+    <ClInclude Include="Renderer\Prerequisites.hpp">
+      <Filter>Renderer</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

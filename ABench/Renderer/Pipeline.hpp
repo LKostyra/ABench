@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Prerequisites.hpp"
 #include "Device.hpp"
 #include "Shader.hpp"
 #include "VertexLayout.hpp"
@@ -7,9 +8,6 @@
 
 namespace ABench {
 namespace Renderer {
-
-// TODO create Prerequisites.hpp
-class Shader;
 
 struct PipelineDesc
 {

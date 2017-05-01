@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Prerequisites.hpp"
 #include "Device.hpp"
 
 #include <memory>

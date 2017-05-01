@@ -1,13 +1,12 @@
 #pragma once
 
+#include "Prerequisites.hpp"
 #include "Device.hpp"
 #include "Texture.hpp"
 
 
 namespace ABench {
 namespace Renderer {
-
-class Texture;
 
 struct FramebufferDesc
 {

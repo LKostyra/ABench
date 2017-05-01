@@ -2,6 +2,9 @@
 
 #include <Common/Library.hpp>
 
+#include "Prerequisites.hpp"
+
+
 namespace ABench {
 namespace Renderer {
 
