@@ -6,7 +6,7 @@
 #endif
 
 // Vulkan SDK
-#include <vulkan/vulkan.h>
+#include <vulkan.h>
 
 // STL
 #include <string>

@@ -91,7 +91,7 @@
       <SDLCheck>true</SDLCheck>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>PCH.hpp</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)Deps\fbxsdk\include;$(SolutionDir)Deps\;$(SolutionDir)ABench\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Deps\fbxsdk\include;$(SolutionDir)Deps\vulkan;$(SolutionDir)ABench</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;VK_USE_PLATFORM_WIN32_KHR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
@@ -111,7 +111,7 @@
       <SDLCheck>true</SDLCheck>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>PCH.hpp</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)Deps\fbxsdk\include;$(SolutionDir)Deps\;$(SolutionDir)ABench\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Deps\fbxsdk\include;$(SolutionDir)Deps\vulkan;$(SolutionDir)ABench</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;VK_USE_PLATFORM_WIN32_KHR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
@@ -133,7 +133,7 @@
       <SDLCheck>true</SDLCheck>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>PCH.hpp</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)Deps\fbxsdk\include;$(SolutionDir)Deps\;$(SolutionDir)ABench\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Deps\fbxsdk\include;$(SolutionDir)Deps\vulkan;$(SolutionDir)ABench</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;VK_USE_PLATFORM_WIN32_KHR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
@@ -157,7 +157,7 @@
       <SDLCheck>true</SDLCheck>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>PCH.hpp</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)Deps\fbxsdk\include;$(SolutionDir)Deps\;$(SolutionDir)ABench\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Deps\fbxsdk\include;$(SolutionDir)Deps\vulkan;$(SolutionDir)ABench</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;VK_USE_PLATFORM_WIN32_KHR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
