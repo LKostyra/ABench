@@ -9,6 +9,18 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="PCH.cpp" />
+    <ClCompile Include="..\ABench\Common\FBXFile.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Tests\FBXFileTest.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ABench\Common\Win\Logger.cpp">
+      <Filter>Modules\Win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ABench\Common\Win\Common.cpp">
+      <Filter>Modules\Win</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Tests">
@@ -16,6 +28,9 @@
     </Filter>
     <Filter Include="Modules">
       <UniqueIdentifier>{9838f7d0-5044-469c-a1b5-296b250c73e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\Win">
+      <UniqueIdentifier>{fe6f008b-cf2d-4ecc-9181-c306f481b26c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

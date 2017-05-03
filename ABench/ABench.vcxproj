@@ -173,6 +173,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Common\FBXFile.cpp" />
     <ClCompile Include="Common\Win\Common.cpp" />
     <ClCompile Include="Common\Win\Library.cpp" />
     <ClCompile Include="Common\Win\Logger.cpp" />
@@ -315,6 +316,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Common\FBXFile.hpp" />
     <ClInclude Include="Common\Library.hpp" />
     <ClInclude Include="Common\Logger.hpp" />
     <ClInclude Include="Common\Common.hpp" />

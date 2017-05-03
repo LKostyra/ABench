@@ -6,9 +6,14 @@ int main(int argc, char* argv[])
 
     int result = RUN_ALL_TESTS();
 
-#if defined(WIN32) && defined(_CRTDBG_MAP_ALLOC)
+#if defined(WIN32)
+
+#if defined(_CRTDBG_MAP_ALLOC)
     _CrtDumpMemoryLeaks();
-#endif // defined(WIN32) && defined(_CRTDBG_MAP_ALLOC)
+#endif // defined(_CRTDBG_MAP_ALLOC)
+
+    system("PAUSE");
+#endif // defined(WIN32)
 
     return result;
 }

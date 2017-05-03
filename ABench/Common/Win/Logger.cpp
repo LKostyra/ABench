@@ -2,6 +2,7 @@
 #include "../Common.hpp"
 #include "../Logger.hpp"
 
+#include <fstream>
 
 namespace ABench {
 namespace Logger {

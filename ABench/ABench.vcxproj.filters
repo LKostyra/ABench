@@ -107,6 +107,9 @@
     <ClCompile Include="Renderer\Win\WinBackbuffer.cpp">
       <Filter>Renderer\Win</Filter>
     </ClCompile>
+    <ClCompile Include="Common\FBXFile.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\Window.hpp">
@@ -199,6 +202,9 @@
     </ClInclude>
     <ClInclude Include="Renderer\Prerequisites.hpp">
       <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\FBXFile.hpp">
+      <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

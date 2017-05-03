@@ -2,6 +2,7 @@
 
 #include "Prerequisites.hpp"
 #include "Device.hpp"
+#include "Common/Common.hpp"
 
 
 namespace ABench {

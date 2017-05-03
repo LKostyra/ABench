@@ -6,39 +6,62 @@ MESSAGE("Generating Makefile for ABench project")
 
 INCLUDE(FindPkgConfig)
 
-# Pre-define Release build
+
+### Pre-define Release build ###
+
 IF(NOT DEFINED CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
     SET(CMAKE_BUILD_TYPE Release)
 ENDIF(NOT DEFINED CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
 
-# Pre-define 64-bit build platform
+
+### Pre-define 64-bit build platform ###
+
 IF(NOT DEFINED BUILD_PLATFORM)
     EXECUTE_PROCESS(COMMAND uname -m
                     OUTPUT_VARIABLE BUILD_PLATFORM OUTPUT_STRIP_TRAILING_WHITESPACE)
 ENDIF(NOT DEFINED BUILD_PLATFORM)
 
-# Set required variables
+
+### Set required variables ###
+
 SET(CMAKE_CXX_FLAGS       "${CMAKE_CXX_FLAGS} -O2 -std=c++1y")
 SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG -O0 -g -std=c++1y")
 
-# Set directory macros
+
+### Set directory macros ###
+
+# ABench dirs
 SET(ABENCH_ROOT_DIRECTORY ${CMAKE_SOURCE_DIR})
 SET(ABENCH_OUTPUT_DIRECTORY ${ABENCH_ROOT_DIRECTORY}/Bin/${BUILD_PLATFORM}/${CMAKE_BUILD_TYPE})
 SET(ABENCH_DIRECTORY ${ABENCH_ROOT_DIRECTORY}/ABench)
 SET(ABENCHTEST_DIRECTORY ${ABENCH_ROOT_DIRECTORY}/ABenchTest)
 SET(ABENCH_DEPS_DIRECTORY ${ABENCH_ROOT_DIRECTORY}/Deps)
+SET(ABENCH_GTEST_DIRECTORY ${ABENCH_ROOT_DIRECTORY}/gtest)
+SET(ABENCH_GTEST_INCLUDE_DIRECTORY ${ABENCH_GTEST_DIRECTORY}/include)
+
+# FBX SDK dirs
+SET(ABENCH_DEPS_FBXSDK_DIRECTORY ${ABENCH_DEPS_DIRECTORY}/fbxsdk)
+SET(ABENCH_DEPS_FBXSDK_INCLUDE_DIRECTORY ${ABENCH_DEPS_FBXSDK_DIRECTORY}/include)
+STRING(TOLOWER ${CMAKE_BUILD_TYPE} BUILD_TYPE_LOWER)
+SET(ABENCH_DEPS_FBXSDK_LIB_DIRECTORY ${ABENCH_DEPS_FBXSDK_DIRECTORY}/lib/gcc4/x64/${BUILD_TYPE_LOWER})
+
+
+### Compiler configuration ###
 
 # Enable all warnings and make them errors
-ADD_DEFINITIONS("-Wall -Wpedantic -Wextra -Wno-sign-compare -Werror")
+ADD_DEFINITIONS("-Wall -Wextra -Wno-sign-compare -Werror")
 
 # Warnings exceptions
 ADD_DEFINITIONS("-Wno-multichar")
 ADD_DEFINITIONS("-Wno-switch")
 ADD_DEFINITIONS("-Wno-unused-result")
-ADD_DEFINITIONS("-Wno-unused-private-field")
-ADD_DEFINITIONS("-Wno-four-char-constants")
+ADD_DEFINITIONS("-Wno-ignored-qualifiers")
+ADD_DEFINITIONS("-Wno-unused-parameter")
+ADD_DEFINITIONS("-Wno-missing-field-initializers")
 
-# Building outputs
+
+### Building outputs ###
+
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${ABENCH_OUTPUT_DIRECTORY})
 SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${ABENCH_OUTPUT_DIRECTORY})
 
@@ -46,8 +69,11 @@ MESSAGE("Build type is ${CMAKE_BUILD_TYPE}")
 MESSAGE("Output path is ${ABENCH_OUTPUT_DIRECTORY}")
 MESSAGE("Platform is ${BUILD_PLATFORM}")
 
-# Add all projects
+
+### Add all projects ###
+
 ADD_SUBDIRECTORY("ABench")
+ADD_SUBDIRECTORY("ABenchTest")
 ADD_SUBDIRECTORY("gtest")
 
 FILE(MAKE_DIRECTORY ${ABENCH_OUTPUT_DIRECTORY})

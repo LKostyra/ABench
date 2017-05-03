@@ -3,6 +3,7 @@
 #include "Prerequisites.hpp"
 #include "Instance.hpp"
 #include "CommandBuffer.hpp"
+#include "Common/Common.hpp"
 
 namespace ABench {
 namespace Renderer {

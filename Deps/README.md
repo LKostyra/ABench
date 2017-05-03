@@ -8,10 +8,14 @@ Current ABench dependencies are:
 * Vulkan
 
 
-From these dependencies only Vulkan and Google Test are provided. Other dependencies must be installed manually and junction linked to this directory with following command:
+From these dependencies only Vulkan and Google Test are provided. Other dependencies must be installed manually and linked to this directory with following command:
 
 ```
+# Windows:
 mklink /J <link_name> <path_to_SDK>
+
+# Linux:
+ln -s <path_to_SDK> <link_name>
 ```
 
 Following links are required to build the project:
