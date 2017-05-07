@@ -17,9 +17,10 @@ Mesh::~Mesh()
 {
 }
 
-bool Mesh::Init(ABench::Renderer::Device* devicePtr, const std::string& path)
+bool Mesh::Init(ABench::Renderer::Device* devicePtr, const std::string& inScenePath)
 {
-    UNUSED(path);
+    // TODO make it used
+    UNUSED(inScenePath);
 
     float vertices[] =
     {

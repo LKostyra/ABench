@@ -9,6 +9,8 @@ namespace Common {
 
 class FBXFile
 {
+    using TraverseCallback = std::function<void(FbxNode*)>;
+
     FbxManager* mFbxManager;
     FbxIOSettings* mFbxIOSettings;
     std::unique_ptr<FbxGeometryConverter> mFbxConverter;
@@ -21,11 +23,14 @@ class FBXFile
     std::string GetLightTypeName(FbxLight::EType type);
     void PrintNode(FbxNode* node, int tabs);
 
+    void TraverseNode(TraverseCallback func, FbxNode* node);
+
 public:
     FBXFile();
     ~FBXFile();
 
     bool Open(const std::string& path);
+    void Traverse(TraverseCallback func);
     void Close();
 
     operator bool() const

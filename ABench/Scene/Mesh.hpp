@@ -18,7 +18,7 @@ public:
     Mesh();
     ~Mesh();
 
-    bool Init(ABench::Renderer::Device* devicePtr, const std::string& path);
+    bool Init(ABench::Renderer::Device* devicePtr, const std::string& inScenePath);
 
     ABENCH_INLINE const ABench::Renderer::Buffer* GetVertexBuffer() const
     {

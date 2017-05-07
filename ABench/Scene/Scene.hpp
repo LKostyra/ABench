@@ -3,6 +3,7 @@
 #include "Prerequisites.hpp"
 #include "Common/FBXFile.hpp"
 #include "Object.hpp"
+#include "Mesh.hpp"
 
 
 namespace ABench {
@@ -12,16 +13,18 @@ class Scene
 {
     ABench::Common::FBXFile mFBXFile;
     std::vector<Object> mObjects;
+    std::vector<Mesh> mMeshComponents;
 
 public:
-    using ObjectIteratorFunction = std::function<void(const Object*)>;
+    using ObjectCallback = std::function<void(const Object*)>;
 
     Scene();
     ~Scene();
 
     bool Init(const std::string fbxFile);
     Object* CreateObject();
-    void ForEachObject(ObjectIteratorFunction func) const;
+    Component* CreateComponent(ComponentType type);
+    void ForEachObject(ObjectCallback func) const;
 };
 
 } // namespace Scene

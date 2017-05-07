@@ -98,6 +98,17 @@ void FBXFile::PrintNode(FbxNode* node, int tabs)
         PrintNode(node->GetChild(i), tabs+1);
 }
 
+void FBXFile::TraverseNode(TraverseCallback func, FbxNode* node)
+{
+    func(node);
+
+    uint32_t childCount = node->GetChildCount();
+    for (uint32_t i = 0; i < childCount; ++i)
+    {
+        TraverseNode(func, node->GetChild(i));
+    }
+}
+
 bool FBXFile::Open(const std::string& path)
 {
     if (mIsOpened)
@@ -132,6 +143,16 @@ bool FBXFile::Open(const std::string& path)
     LOGI("Opened FBX file " << path);
     mIsOpened = true;
     return true;
+}
+
+void FBXFile::Traverse(TraverseCallback func)
+{
+    FbxNode* root = mFbxScene->GetRootNode();
+
+    if (root)
+    {
+        TraverseNode(func, root);
+    }
 }
 
 void FBXFile::Close()
