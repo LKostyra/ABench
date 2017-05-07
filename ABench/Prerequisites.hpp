@@ -1,6 +1,23 @@
 #pragma once
 
 namespace ABench {
+
+namespace Common {
+
+class FBXFile;
+class Library;
+class Timer;
+class Window;
+
+} // namespace Common
+
+namespace Math {
+
+class Vector;
+class Matrix;
+
+} // namespace Math
+
 namespace Renderer {
 
 class Instance;
@@ -19,4 +36,15 @@ class Tools;
 class VertexLayout;
 
 } // namespace Renderer
+
+namespace Scene {
+
+class Camera;
+class Component;
+class Mesh;
+class Object;
+class Scene;
+
+} // namespace Scene
+
 } // namespace ABench

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Object.hpp"
+#include "Component.hpp"
 
 #include "Renderer/Buffer.hpp"
 
@@ -8,9 +9,8 @@
 namespace ABench {
 namespace Scene {
 
-class Mesh final
+class Mesh final: public Component
 {
-    ABench::Math::Matrix mWorldMatrix;
     ABench::Renderer::Buffer mVertexBuffer;
     ABench::Renderer::Buffer mIndexBuffer;
 
@@ -19,8 +19,6 @@ public:
     ~Mesh();
 
     bool Init(ABench::Renderer::Device* devicePtr, const std::string& path);
-
-    void SetPosition(float x, float y, float z);
 
     ABENCH_INLINE const ABench::Renderer::Buffer* GetVertexBuffer() const
     {
@@ -32,9 +30,9 @@ public:
         return &mIndexBuffer;
     }
 
-    ABENCH_INLINE const ABench::Math::Matrix* GetWorldMatrix() const
+    ComponentType GetType() const
     {
-        return &mWorldMatrix;
+        return ComponentType::Mesh;
     }
 };
 

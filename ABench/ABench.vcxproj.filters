@@ -110,6 +110,9 @@
     <ClCompile Include="Common\FBXFile.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="Scene\Scene.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\Window.hpp">
@@ -200,11 +203,15 @@
     <ClInclude Include="Renderer\Win\WinBackbuffer.hpp">
       <Filter>Renderer\Win</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer\Prerequisites.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="Common\FBXFile.hpp">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="Scene\Component.hpp">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Scene.hpp">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Prerequisites.hpp" />
   </ItemGroup>
 </Project>

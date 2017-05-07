@@ -4,6 +4,8 @@
 #include "Common/Timer.hpp"
 #include "Renderer/Renderer.hpp"
 #include "Scene/Camera.hpp"
+#include "Scene/Mesh.hpp"
+#include "Scene/Scene.hpp"
 
 
 uint32_t windowWidth = 1280;
@@ -75,17 +77,19 @@ int main()
     if (!rend.Init(window, debug, false))
         return -1;
 
-    std::vector<std::unique_ptr<ABench::Scene::Mesh>> meshes;
+    ABench::Scene::Mesh mesh;
+    mesh.Init(rend.GetDevice(), "");
 
+    ABench::Scene::Scene scene;
+    scene.Init("");
     for (int x = -5; x < 5; ++x)
     {
         for (int y = -5; y < 5; ++y)
         {
-            meshes.emplace_back(new ABench::Scene::Mesh());
+            ABench::Scene::Object* o = scene.CreateObject();
 
-            meshes.back()->Init(rend.GetDevice(), "");
-            meshes.back()->SetPosition(x*1.5f, y*1.5f, 0.0f);
-            rend.AddMesh(meshes.back().get());
+            o->SetComponent(&mesh);
+            o->SetPosition(x*1.5f, y*1.5f, 0.0f);
         }
     }
 
@@ -100,7 +104,7 @@ int main()
 
         window.SetTitle("ABench - " + std::to_string(fps) + " FPS (" + std::to_string(frameTime * 1000.0f) + " ms)");
         window.Update(frameTime);
-        rend.Draw(window.GetCamera());
+        rend.Draw(scene, window.GetCamera());
     }
 
     system("PAUSE");

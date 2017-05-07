@@ -16,6 +16,7 @@
 
 #include "Scene/Camera.hpp"
 #include "Scene/Mesh.hpp"
+#include "Scene/Scene.hpp"
 
 
 namespace ABench {
@@ -44,24 +45,16 @@ class Renderer final
     VkDescriptorPool mDescriptorPool;
     Buffer mVertexShaderCBuffer;
 
-
-    std::vector<Scene::Mesh*> mMeshes;
-
 public:
     Renderer();
     ~Renderer();
 
     bool Init(const Common::Window& window, bool debugEnable = false, bool debugVerbose = false);
-    void Draw(const Scene::Camera& camera);
+    void Draw(const Scene::Scene& scene, const Scene::Camera& camera);
 
     ABENCH_INLINE Device* GetDevice()
     {
         return &mDevice;
-    }
-
-    ABENCH_INLINE void AddMesh(Scene::Mesh* mesh)
-    {
-        mMeshes.push_back(mesh);
     }
 };
 

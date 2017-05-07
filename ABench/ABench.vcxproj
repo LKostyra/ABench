@@ -314,6 +314,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="Scene\Scene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\FBXFile.hpp" />
@@ -326,6 +327,7 @@
     <ClInclude Include="Math\Matrix.hpp" />
     <ClInclude Include="Math\Vector.hpp" />
     <ClInclude Include="PCH.hpp" />
+    <ClInclude Include="Prerequisites.hpp" />
     <ClInclude Include="Renderer\Backbuffer.hpp" />
     <ClInclude Include="Renderer\Buffer.hpp" />
     <ClInclude Include="Renderer\CommandBuffer.hpp" />
@@ -335,7 +337,6 @@
     <ClInclude Include="Renderer\Framebuffer.hpp" />
     <ClInclude Include="Renderer\Instance.hpp" />
     <ClInclude Include="Renderer\Pipeline.hpp" />
-    <ClInclude Include="Renderer\Prerequisites.hpp" />
     <ClInclude Include="Renderer\Renderer.hpp" />
     <ClInclude Include="Renderer\RingBuffer.hpp" />
     <ClInclude Include="Renderer\Shader.hpp" />
@@ -346,8 +347,10 @@
     <ClInclude Include="Renderer\VertexLayout.hpp" />
     <ClInclude Include="Renderer\Win\WinBackbuffer.hpp" />
     <ClInclude Include="Scene\Camera.hpp" />
+    <ClInclude Include="Scene\Component.hpp" />
     <ClInclude Include="Scene\Mesh.hpp" />
     <ClInclude Include="Scene\Object.hpp" />
+    <ClInclude Include="Scene\Scene.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

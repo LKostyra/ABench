@@ -12,10 +12,5 @@ Object::~Object()
 {
 }
 
-void Object::SetPosition(float x, float y, float z)
-{
-    mTransform = Math::CreateTranslationMatrix(Math::Vector(x, y, z, 1.0f));
-}
-
 } // namespace Scene
 } // namespace ABench

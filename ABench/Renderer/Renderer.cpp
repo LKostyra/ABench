@@ -194,7 +194,7 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     return true;
 }
 
-void Renderer::Draw(const Scene::Camera& camera)
+void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
 {
     // Update viewport
     VertexShaderCBuffer buf;
@@ -218,14 +218,18 @@ void Renderer::Draw(const Scene::Camera& camera)
                                        static_cast<ClearTypes>(ABENCH_CLEAR_COLOR | ABENCH_CLEAR_DEPTH), clearValue, 1.0f);
         mCommandBuffer.BindPipeline(&mPipeline);
 
-        for (auto& mesh : mMeshes)
-        {
-            uint32_t offset = mRingBuffer.Write(mesh->GetWorldMatrix(), sizeof(ABench::Math::Matrix));
-            mCommandBuffer.BindDescriptorSet(mVertexShaderSet, mPipelineLayout, offset);
-            mCommandBuffer.BindVertexBuffer(mesh->GetVertexBuffer());
-            mCommandBuffer.BindIndexBuffer(mesh->GetIndexBuffer());
-            mCommandBuffer.DrawIndexed(36);
-        }
+        scene.ForEachObject([&](const Scene::Object* o) {
+            if (o->GetComponent()->GetType() == Scene::ComponentType::Mesh)
+            {
+                uint32_t offset = mRingBuffer.Write(&o->GetTransform(), sizeof(ABench::Math::Matrix));
+                mCommandBuffer.BindDescriptorSet(mVertexShaderSet, mPipelineLayout, offset);
+
+                Scene::Mesh* mesh = dynamic_cast<Scene::Mesh*>(o->GetComponent());
+                mCommandBuffer.BindVertexBuffer(mesh->GetVertexBuffer());
+                mCommandBuffer.BindIndexBuffer(mesh->GetIndexBuffer());
+                mCommandBuffer.DrawIndexed(36);
+            }
+        });
 
         mCommandBuffer.EndRenderPass();
 

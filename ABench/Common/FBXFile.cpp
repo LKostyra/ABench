@@ -28,8 +28,10 @@ FBXFile::~FBXFile()
 }
 
 std::string FBXFile::GetAttributeTypeName(FbxNodeAttribute::EType type)
-{ 
-    switch(type) { 
+{
+    // function copied from FBX manual/introduction
+    switch (type)
+    {
         case FbxNodeAttribute::eUnknown: return "unidentified"; 
         case FbxNodeAttribute::eNull: return "null"; 
         case FbxNodeAttribute::eMarker: return "marker"; 
@@ -38,11 +40,11 @@ std::string FBXFile::GetAttributeTypeName(FbxNodeAttribute::EType type)
         case FbxNodeAttribute::eNurbs: return "nurbs"; 
         case FbxNodeAttribute::ePatch: return "patch"; 
         case FbxNodeAttribute::eCamera: return "camera"; 
-        case FbxNodeAttribute::eCameraStereo: return "stereo"; 
+        case FbxNodeAttribute::eCameraStereo: return "camera stereo"; 
         case FbxNodeAttribute::eCameraSwitcher: return "camera switcher"; 
         case FbxNodeAttribute::eLight: return "light"; 
         case FbxNodeAttribute::eOpticalReference: return "optical reference"; 
-        case FbxNodeAttribute::eOpticalMarker: return "marker"; 
+        case FbxNodeAttribute::eOpticalMarker: return "optical marker"; 
         case FbxNodeAttribute::eNurbsCurve: return "nurbs curve"; 
         case FbxNodeAttribute::eTrimNurbsSurface: return "trim nurbs surface"; 
         case FbxNodeAttribute::eBoundary: return "boundary"; 
@@ -51,7 +53,20 @@ std::string FBXFile::GetAttributeTypeName(FbxNodeAttribute::EType type)
         case FbxNodeAttribute::eLODGroup: return "lodgroup"; 
         case FbxNodeAttribute::eSubDiv: return "subdiv"; 
         default: return "unknown"; 
-    } 
+    }
+}
+
+std::string FBXFile::GetLightTypeName(FbxLight::EType type)
+{
+    switch (type)
+    {
+    case FbxLight::ePoint: return "point";
+    case FbxLight::eDirectional: return "directional";
+    case FbxLight::eSpot: return "spot";
+    case FbxLight::eArea: return "area";
+    case FbxLight::eVolume: return "volume";
+    default: return "unknown";
+    }
 }
 
 void FBXFile::PrintNode(FbxNode* node, int tabs)
@@ -66,10 +81,16 @@ void FBXFile::PrintNode(FbxNode* node, int tabs)
         FbxNodeAttribute* attr = node->GetNodeAttributeByIndex(i);
         LOGD(start << "-> " << GetAttributeTypeName(attr->GetAttributeType())
                    << ": " << attr->GetName());
+
         if (attr->GetAttributeType() == FbxNodeAttribute::eMesh)
         {
             LOGD(start << "   VertCount: " << node->GetMesh()->GetPolygonCount());
             LOGD(start << "   Layers: " << node->GetMesh()->GetLayerCount());
+        }
+        
+        if (attr->GetAttributeType() == FbxNodeAttribute::eLight)
+        {
+            LOGD(start << "   Type: " << GetLightTypeName(node->GetLight()->LightType.Get()));
         }
     }
 

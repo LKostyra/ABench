@@ -16,7 +16,9 @@ class FBXFile
     FbxScene* mFbxScene;
     bool mIsOpened;
 
+    // debugging info print functions/enum translators
     std::string GetAttributeTypeName(FbxNodeAttribute::EType type);
+    std::string GetLightTypeName(FbxLight::EType type);
     void PrintNode(FbxNode* node, int tabs);
 
 public:

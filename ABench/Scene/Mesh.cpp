@@ -65,10 +65,5 @@ bool Mesh::Init(ABench::Renderer::Device* devicePtr, const std::string& path)
     return true;
 }
 
-void Mesh::SetPosition(float x, float y, float z)
-{
-    mWorldMatrix = Math::CreateTranslationMatrix(Math::Vector(x, y, z, 1.0f));
-}
-
 } // namespace Scene
 } // namespace ABench
