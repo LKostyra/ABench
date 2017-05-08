@@ -32,6 +32,8 @@ Renderer::Renderer()
 
 Renderer::~Renderer()
 {
+    if (mRenderFence != VK_NULL_HANDLE)
+        vkDestroyFence(mDevice.GetDevice(), mRenderFence, nullptr);
     if (mVertexShaderLayout != VK_NULL_HANDLE)
         vkDestroyDescriptorSetLayout(mDevice.GetDevice(), mVertexShaderLayout, nullptr);
     if (mDescriptorPool != VK_NULL_HANDLE)
@@ -109,8 +111,8 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     VertexLayoutDesc vlDesc;
 
     std::vector<VertexLayoutEntry> vlEntries;
-    vlEntries.push_back({VK_FORMAT_R32G32B32_SFLOAT, 0, 0, 28, false});
-    vlEntries.push_back({VK_FORMAT_R32G32B32A32_SFLOAT, 12, 0, 28, false});
+    vlEntries.push_back({VK_FORMAT_R32G32B32_SFLOAT, 0, 0, 24, false});
+    vlEntries.push_back({VK_FORMAT_R32G32B32_SFLOAT, 12, 0, 24, false});
 
     vlDesc.entryCount = static_cast<uint32_t>(vlEntries.size());
     vlDesc.entries = vlEntries.data();
@@ -191,6 +193,10 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     mTools.UpdateBufferDescriptorSet(mVertexShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
                                      mVertexShaderCBuffer.GetVkBuffer(), sizeof(VertexShaderCBuffer));
 
+    mRenderFence = mTools.CreateFence();
+    if (mRenderFence == VK_NULL_HANDLE)
+        return false;
+
     return true;
 }
 
@@ -227,7 +233,7 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
                 Scene::Mesh* mesh = dynamic_cast<Scene::Mesh*>(o->GetComponent());
                 mCommandBuffer.BindVertexBuffer(mesh->GetVertexBuffer());
                 mCommandBuffer.BindIndexBuffer(mesh->GetIndexBuffer());
-                mCommandBuffer.DrawIndexed(36);
+                mCommandBuffer.DrawIndexed(mesh->GetIndexCount());
             }
         });
 
@@ -240,12 +246,14 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
         }
     }
 
-    mDevice.Execute(&mCommandBuffer);
+    mDevice.Execute(&mCommandBuffer, mRenderFence);
 
     if (!mBackbuffer.Present())
         LOGE("Error during image presentation");
 
-    mDevice.WaitForGPU();
+    // TODO waiting is performed inside Ring Buffer on mRenderFence
+    //      Escape from this limitation in the future
+    mRingBuffer.MarkFinishedFrame(mRenderFence);
 }
 
 } // namespace Renderer

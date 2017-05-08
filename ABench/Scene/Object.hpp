@@ -25,7 +25,13 @@ public:
 
     ABENCH_INLINE void SetPosition(float x, float y, float z)
     {
-        mTransform = Math::CreateTranslationMatrix(Math::Vector(x, y, z, 1.0f));
+        // TODO this solution assumes to be set only once, consider slight rework for dynamic objects
+        mTransform *= Math::CreateTranslationMatrix(Math::Vector(x, y, z, 1.0f));
+    }
+
+    ABENCH_INLINE void SetScale(float scaleX, float scaleY, float scaleZ)
+    {
+        mTransform *= Math::CreateScaleMatrix(scaleX, scaleY, scaleZ);
     }
 
     ABENCH_INLINE Component* GetComponent() const

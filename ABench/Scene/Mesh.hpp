@@ -9,16 +9,29 @@
 namespace ABench {
 namespace Scene {
 
+struct Vertex
+{
+    float pos[3];
+    float norm[3];
+};
+
 class Mesh final: public Component
 {
+    ABench::Renderer::Device* mDevicePtr;
+
     ABench::Renderer::Buffer mVertexBuffer;
     ABench::Renderer::Buffer mIndexBuffer;
+    uint32_t mIndexCount;
+
+    bool InitBuffers(const std::vector<Vertex>& vertices, int* indices, int indexCount);
+    bool InitFromFBX(FbxMesh* mesh);
+    bool InitDefault();
 
 public:
     Mesh();
     ~Mesh();
 
-    bool Init(ABench::Renderer::Device* devicePtr, const std::string& inScenePath);
+    bool Init(ABench::Renderer::Device* devicePtr, FbxMesh* mesh = nullptr);
 
     ABENCH_INLINE const ABench::Renderer::Buffer* GetVertexBuffer() const
     {
@@ -28,6 +41,11 @@ public:
     ABENCH_INLINE const ABench::Renderer::Buffer* GetIndexBuffer() const
     {
         return &mIndexBuffer;
+    }
+
+    ABENCH_INLINE const uint32_t GetIndexCount() const
+    {
+        return mIndexCount;
     }
 
     ComponentType GetType() const

@@ -359,5 +359,28 @@ Matrix CreateTranslationMatrix(const Vector& translation)
     return result;
 }
 
+Matrix CreateScaleMatrix(const float scale)
+{
+    Matrix result(MATRIX_IDENTITY);
+
+    result.f[0] = scale;
+    result.f[5] = scale;
+    result.f[10] = scale;
+
+    return result;
+}
+
+Matrix CreateScaleMatrix(const float scaleX, const float scaleY, const float scaleZ)
+{
+    Matrix result(MATRIX_IDENTITY);
+
+    result.f[0] = scaleX;
+    result.f[5] = scaleY;
+    result.f[10] = scaleZ;
+
+    return result;
+}
+
+
 } // namespace Math
 } // namespace ABench

@@ -49,33 +49,31 @@ LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
         break;
 
     case WM_LBUTTONDOWN:
-        wnd->mMouseButtons[0] = true;
-        wnd->OnMouseDown(0);
+        wnd->MouseButtonDown(0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
         break;
 
     case WM_LBUTTONUP:
-        wnd->mMouseButtons[0] = false;
-        wnd->OnMouseUp(0);
+        wnd->MouseButtonUp(0);
         break;
 
     case WM_RBUTTONDOWN:
-        wnd->mMouseButtons[1] = true;
-        wnd->OnMouseDown(1);
+        wnd->MouseButtonDown(1, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
         break;
 
     case WM_RBUTTONUP:
-        wnd->mMouseButtons[1] = false;
-        wnd->OnMouseUp(1);
+        wnd->MouseButtonUp(1);
         break;
 
     case WM_MBUTTONDOWN:
-        wnd->mMouseButtons[2] = true;
-        wnd->OnMouseDown(2);
+        wnd->MouseButtonDown(2, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
         break;
 
     case WM_MBUTTONUP:
-        wnd->mMouseButtons[2] = false;
-        wnd->OnMouseUp(2);
+        wnd->MouseButtonUp(2);
+        break;
+
+    case WM_MOUSEMOVE:
+        wnd->MouseMove(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
         break;
 
     default: break;
@@ -211,6 +209,29 @@ void Window::Update(float deltaTime)
     OnUpdate(deltaTime);
 }
 
+void Window::MouseButtonDown(int button, int x, int y)
+{
+    SetCapture(mHWND);
+    mMouseButtons[button] = true;
+    mMouseDownX = x;
+    mMouseDownY = y;
+    OnMouseDown(button);
+}
+
+void Window::MouseButtonUp(int button)
+{
+    ReleaseCapture();
+    mMouseButtons[button] = false;
+    OnMouseUp(button);
+}
+
+void Window::MouseMove(int x, int y)
+{
+    OnMouseMove(x, y, x - mMouseDownX, y - mMouseDownY);
+    mMouseDownX = x;
+    mMouseDownY = y;
+}
+
 void Window::Close()
 {
     if (!mOpened)
@@ -255,8 +276,10 @@ void Window::OnMouseDown(int key)
     UNUSED(key);
 }
 
-void Window::OnMouseMove(int deltaX, int deltaY)
+void Window::OnMouseMove(int x, int y, int deltaX, int deltaY)
 {
+    UNUSED(x);
+    UNUSED(y);
     UNUSED(deltaX);
     UNUSED(deltaY);
 }

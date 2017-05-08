@@ -93,6 +93,8 @@ bool RingBuffer::MarkFinishedFrame(VkFence waitFence)
     VkResult result = vkWaitForFences(mDevicePtr->GetDevice(), 1, &waitFence, VK_TRUE, UINT64_MAX);
     RETURN_FALSE_IF_FAILED(result, "Failure to wait for rendering fence");
 
+    vkResetFences(mDevicePtr->GetDevice(), 1, &waitFence);
+
     mStartOffset = mCurrentOffset;
     return true;
 }

@@ -64,6 +64,9 @@ public:
 
     // Updating descriptor sets
     void UpdateBufferDescriptorSet(VkDescriptorSet set, VkDescriptorType type, uint32_t binding, VkBuffer buffer, VkDeviceSize size);
+
+    // Fence creation
+    VkFence CreateFence();
 };
 
 } // namespace Renderer

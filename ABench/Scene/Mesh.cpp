@@ -2,6 +2,7 @@
 #include "Mesh.hpp"
 
 #include "Common/Common.hpp"
+#include "Common/Logger.hpp"
 
 using namespace ABench::Renderer;
 
@@ -17,25 +18,110 @@ Mesh::~Mesh()
 {
 }
 
-bool Mesh::Init(ABench::Renderer::Device* devicePtr, const std::string& inScenePath)
+bool Mesh::InitBuffers(const std::vector<Vertex>& vertices, int* indices, int indexCount)
 {
-    // TODO make it used
-    UNUSED(inScenePath);
+    BufferDesc vbDesc;
+    vbDesc.devicePtr = mDevicePtr;
+    vbDesc.data = vertices.data();
+    vbDesc.dataSize = vertices.size() * sizeof(Vertex);
+    vbDesc.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    vbDesc.type = BufferType::Static;
+    if (!mVertexBuffer.Init(vbDesc))
+        return false;
 
-    float vertices[] =
+    BufferDesc ibDesc;
+    ibDesc.devicePtr = mDevicePtr;
+    ibDesc.data = indices;
+    ibDesc.dataSize = indexCount * sizeof(uint32_t);
+    ibDesc.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+    ibDesc.type = BufferType::Static;
+    if (!mIndexBuffer.Init(ibDesc))
+        return false;
+
+    mIndexCount = indexCount;
+
+    return true;
+}
+
+bool Mesh::InitFromFBX(FbxMesh* mesh)
+{
+    if (!mesh->GenerateNormals(true, true))
     {
-        -0.5f,-0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, // 0        7----6
-         0.5f,-0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, // 1      3----2 |
-         0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 0.0f, 1.0f, // 2      | 4--|-5
-        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, // 3      0----1
+        LOGE("Failed to generate normals for mesh");
+        return false;
+    }
 
-        -0.5f,-0.5f,-0.5f, 1.0f, 0.0f, 0.0f, 1.0f, // 4
-         0.5f,-0.5f,-0.5f, 0.0f, 1.0f, 0.0f, 1.0f, // 5
-         0.5f, 0.5f,-0.5f, 1.0f, 1.0f, 0.0f, 1.0f, // 6
-        -0.5f, 0.5f,-0.5f, 0.0f, 0.0f, 1.0f, 1.0f, // 7
+    // find normal layer
+    FbxLayerElementNormal* normals = nullptr;;
+    for (int l = 0; l < mesh->GetLayerCount(); ++l)
+    {
+        normals = mesh->GetLayer(l)->GetNormals();
+        if (normals)
+            break;
+    }
+
+    if (!normals)
+    {
+        LOGE("Mesh has no normals generated!");
+        return false;
+    }
+
+    if (normals->GetMappingMode() != FbxLayerElement::eByPolygonVertex)
+    {
+        LOGI("Normals were generated not by control point - recreating");
+        if (!mesh->GenerateNormals(true, true))
+        {
+            LOGE("Failed to regenerate normals by control point");
+            return nullptr;
+        }
+
+        for (int l = 0; l < mesh->GetLayerCount(); ++l)
+        {
+            normals = mesh->GetLayer(l)->GetNormals();
+            if (normals)
+                break;
+        }
+
+        if (!normals)
+        {
+            LOGE("Mesh has no normals generated!");
+            return nullptr;
+        }
+    }
+
+    std::vector<Vertex> vertices;
+    Vertex vert;
+    memset(&vert, 0, sizeof(vert));
+    for (int p = 0; p < mesh->GetControlPointsCount(); ++p)
+    {
+        vert.pos[0] = static_cast<float>(mesh->GetControlPoints()[p].Buffer()[0]);
+        vert.pos[1] = static_cast<float>(mesh->GetControlPoints()[p].Buffer()[1]);
+        vert.pos[2] = static_cast<float>(mesh->GetControlPoints()[p].Buffer()[2]);
+        vert.norm[0] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[0]);
+        vert.norm[1] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[1]);
+        vert.norm[2] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[2]);
+        vertices.push_back(vert);
+    }
+
+    return InitBuffers(vertices, mesh->GetPolygonVertices(), mesh->GetPolygonVertexCount());
+}
+
+bool Mesh::InitDefault()
+{
+    std::vector<Vertex> vertices
+    {
+        { -0.5f,-0.5f, 0.5f, 1.0f, 0.0f, 0.0f }, // 0        7----6
+        {  0.5f,-0.5f, 0.5f, 0.0f, 1.0f, 0.0f }, // 1      3----2 |
+        {  0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 0.0f }, // 2      | 4--|-5
+        { -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f }, // 3      0----1
+
+        { -0.5f,-0.5f,-0.5f, 1.0f, 0.0f, 0.0f }, // 4
+        {  0.5f,-0.5f,-0.5f, 0.0f, 1.0f, 0.0f }, // 5
+        {  0.5f, 0.5f,-0.5f, 1.0f, 1.0f, 0.0f }, // 6
+        { -0.5f, 0.5f,-0.5f, 0.0f, 0.0f, 1.0f }, // 7
     };
 
-    uint32_t indices[] =
+    std::vector<int> indices
     {
         0, 1, 2, 0, 2, 3, // front
         3, 2, 6, 3, 6, 7, // top
@@ -45,25 +131,17 @@ bool Mesh::Init(ABench::Renderer::Device* devicePtr, const std::string& inSceneP
         4, 0, 3, 4, 3, 7, // left
     };
 
-    BufferDesc vbDesc;
-    vbDesc.devicePtr = devicePtr;
-    vbDesc.data = vertices;
-    vbDesc.dataSize = sizeof(vertices);
-    vbDesc.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-    vbDesc.type = BufferType::Static;
-    if (!mVertexBuffer.Init(vbDesc))
-        return false;
+    return InitBuffers(vertices, indices.data(), static_cast<int>(indices.size()));
+}
 
-    BufferDesc ibDesc;
-    ibDesc.devicePtr = devicePtr;
-    ibDesc.data = indices;
-    ibDesc.dataSize = sizeof(indices);
-    ibDesc.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-    ibDesc.type = BufferType::Static;
-    if (!mIndexBuffer.Init(ibDesc))
-        return false;
+bool Mesh::Init(ABench::Renderer::Device* devicePtr, FbxMesh* mesh)
+{
+    mDevicePtr = devicePtr;
 
-    return true;
+    if (mesh)
+        return InitFromFBX(mesh);
+    else
+        return InitDefault();
 }
 
 } // namespace Scene

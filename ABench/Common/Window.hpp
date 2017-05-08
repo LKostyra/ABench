@@ -20,6 +20,8 @@ class Window
 #endif
     int mWidth;
     int mHeight;
+    int mMouseDownX;
+    int mMouseDownY;
     bool mOpened;
     std::wstring mClassName;
 
@@ -35,7 +37,7 @@ protected:
     virtual void OnKeyUp(int key);
     virtual void OnUpdate(float deltaTime);
     virtual void OnMouseDown(int key);
-    virtual void OnMouseMove(int deltaX, int deltaY);
+    virtual void OnMouseMove(int x, int y, int deltaX, int deltaY);
     virtual void OnMouseUp(int key);
 
 public:
@@ -47,6 +49,9 @@ public:
     bool SetTitle(const std::wstring& title);
     bool SetTitle(const std::string& title);
     void Update(float deltaTime);
+    void MouseButtonDown(int button, int x, int y);
+    void MouseButtonUp(int button);
+    void MouseMove(int x, int y);
     void Close();
 
 #ifdef WIN32

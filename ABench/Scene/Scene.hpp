@@ -11,9 +11,11 @@ namespace Scene {
 
 class Scene
 {
+    ABench::Renderer::Device* mDevicePtr;
+
     ABench::Common::FBXFile mFBXFile;
     std::vector<Object> mObjects;
-    std::vector<Mesh> mMeshComponents;
+    std::list<Mesh> mMeshComponents;
 
 public:
     using ObjectCallback = std::function<void(const Object*)>;
@@ -21,7 +23,7 @@ public:
     Scene();
     ~Scene();
 
-    bool Init(const std::string fbxFile);
+    bool Init(ABench::Renderer::Device* devicePtr, const std::string& fbxFile = "");
     Object* CreateObject();
     Component* CreateComponent(ComponentType type);
     void ForEachObject(ObjectCallback func) const;

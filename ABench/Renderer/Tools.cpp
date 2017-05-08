@@ -206,5 +206,19 @@ void Tools::UpdateBufferDescriptorSet(VkDescriptorSet set, VkDescriptorType type
     vkUpdateDescriptorSets(mDevicePtr->GetDevice(), 1, &write, 0, nullptr);
 }
 
+VkFence Tools::CreateFence()
+{
+    VkFence fence;
+
+    VkFenceCreateInfo info;
+    ZERO_MEMORY(info);
+    info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+
+    VkResult result = vkCreateFence(mDevicePtr->GetDevice(), &info, nullptr, &fence);
+    RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create fence");
+
+    return fence;
+}
+
 } // namespace Renderer
 } // namespace ABench

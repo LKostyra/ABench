@@ -6,7 +6,11 @@
 // WinAPI
 #ifdef WIN32
 #include <Windows.h>
+#include <windowsx.h>
 #endif // WIN32
+
+// FBX SDK
+#include <fbxsdk.h>
 
 // STL
 #include <string>
@@ -14,3 +18,5 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <memory>
+#include <functional>

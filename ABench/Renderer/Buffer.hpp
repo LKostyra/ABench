@@ -19,7 +19,7 @@ struct BufferDesc
 {
     Device* devicePtr;
 
-    void* data;
+    const void* data;
     VkDeviceSize dataSize;
     VkBufferUsageFlags usage;
     BufferType type;

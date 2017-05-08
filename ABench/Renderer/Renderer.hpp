@@ -39,6 +39,7 @@ class Renderer final
 
     VkRenderPass mRenderPass;
     VkPipelineLayout mPipelineLayout;
+    VkFence mRenderFence;
 
     VkDescriptorSet mVertexShaderSet;
     VkDescriptorSetLayout mVertexShaderLayout;

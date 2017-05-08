@@ -35,7 +35,7 @@ public:
     uint32_t GetMemoryTypeIndex(uint32_t typeBits, VkFlags properties) const;
     void WaitForGPU() const;
 
-    bool Execute(CommandBuffer* cmd) const;
+    bool Execute(CommandBuffer* cmd, VkFence waitFence = VK_NULL_HANDLE) const;
 
     ABENCH_INLINE VkDevice GetDevice() const
     {

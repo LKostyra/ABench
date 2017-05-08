@@ -192,14 +192,14 @@ void Device::WaitForGPU() const
     vkQueueWaitIdle(mGraphicsQueue);
 }
 
-bool Device::Execute(CommandBuffer* cmd) const
+bool Device::Execute(CommandBuffer* cmd, VkFence waitFence) const
 {
     VkSubmitInfo submitInfo;
     ZERO_MEMORY(submitInfo);
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &cmd->mCommandBuffer;
-    VkResult result = vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+    VkResult result = vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, waitFence);
     RETURN_FALSE_IF_FAILED(result, "Failed to submit graphics operation");
 
     return true;

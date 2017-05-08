@@ -3,7 +3,7 @@
 #extension GL_ARB_shading_language_420pack: enable
 
 layout (location = 0) in vec3 InPos;
-layout (location = 1) in vec4 InColor;
+layout (location = 1) in vec3 InNorm;
 
 out gl_PerVertex
 {
@@ -12,7 +12,7 @@ out gl_PerVertex
 
 layout (location = 0) out VertexShaderOutput
 {
-    vec4 Color;
+    vec3 Norm;
 } Output;
 
 layout (std140, set = 0, binding = 0) uniform dynamicCb
@@ -31,5 +31,5 @@ void main()
     mat4 worldView = CBuffer.viewMatrix * dynamicCBuffer.worldMatrix;
     mat4 worldViewProj = CBuffer.projMatrix * worldView;
     gl_Position = worldViewProj * vec4(InPos, 1.0);
-    Output.Color = InColor;
+    Output.Norm = InNorm;
 }

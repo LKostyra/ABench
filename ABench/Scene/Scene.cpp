@@ -14,8 +14,10 @@ Scene::~Scene()
 {
 }
 
-bool Scene::Init(const std::string fbxFile)
+bool Scene::Init(ABench::Renderer::Device* devicePtr, const std::string& fbxFile)
 {
+    mDevicePtr = devicePtr;
+
     if (!fbxFile.empty())
     {
         LOGD("Loading scene from FBX file");
@@ -35,11 +37,23 @@ bool Scene::Init(const std::string fbxFile)
 
                 if (attr->GetAttributeType() == FbxNodeAttribute::eMesh)
                 {
+                    if (!node->GetMesh()->IsTriangleMesh())
+                    {
+                        LOGD("Mesh " << node->GetName() << " requires triangulation - converting");
+                        mFBXFile.GetConverter()->Triangulate(attr, true);
+                    }
+
                     Object* o = CreateObject();
                     Mesh* m = dynamic_cast<Mesh*>(CreateComponent(ComponentType::Mesh));
 
+                    m->Init(mDevicePtr, node->GetMesh());
                     o->SetComponent(m);
-                    // TODO load mesh
+                    o->SetPosition(static_cast<float>(node->LclTranslation.Get()[0]),
+                                   static_cast<float>(node->LclTranslation.Get()[1]),
+                                   static_cast<float>(node->LclTranslation.Get()[2]));
+                    o->SetScale(static_cast<float>(node->LclScaling.Get()[0]),
+                                static_cast<float>(node->LclScaling.Get()[1]),
+                                static_cast<float>(node->LclScaling.Get()[2]));
                 }
             }
         });

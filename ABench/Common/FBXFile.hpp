@@ -1,7 +1,5 @@
 #pragma once
 
-#include <fbxsdk.h>
-#include <memory>
 #include "Common/Common.hpp"
 
 namespace ABench {
@@ -41,6 +39,11 @@ public:
     ABENCH_INLINE bool IsOpened() const
     {
         return mIsOpened;
+    }
+
+    ABENCH_INLINE FbxGeometryConverter* GetConverter() const
+    {
+        return mFbxConverter.get();
     }
 };
 

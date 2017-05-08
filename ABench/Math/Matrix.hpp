@@ -67,6 +67,8 @@ public:
     // Friendship
     friend Vector operator*(const Matrix& a, const Vector& b);
     friend Matrix CreateTranslationMatrix(const Vector& translation);
+    friend Matrix CreateScaleMatrix(const float scale);
+    friend Matrix CreateScaleMatrix(const float scaleX, const float scaleY, const float scaleZ);
 
 private:
     float f[4 * 4];
@@ -84,6 +86,8 @@ Matrix CreateRotationMatrixX(const float angle);
 Matrix CreateRotationMatrixY(const float angle);
 Matrix CreateRotationMatrixZ(const float angle);
 Matrix CreateTranslationMatrix(const Vector& translation);
+Matrix CreateScaleMatrix(const float scale);
+Matrix CreateScaleMatrix(const float scaleX, const float scaleY, const float scaleZ);
 
 // Matrix constants
 const Matrix MATRIX_IDENTITY(1.0f, 0.0f, 0.0f, 0.0f,
