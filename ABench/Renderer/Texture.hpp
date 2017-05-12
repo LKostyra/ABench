@@ -10,16 +10,13 @@ namespace Renderer {
 
 struct TextureDesc
 {
-    Device* devicePtr;
-
     VkFormat format;
     uint32_t width;
     uint32_t height;
     VkImageUsageFlags usage;
 
     TextureDesc()
-        : devicePtr(nullptr)
-        , format(VK_FORMAT_UNDEFINED)
+        : format(VK_FORMAT_UNDEFINED)
         , width(0)
         , height(0)
         , usage(0)
@@ -48,8 +45,6 @@ class Texture
     friend class Backbuffer;
     friend class RenderPass;
     friend class Framebuffer;
-
-    Device* mDevicePtr;
 
     uint32_t mWidth;
     uint32_t mHeight;

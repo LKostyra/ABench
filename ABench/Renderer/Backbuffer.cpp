@@ -4,6 +4,7 @@
 #include "Util.hpp"
 #include "Extensions.hpp"
 #include "Translations.hpp"
+#include "Renderer.hpp"
 
 #include "Common/Common.hpp"
 
@@ -26,7 +27,7 @@ Backbuffer::Backbuffer()
 Backbuffer::~Backbuffer()
 {
     if (mImageAcquireFence != VK_NULL_HANDLE)
-        vkDestroyFence(mDevicePtr->GetDevice(), mImageAcquireFence, nullptr);
+        vkDestroyFence(gDevice->GetDevice(), mImageAcquireFence, nullptr);
 
     if (mSwapchain != VK_NULL_HANDLE)
     {
@@ -34,11 +35,11 @@ Backbuffer::~Backbuffer()
         {
             if (img.view != VK_NULL_HANDLE)
             {
-                vkDestroyImageView(mDevicePtr->GetDevice(), img.view, nullptr);
+                vkDestroyImageView(gDevice->GetDevice(), img.view, nullptr);
                 img.view = VK_NULL_HANDLE;
             }
         }
-        vkDestroySwapchainKHR(mDevicePtr->GetDevice(), mSwapchain, nullptr);
+        vkDestroySwapchainKHR(gDevice->GetDevice(), mSwapchain, nullptr);
     }
     if (mSurface != VK_NULL_HANDLE)
         vkDestroySurfaceKHR(mInstancePtr->GetVkInstance(), mSurface, nullptr);
@@ -50,19 +51,19 @@ bool Backbuffer::GetPresentQueue()
 {
      // TODO to be replaced by Queue Manager
     uint32_t queueCount = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(mDevicePtr->mPhysicalDevice, &queueCount, nullptr);
+    vkGetPhysicalDeviceQueueFamilyProperties(gDevice->mPhysicalDevice, &queueCount, nullptr);
     if (queueCount == 0)
     {
         LOGE("Physical device does not have any queue family properties.");
         return false;
     }
     std::vector<VkQueueFamilyProperties> queueProps(queueCount);
-    vkGetPhysicalDeviceQueueFamilyProperties(mDevicePtr->mPhysicalDevice, &queueCount, queueProps.data());
+    vkGetPhysicalDeviceQueueFamilyProperties(gDevice->mPhysicalDevice, &queueCount, queueProps.data());
 
     for (mPresentQueueIndex = 0; mPresentQueueIndex < queueCount; mPresentQueueIndex++)
     {
         VkBool32 presentSupport;
-        vkGetPhysicalDeviceSurfaceSupportKHR(mDevicePtr->mPhysicalDevice, mPresentQueueIndex,
+        vkGetPhysicalDeviceSurfaceSupportKHR(gDevice->mPhysicalDevice, mPresentQueueIndex,
                                              mSurface, &presentSupport);
         if (presentSupport)
             break;
@@ -75,7 +76,7 @@ bool Backbuffer::GetPresentQueue()
     }
 
     LOGD("Selected queue #" << mPresentQueueIndex << " with Present support");
-    vkGetDeviceQueue(mDevicePtr->GetDevice(), mPresentQueueIndex, 0, &mPresentQueue);
+    vkGetDeviceQueue(gDevice->GetDevice(), mPresentQueueIndex, 0, &mPresentQueue);
 
     return true;
 }
@@ -84,7 +85,7 @@ bool Backbuffer::SelectSurfaceFormat(const BackbufferDesc& desc)
 {
     // Surface format selection
     uint32_t formatCount;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(mDevicePtr->mPhysicalDevice, mSurface, &formatCount, nullptr);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(gDevice->mPhysicalDevice, mSurface, &formatCount, nullptr);
     if (formatCount == 0)
     {
         LOGE("No surface formats to choose from.");
@@ -92,7 +93,7 @@ bool Backbuffer::SelectSurfaceFormat(const BackbufferDesc& desc)
     }
 
     std::vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
-    VkResult result = vkGetPhysicalDeviceSurfaceFormatsKHR(mDevicePtr->mPhysicalDevice, mSurface,
+    VkResult result = vkGetPhysicalDeviceSurfaceFormatsKHR(gDevice->mPhysicalDevice, mSurface,
                                                            &formatCount, surfaceFormats.data());
     RETURN_FALSE_IF_FAILED(result, "Failed to acquire physical device surface formats");
 
@@ -122,7 +123,7 @@ bool Backbuffer::SelectPresentMode(const BackbufferDesc& desc)
 {
     // Present mode selection
     uint32_t presentModeCount = UINT32_MAX;
-    VkResult result = vkGetPhysicalDeviceSurfacePresentModesKHR(mDevicePtr->mPhysicalDevice, mSurface,
+    VkResult result = vkGetPhysicalDeviceSurfacePresentModesKHR(gDevice->mPhysicalDevice, mSurface,
                                                                 &presentModeCount, nullptr);
     RETURN_FALSE_IF_FAILED(result, "Failed to acquire surface's present mode count");
     if ((presentModeCount == 0) || (presentModeCount == UINT32_MAX))
@@ -132,7 +133,7 @@ bool Backbuffer::SelectPresentMode(const BackbufferDesc& desc)
     }
 
     std::vector<VkPresentModeKHR> presentModes(presentModeCount);
-    result = vkGetPhysicalDeviceSurfacePresentModesKHR(mDevicePtr->mPhysicalDevice, mSurface,
+    result = vkGetPhysicalDeviceSurfacePresentModesKHR(gDevice->mPhysicalDevice, mSurface,
                                                        &presentModeCount, presentModes.data());
     RETURN_FALSE_IF_FAILED(result, "Failed to acquire surface's present modes");
 
@@ -171,7 +172,7 @@ bool Backbuffer::SelectPresentMode(const BackbufferDesc& desc)
 
 bool Backbuffer::AcquireSurfaceCaps()
 {
-    VkResult result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mDevicePtr->mPhysicalDevice, mSurface, &mSurfCaps);
+    VkResult result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(gDevice->mPhysicalDevice, mSurface, &mSurfCaps);
     RETURN_FALSE_IF_FAILED(result, "Failed to extract surface's capabilities");
     return true;
 }
@@ -211,7 +212,7 @@ bool Backbuffer::CreateSwapchain(const BackbufferDesc& desc)
     chainInfo.oldSwapchain = VK_NULL_HANDLE;
     chainInfo.clipped = VK_TRUE;
     chainInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-    VkResult result = vkCreateSwapchainKHR(mDevicePtr->GetDevice(), &chainInfo, nullptr, &mSwapchain);
+    VkResult result = vkCreateSwapchainKHR(gDevice->GetDevice(), &chainInfo, nullptr, &mSwapchain);
     RETURN_FALSE_IF_FAILED(result, "Failed to create swapchain");
     return true;
 }
@@ -219,7 +220,7 @@ bool Backbuffer::CreateSwapchain(const BackbufferDesc& desc)
 bool Backbuffer::AllocateImageViews()
 {
     uint32_t currentBufferCount = 0;
-    VkResult result = vkGetSwapchainImagesKHR(mDevicePtr->GetDevice(), mSwapchain,
+    VkResult result = vkGetSwapchainImagesKHR(gDevice->GetDevice(), mSwapchain,
                                               &currentBufferCount, nullptr);
     RETURN_FALSE_IF_FAILED(result, "Failed to acquire Swapchain image count");
 
@@ -232,7 +233,7 @@ bool Backbuffer::AllocateImageViews()
     mImages.resize(mBufferCount);
 
     std::vector<VkImage> images(mBufferCount);
-    result = vkGetSwapchainImagesKHR(mDevicePtr->GetDevice(), mSwapchain,
+    result = vkGetSwapchainImagesKHR(gDevice->GetDevice(), mSwapchain,
                                               &mBufferCount, images.data());
     RETURN_FALSE_IF_FAILED(result, "Failed to acquire Swapchain images");
 
@@ -265,7 +266,7 @@ bool Backbuffer::AllocateImageViews()
             VK_COMPONENT_SWIZZLE_A,
         };
         ivInfo.subresourceRange = mSubresourceRange;
-        result = vkCreateImageView(mDevicePtr->GetDevice(), &ivInfo, nullptr, &mImages[i].view);
+        result = vkCreateImageView(gDevice->GetDevice(), &ivInfo, nullptr, &mImages[i].view);
         RETURN_FALSE_IF_FAILED(result, "Failed to generate Image View from Swapchain image");
 
         mImages[i].currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -283,7 +284,7 @@ bool Backbuffer::CreateImageAcquireFences()
     ZERO_MEMORY(info);
     info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 
-    VkResult result = vkCreateFence(mDevicePtr->GetDevice(), &info, nullptr, &mImageAcquireFence);
+    VkResult result = vkCreateFence(gDevice->GetDevice(), &info, nullptr, &mImageAcquireFence);
     RETURN_FALSE_IF_FAILED(result, "Failed to create fences for next Image acquisition");
 
     return true;
@@ -291,17 +292,17 @@ bool Backbuffer::CreateImageAcquireFences()
 
 bool Backbuffer::AcquireNextImage()
 {
-    VkResult result = vkAcquireNextImageKHR(mDevicePtr->GetDevice(), mSwapchain, UINT64_MAX,
+    VkResult result = vkAcquireNextImageKHR(gDevice->GetDevice(), mSwapchain, UINT64_MAX,
                                             VK_NULL_HANDLE, mImageAcquireFence, &mCurrentBuffer);
     RETURN_FALSE_IF_FAILED(result, "Failed to preacquire next image for presenting");
 
     do
     {
-        result = vkWaitForFences(mDevicePtr->GetDevice(), 1, &mImageAcquireFence, VK_TRUE, 0);
+        result = vkWaitForFences(gDevice->GetDevice(), 1, &mImageAcquireFence, VK_TRUE, 0);
     } while (result != VK_SUCCESS);
 
 
-    result = vkResetFences(mDevicePtr->GetDevice(), 1, &mImageAcquireFence);
+    result = vkResetFences(gDevice->GetDevice(), 1, &mImageAcquireFence);
     RETURN_FALSE_IF_FAILED(result, "Error while resetting Image acquisition Fence");
 
     return true;
@@ -310,7 +311,6 @@ bool Backbuffer::AcquireNextImage()
 bool Backbuffer::Init(const BackbufferDesc& desc)
 {
     mInstancePtr = desc.instancePtr;
-    mDevicePtr = desc.devicePtr;
     mWidth = desc.width;
     mHeight = desc.height;
 

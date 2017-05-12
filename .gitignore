@@ -21,6 +21,7 @@
 
 # Junction links to dependencies
 /Deps/fbxsdk
+/Deps/freeimage
 
 # Other useless folders and file patterns
 *.opensdf

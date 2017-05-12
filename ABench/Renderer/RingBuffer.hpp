@@ -9,8 +9,6 @@ namespace Renderer {
 
 class RingBuffer
 {
-    Device* mDevicePtr;
-
     VkBuffer mBuffer;
     VkDeviceMemory mBufferMemory;
     VkDeviceSize mBufferSize;
@@ -30,7 +28,7 @@ public:
      * Thus, huge data shouldn't be allocated this way, or the size should
      * be big enough.
      */
-    bool Init(Device* devicePtr, const VkDeviceSize bufferSize);
+    bool Init(const VkDeviceSize bufferSize);
 
     /**
      * Write data to Ring Buffer. Returns offset at which data was allocated.

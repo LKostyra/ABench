@@ -46,6 +46,11 @@ public:
     {
         return mCommandPool;
     }
+
+    ABENCH_INLINE VkPipelineCache GetPipelineCache() const
+    {
+        return mPipelineCache;
+    }
 };
 
 } // namespace Renderer

@@ -3,25 +3,24 @@
 #include "Util.hpp"
 #include "Extensions.hpp"
 #include "CommandBuffer.hpp"
+#include "Renderer.hpp"
 
 #include "Common/Common.hpp"
+
 
 namespace ABench {
 namespace Renderer {
 
 Buffer::Buffer()
-    : mDevicePtr(nullptr)
 {
 }
 
 Buffer::~Buffer()
 {
     if (mBufferMemory)
-        vkFreeMemory(mDevicePtr->GetDevice(), mBufferMemory, nullptr);
+        vkFreeMemory(gDevice->GetDevice(), mBufferMemory, nullptr);
     if (mBuffer)
-        vkDestroyBuffer(mDevicePtr->GetDevice(), mBuffer, nullptr);
-
-    mDevicePtr = nullptr;
+        vkDestroyBuffer(gDevice->GetDevice(), mBuffer, nullptr);
 }
 
 bool Buffer::Init(const BufferDesc& desc)
@@ -39,8 +38,6 @@ bool Buffer::Init(const BufferDesc& desc)
         return false;
     }
 
-    mDevicePtr = desc.devicePtr;
-
     VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
     VkBuffer staging = VK_NULL_HANDLE;
 
@@ -53,11 +50,11 @@ bool Buffer::Init(const BufferDesc& desc)
     bufInfo.size = mBufferSize;
     bufInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     bufInfo.usage = desc.usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-    VkResult result = vkCreateBuffer(mDevicePtr->GetDevice(), &bufInfo, nullptr, &mBuffer);
+    VkResult result = vkCreateBuffer(gDevice->GetDevice(), &bufInfo, nullptr, &mBuffer);
     RETURN_FALSE_IF_FAILED(result, "Failed to create device buffer");
 
     VkMemoryRequirements deviceMemReqs;
-    vkGetBufferMemoryRequirements(mDevicePtr->GetDevice(), mBuffer, &deviceMemReqs);
+    vkGetBufferMemoryRequirements(gDevice->GetDevice(), mBuffer, &deviceMemReqs);
 
     VkMemoryPropertyFlags memFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     if (desc.type == BufferType::Static)
@@ -67,57 +64,57 @@ bool Buffer::Init(const BufferDesc& desc)
     ZERO_MEMORY(memInfo);
     memInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     memInfo.allocationSize = deviceMemReqs.size;
-    memInfo.memoryTypeIndex = mDevicePtr->GetMemoryTypeIndex(deviceMemReqs.memoryTypeBits, memFlags);
-    result = vkAllocateMemory(mDevicePtr->GetDevice(), &memInfo, nullptr, &mBufferMemory);
+    memInfo.memoryTypeIndex = gDevice->GetMemoryTypeIndex(deviceMemReqs.memoryTypeBits, memFlags);
+    result = vkAllocateMemory(gDevice->GetDevice(), &memInfo, nullptr, &mBufferMemory);
     RETURN_FALSE_IF_FAILED(result, "Failed to allocate device memory");
 
-    result = vkBindBufferMemory(mDevicePtr->GetDevice(), mBuffer, mBufferMemory, 0);
+    result = vkBindBufferMemory(gDevice->GetDevice(), mBuffer, mBufferMemory, 0);
     RETURN_FALSE_IF_FAILED(result, "Failed to bind device memory to device buffer");
 
     if (desc.data != nullptr)
     {
         // create a staging buffer for copy operations
         bufInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-        result = vkCreateBuffer(mDevicePtr->GetDevice(), &bufInfo, nullptr, &staging);
+        result = vkCreateBuffer(gDevice->GetDevice(), &bufInfo, nullptr, &staging);
         RETURN_FALSE_IF_FAILED(result, "Failed to create staging buffer");
 
         // get staging buffer's memory requirements
         VkMemoryRequirements stagingMemReqs;
-        vkGetBufferMemoryRequirements(mDevicePtr->GetDevice(), staging, &stagingMemReqs);
+        vkGetBufferMemoryRequirements(gDevice->GetDevice(), staging, &stagingMemReqs);
 
         // allocate memory for staging buffer
         memInfo.allocationSize = stagingMemReqs.size;
-        memInfo.memoryTypeIndex = mDevicePtr->GetMemoryTypeIndex(stagingMemReqs.memoryTypeBits,
+        memInfo.memoryTypeIndex = gDevice->GetMemoryTypeIndex(stagingMemReqs.memoryTypeBits,
                                                                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-        result = vkAllocateMemory(mDevicePtr->GetDevice(), &memInfo, nullptr, &stagingMemory);
+        result = vkAllocateMemory(gDevice->GetDevice(), &memInfo, nullptr, &stagingMemory);
         RETURN_FALSE_IF_FAILED(result, "Failed to allocate memory for staging buffer");
 
         // map the memory and copy data to it
         void* stagingData = nullptr;
-        result = vkMapMemory(mDevicePtr->GetDevice(), stagingMemory, 0, stagingMemReqs.size, 0, &stagingData);
+        result = vkMapMemory(gDevice->GetDevice(), stagingMemory, 0, stagingMemReqs.size, 0, &stagingData);
         RETURN_FALSE_IF_FAILED(result, "Failed to map staging memory for copying");
         memcpy(stagingData, desc.data, static_cast<size_t>(desc.dataSize));
-        vkUnmapMemory(mDevicePtr->GetDevice(), stagingMemory);
+        vkUnmapMemory(gDevice->GetDevice(), stagingMemory);
 
-        result = vkBindBufferMemory(mDevicePtr->GetDevice(), staging, stagingMemory, 0);
+        result = vkBindBufferMemory(gDevice->GetDevice(), staging, stagingMemory, 0);
         RETURN_FALSE_IF_FAILED(result, "Failed to bind staging memory to staging buffer");
 
         // copy data from staging buffer to device
         // TODO OPTIMIZE this uses graphics queue and waits; after implementing queue manager, switch to Transfer queue
         CommandBuffer copyCmdBuffer;
-        if (!copyCmdBuffer.Init(mDevicePtr))
+        if (!copyCmdBuffer.Init())
             return false;
 
         copyCmdBuffer.Begin();
         copyCmdBuffer.CopyBuffer(staging, mBuffer, deviceMemReqs.size);
         copyCmdBuffer.End();
 
-        mDevicePtr->Execute(&copyCmdBuffer);
-        mDevicePtr->WaitForGPU(); // TODO this should be removed
+        gDevice->Execute(&copyCmdBuffer);
+        gDevice->WaitForGPU(); // TODO this should be removed
 
         // cleanup
-        vkFreeMemory(mDevicePtr->GetDevice(), stagingMemory, nullptr);
-        vkDestroyBuffer(mDevicePtr->GetDevice(), staging, nullptr);
+        vkFreeMemory(gDevice->GetDevice(), stagingMemory, nullptr);
+        vkDestroyBuffer(gDevice->GetDevice(), staging, nullptr);
     }
 
     const char* memTypeStr = nullptr;
@@ -148,10 +145,10 @@ bool Buffer::Write(const void* data, size_t size)
     }
 
     void* memory;
-    VkResult result = vkMapMemory(mDevicePtr->GetDevice(), mBufferMemory, 0, mBufferSize, 0, &memory);
+    VkResult result = vkMapMemory(gDevice->GetDevice(), mBufferMemory, 0, mBufferSize, 0, &memory);
     RETURN_FALSE_IF_FAILED(result, "Failed to map memory for writing");
     memcpy(memory, data, size);
-    vkUnmapMemory(mDevicePtr->GetDevice(), mBufferMemory);
+    vkUnmapMemory(gDevice->GetDevice(), mBufferMemory);
 
     return true;
 }

@@ -2,6 +2,7 @@
 #include "CommandBuffer.hpp"
 #include "Util.hpp"
 #include "Extensions.hpp"
+#include "Renderer.hpp"
 
 #include "Common/Common.hpp"
 
@@ -11,27 +12,24 @@ namespace ABench {
 namespace Renderer {
 
 CommandBuffer::CommandBuffer()
-    : mDevicePtr(nullptr)
 {
 }
 
 CommandBuffer::~CommandBuffer()
 {
     if (mCommandBuffer)
-        vkFreeCommandBuffers(mDevicePtr->GetDevice(), mDevicePtr->GetCommandPool(), 1, &mCommandBuffer);
+        vkFreeCommandBuffers(gDevice->GetDevice(), gDevice->GetCommandPool(), 1, &mCommandBuffer);
 }
 
-bool CommandBuffer::Init(Device* devicePtr)
+bool CommandBuffer::Init()
 {
-    mDevicePtr = devicePtr;
-
     VkCommandBufferAllocateInfo allocInfo;
     ZERO_MEMORY(allocInfo);
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = 1;
-    allocInfo.commandPool = mDevicePtr->GetCommandPool();
-    VkResult result = vkAllocateCommandBuffers(mDevicePtr->GetDevice(), &allocInfo, &mCommandBuffer);
+    allocInfo.commandPool = gDevice->GetCommandPool();
+    VkResult result = vkAllocateCommandBuffers(gDevice->GetDevice(), &allocInfo, &mCommandBuffer);
     RETURN_FALSE_IF_FAILED(result, "Failed to allocate Command Buffer");
 
     return true;

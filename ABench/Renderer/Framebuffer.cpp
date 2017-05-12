@@ -2,6 +2,7 @@
 #include "Framebuffer.hpp"
 #include "Util.hpp"
 #include "Extensions.hpp"
+#include "Renderer.hpp"
 
 #include "Common/Common.hpp"
 #include "Common/Logger.hpp"
@@ -11,7 +12,6 @@ namespace ABench {
 namespace Renderer {
 
 Framebuffer::Framebuffer()
-    : mDevicePtr(nullptr)
 {
 }
 
@@ -19,15 +19,11 @@ Framebuffer::~Framebuffer()
 {
     if (mFramebuffers.size() > 0)
         for (auto& fb: mFramebuffers)
-            vkDestroyFramebuffer(mDevicePtr->GetDevice(), fb, nullptr);
-
-    mDevicePtr = nullptr;
+            vkDestroyFramebuffer(gDevice->GetDevice(), fb, nullptr);
 }
 
 bool Framebuffer::Init(const FramebufferDesc& desc)
 {
-    mDevicePtr = desc.devicePtr;
-
     mFramebuffers.resize(desc.colorTex->mImages.size());
 
     if (!desc.colorTex)
@@ -65,7 +61,7 @@ bool Framebuffer::Init(const FramebufferDesc& desc)
         }
 
         fbInfo.pAttachments = fbAtts;
-        result = vkCreateFramebuffer(mDevicePtr->GetDevice(), &fbInfo, nullptr, &mFramebuffers[i]);
+        result = vkCreateFramebuffer(gDevice->GetDevice(), &fbInfo, nullptr, &mFramebuffers[i]);
         RETURN_FALSE_IF_FAILED(result, "Failed to create Framebuffer #" << i << " for provided Texture");
     }
 

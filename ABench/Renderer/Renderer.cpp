@@ -20,6 +20,8 @@ struct VertexShaderCBuffer
     Math::Matrix projMatrix;
 };
 
+Device* gDevice = nullptr;
+
 
 Renderer::Renderer()
     : mRenderPass(VK_NULL_HANDLE)
@@ -61,8 +63,9 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (!mDevice.Init(mInstance))
         return false;
 
-    if (!mTools.Init(&mDevice))
-        return false;
+    // TODO hack to avoid providing Device for all objects
+    // consider maybe a better solution (Device singleton?)
+    gDevice = &mDevice;
 
     BackbufferWindowDesc bbWindowDesc;
 #ifdef WIN32
@@ -75,7 +78,6 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
 
     BackbufferDesc bbDesc;
     bbDesc.instancePtr = &mInstance;
-    bbDesc.devicePtr = &mDevice;
     bbDesc.windowDesc = bbWindowDesc;
     bbDesc.requestedFormat = VK_FORMAT_B8G8R8A8_UNORM;
     bbDesc.width = window.GetWidth();
@@ -85,7 +87,6 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
         return false;
 
     TextureDesc depthTexDesc;
-    depthTexDesc.devicePtr = &mDevice;
     depthTexDesc.width = window.GetWidth();
     depthTexDesc.height = window.GetHeight();
     depthTexDesc.format = VK_FORMAT_D32_SFLOAT;
@@ -93,7 +94,7 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (!mDepthTexture.Init(depthTexDesc))
         return false;
 
-    if (!mRingBuffer.Init(&mDevice, 1024*1024))
+    if (!mRingBuffer.Init(1024*1024))
         return false;
 
     mRenderPass = mTools.CreateRenderPass(bbDesc.requestedFormat, VK_FORMAT_D32_SFLOAT);
@@ -101,7 +102,6 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
         return false;
 
     FramebufferDesc fbDesc;
-    fbDesc.devicePtr = &mDevice;
     fbDesc.colorTex = &mBackbuffer;
     fbDesc.depthTex = &mDepthTexture;
     fbDesc.renderPass = mRenderPass;
@@ -120,7 +120,6 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
         return false;
 
     ShaderDesc shaderDesc;
-    shaderDesc.devicePtr = &mDevice;
     shaderDesc.language = ABench::Renderer::ShaderLanguage::SPIRV;
     shaderDesc.path = "Data/Shaders/vert.spv";
     if (!mVertexShader.Init(shaderDesc))
@@ -161,7 +160,6 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
         return false;
 
     PipelineDesc pipeDesc;
-    pipeDesc.devicePtr = &mDevice;
     pipeDesc.vertexShader = &mVertexShader;
     pipeDesc.fragmentShader = &mFragmentShader;
     pipeDesc.vertexLayout = &mVertexLayout;
@@ -171,7 +169,7 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     pipeDesc.enableDepth = true;
     mPipeline.Init(pipeDesc);
 
-    if (!mCommandBuffer.Init(&mDevice))
+    if (!mCommandBuffer.Init())
         return false;
 
 
@@ -179,7 +177,6 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     cbuffer.viewMatrix = Math::CreateRotationMatrixZ(1.0f);
 
     BufferDesc vsBufferDesc;
-    vsBufferDesc.devicePtr = &mDevice;
     vsBufferDesc.data = &cbuffer;
     vsBufferDesc.dataSize = sizeof(VertexShaderCBuffer);
     vsBufferDesc.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;

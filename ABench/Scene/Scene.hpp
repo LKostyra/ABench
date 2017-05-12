@@ -11,8 +11,6 @@ namespace Scene {
 
 class Scene
 {
-    ABench::Renderer::Device* mDevicePtr;
-
     ABench::Common::FBXFile mFBXFile;
     std::vector<Object> mObjects;
     std::list<Mesh> mMeshComponents;
@@ -23,7 +21,7 @@ public:
     Scene();
     ~Scene();
 
-    bool Init(ABench::Renderer::Device* devicePtr, const std::string& fbxFile = "");
+    bool Init(const std::string& fbxFile = "");
     Object* CreateObject();
     Component* CreateComponent(ComponentType type);
     void ForEachObject(ObjectCallback func) const;

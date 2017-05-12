@@ -11,8 +11,6 @@ namespace Renderer {
 
 struct PipelineDesc
 {
-    Device* devicePtr;
-
     Shader* vertexShader;
     Shader* tessControlShader;
     Shader* tessEvalShader;
@@ -44,8 +42,6 @@ struct PipelineDesc
 class Pipeline
 {
     friend class CommandBuffer;
-
-    Device* mDevicePtr;
 
     VkPipeline mPipeline;
 

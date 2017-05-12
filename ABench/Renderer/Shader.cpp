@@ -2,6 +2,7 @@
 #include "Shader.hpp"
 #include "Util.hpp"
 #include "Extensions.hpp"
+#include "Renderer.hpp"
 
 #include "Common/Common.hpp"
 
@@ -12,15 +13,14 @@ namespace ABench {
 namespace Renderer {
 
 Shader::Shader()
-    : mDevicePtr(nullptr)
-    , mShaderModule(VK_NULL_HANDLE)
+    : mShaderModule(VK_NULL_HANDLE)
 {
 }
 
 Shader::~Shader()
 {
     if (mShaderModule != VK_NULL_HANDLE)
-        vkDestroyShaderModule(mDevicePtr->GetDevice(), mShaderModule, nullptr);
+        vkDestroyShaderModule(gDevice->GetDevice(), mShaderModule, nullptr);
 }
 
 bool Shader::Compile(ShaderLanguage lang, const std::string& path, std::unique_ptr<uint32_t[]>& code, size_t& codeSize)
@@ -38,8 +38,6 @@ bool Shader::Compile(ShaderLanguage lang, const std::string& path, std::unique_p
 
 bool Shader::Init(const ShaderDesc& desc)
 {
-    mDevicePtr = desc.devicePtr;
-
     std::unique_ptr<uint32_t[]> code;
     size_t codeSize;
 
@@ -78,7 +76,7 @@ bool Shader::Init(const ShaderDesc& desc)
     shaderInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     shaderInfo.pCode = code.get();
     shaderInfo.codeSize = codeSize;
-    VkResult result = vkCreateShaderModule(mDevicePtr->GetDevice(), &shaderInfo, nullptr, &mShaderModule);
+    VkResult result = vkCreateShaderModule(gDevice->GetDevice(), &shaderInfo, nullptr, &mShaderModule);
     RETURN_FALSE_IF_FAILED(result, "Failed to create shader module from file " << desc.path);
 
     LOGI("Successfully initialized shader module from " << desc.path);

@@ -21,7 +21,6 @@ Mesh::~Mesh()
 bool Mesh::InitBuffers(const std::vector<Vertex>& vertices, int* indices, int indexCount)
 {
     BufferDesc vbDesc;
-    vbDesc.devicePtr = mDevicePtr;
     vbDesc.data = vertices.data();
     vbDesc.dataSize = vertices.size() * sizeof(Vertex);
     vbDesc.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
@@ -30,7 +29,6 @@ bool Mesh::InitBuffers(const std::vector<Vertex>& vertices, int* indices, int in
         return false;
 
     BufferDesc ibDesc;
-    ibDesc.devicePtr = mDevicePtr;
     ibDesc.data = indices;
     ibDesc.dataSize = indexCount * sizeof(uint32_t);
     ibDesc.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
@@ -134,10 +132,8 @@ bool Mesh::InitDefault()
     return InitBuffers(vertices, indices.data(), static_cast<int>(indices.size()));
 }
 
-bool Mesh::Init(ABench::Renderer::Device* devicePtr, FbxMesh* mesh)
+bool Mesh::Init(FbxMesh* mesh)
 {
-    mDevicePtr = devicePtr;
-
     if (mesh)
         return InitFromFBX(mesh);
     else

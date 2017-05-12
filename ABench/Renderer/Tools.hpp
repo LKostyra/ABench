@@ -39,13 +39,9 @@ struct DescriptorSetLayoutDesc
  */
 class Tools
 {
-    Device* mDevicePtr;
-
 public:
     Tools();
     ~Tools();
-
-    bool Init(Device* devicePtr);
 
     // VkRenderPass creation
     VkRenderPass CreateRenderPass(VkFormat colorFormat, VkFormat depthFormat);

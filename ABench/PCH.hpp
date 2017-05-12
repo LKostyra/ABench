@@ -12,6 +12,9 @@
 // FBX SDK
 #include <fbxsdk.h>
 
+// FreeImage
+#include <FreeImage.h>
+
 // STL
 #include <string>
 #include <sstream>

@@ -16,8 +16,6 @@ enum class ShaderLanguage: unsigned char
 
 struct ShaderDesc
 {
-    Device* devicePtr;
-
     ShaderLanguage language;
     std::string path;
 };
@@ -25,8 +23,6 @@ struct ShaderDesc
 class Shader
 {
     friend class Pipeline;
-
-    Device* mDevicePtr;
 
     VkShaderModule mShaderModule;
 

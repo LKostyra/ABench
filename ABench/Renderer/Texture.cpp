@@ -4,6 +4,7 @@
 #include "Util.hpp"
 #include "Extensions.hpp"
 #include "CommandBuffer.hpp"
+#include "Renderer.hpp"
 
 #include "Common/Common.hpp"
 
@@ -12,8 +13,7 @@ namespace ABench {
 namespace Renderer {
 
 Texture::Texture()
-    : mDevicePtr(nullptr)
-    , mWidth(0)
+    : mWidth(0)
     , mHeight(0)
     , mFormat(VK_FORMAT_UNDEFINED)
     , mFromSwapchain(false)
@@ -27,18 +27,16 @@ Texture::~Texture()
     for (auto& image: mImages)
     {
         if (image.memory != VK_NULL_HANDLE)
-            vkFreeMemory(mDevicePtr->GetDevice(), image.memory, nullptr);
+            vkFreeMemory(gDevice->GetDevice(), image.memory, nullptr);
         if (image.view != VK_NULL_HANDLE)
-            vkDestroyImageView(mDevicePtr->GetDevice(), image.view, nullptr);
+            vkDestroyImageView(gDevice->GetDevice(), image.view, nullptr);
         if (!mFromSwapchain && image.image != VK_NULL_HANDLE)
-            vkDestroyImage(mDevicePtr->GetDevice(), image.image, nullptr);
+            vkDestroyImage(gDevice->GetDevice(), image.image, nullptr);
     }
 }
 
 bool Texture::Init(const TextureDesc& desc)
 {
-    mDevicePtr = desc.devicePtr;
-
     mImages.resize(1);
     mCurrentBuffer = 0; // since we create a non-backbuffer texture, this should stay that way
 
@@ -57,21 +55,21 @@ bool Texture::Init(const TextureDesc& desc)
     imageInfo.usage = desc.usage;
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     imageInfo.initialLayout = mImages[mCurrentBuffer].currentLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
-    VkResult result = vkCreateImage(mDevicePtr->GetDevice(), &imageInfo, nullptr, &mImages[0].image);
+    VkResult result = vkCreateImage(gDevice->GetDevice(), &imageInfo, nullptr, &mImages[0].image);
     RETURN_FALSE_IF_FAILED(result, "Failed to create Image for texture");
 
     VkMemoryRequirements memReqs;
-    vkGetImageMemoryRequirements(mDevicePtr->GetDevice(), mImages[0].image, &memReqs);
+    vkGetImageMemoryRequirements(gDevice->GetDevice(), mImages[0].image, &memReqs);
 
     VkMemoryAllocateInfo memInfo;
     ZERO_MEMORY(memInfo);
     memInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    memInfo.memoryTypeIndex = mDevicePtr->GetMemoryTypeIndex(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    memInfo.memoryTypeIndex = gDevice->GetMemoryTypeIndex(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     memInfo.allocationSize = memReqs.size;
-    result = vkAllocateMemory(mDevicePtr->GetDevice(), &memInfo, nullptr, &mImages[0].memory);
+    result = vkAllocateMemory(gDevice->GetDevice(), &memInfo, nullptr, &mImages[0].memory);
     RETURN_FALSE_IF_FAILED(result, "Failed to allocate memory for Image");
 
-    result = vkBindImageMemory(mDevicePtr->GetDevice(), mImages[0].image, mImages[0].memory, 0);
+    result = vkBindImageMemory(gDevice->GetDevice(), mImages[0].image, mImages[0].memory, 0);
     RETURN_FALSE_IF_FAILED(result, "Binding Image memory to Image failed");
 
     if (desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
@@ -92,7 +90,7 @@ bool Texture::Init(const TextureDesc& desc)
     // transition Image to desired layout and eventually copy data to buffer
     // TODO OPTIMIZE this uses graphics queue and waits; after implementing queue manager, switch to Transfer queue
     CommandBuffer transitionCmdBuffer;
-    if (!transitionCmdBuffer.Init(mDevicePtr))
+    if (!transitionCmdBuffer.Init())
         return false;
 
     transitionCmdBuffer.Begin();
@@ -100,8 +98,8 @@ bool Texture::Init(const TextureDesc& desc)
     Transition(transitionCmdBuffer.mCommandBuffer);
     transitionCmdBuffer.End();
 
-    mDevicePtr->Execute(&transitionCmdBuffer);
-    mDevicePtr->WaitForGPU(); // TODO this should be removed
+    gDevice->Execute(&transitionCmdBuffer);
+    gDevice->WaitForGPU(); // TODO this should be removed
 
 
     VkImageViewCreateInfo ivInfo;
@@ -117,7 +115,7 @@ bool Texture::Init(const TextureDesc& desc)
         VK_COMPONENT_SWIZZLE_B,
         VK_COMPONENT_SWIZZLE_A,
     };
-    result = vkCreateImageView(mDevicePtr->GetDevice(), &ivInfo, nullptr, &mImages[0].view);
+    result = vkCreateImageView(gDevice->GetDevice(), &ivInfo, nullptr, &mImages[0].view);
     RETURN_FALSE_IF_FAILED(result, "Failed to create Image View for Texture");
 
     mWidth = desc.width;

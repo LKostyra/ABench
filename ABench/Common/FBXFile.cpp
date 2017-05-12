@@ -150,9 +150,7 @@ void FBXFile::Traverse(TraverseCallback func)
     FbxNode* root = mFbxScene->GetRootNode();
 
     if (root)
-    {
         TraverseNode(func, root);
-    }
 }
 
 void FBXFile::Close()

@@ -11,8 +11,7 @@ layout (location = 0) out vec4 color;
 
 void main()
 {
-	// treat normal vector as color for now
-	
-	// translate -1..1 coords to 0..1
+    // treat normal vector as color for now
+    // translate -1..1 coords to 0..1
     color = vec4((Input.Norm + 1.0) / 2.0, 1.0);
 }

@@ -17,16 +17,13 @@ enum class BufferType: unsigned short
 
 struct BufferDesc
 {
-    Device* devicePtr;
-
     const void* data;
     VkDeviceSize dataSize;
     VkBufferUsageFlags usage;
     BufferType type;
 
     BufferDesc()
-        : devicePtr(nullptr)
-        , data(nullptr)
+        : data(nullptr)
         , dataSize(0)
         , usage(0)
         , type(BufferType::Static)
@@ -37,8 +34,6 @@ struct BufferDesc
 class Buffer
 {
     friend class CommandBuffer;
-
-    Device* mDevicePtr;
 
     BufferType mType;
     VkBuffer mBuffer;

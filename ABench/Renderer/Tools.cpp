@@ -3,6 +3,7 @@
 
 #include "Util.hpp"
 #include "Extensions.hpp"
+#include "Renderer.hpp"
 
 #include "Common/Common.hpp"
 
@@ -10,25 +11,11 @@ namespace ABench {
 namespace Renderer {
 
 Tools::Tools()
-    : mDevicePtr(nullptr)
 {
 }
 
 Tools::~Tools()
 {
-    mDevicePtr = nullptr;
-}
-
-bool Tools::Init(Device* devicePtr)
-{
-    if (devicePtr == nullptr)
-    {
-        LOGE("Valid pointer to Device must be provided");
-        return false;
-    }
-
-    mDevicePtr = devicePtr;
-    return true;
 }
 
 VkRenderPass Tools::CreateRenderPass(VkFormat colorFormat, VkFormat depthFormat)
@@ -89,7 +76,7 @@ VkRenderPass Tools::CreateRenderPass(VkFormat colorFormat, VkFormat depthFormat)
     rpInfo.subpassCount = 1;
     rpInfo.pSubpasses = &subpass;
 
-    VkResult result = vkCreateRenderPass(mDevicePtr->GetDevice(), &rpInfo, nullptr, &rp);
+    VkResult result = vkCreateRenderPass(gDevice->GetDevice(), &rpInfo, nullptr, &rp);
     RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create Render Pass");
 
     LOGD("Created Render Pass 0x" << std::hex << reinterpret_cast<size_t*>(rp));
@@ -105,7 +92,7 @@ VkPipelineLayout Tools::CreatePipelineLayout(VkDescriptorSetLayout* sets, int se
     info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     info.pSetLayouts = sets;
     info.setLayoutCount = setCount;
-    VkResult result = vkCreatePipelineLayout(mDevicePtr->GetDevice(), &info, nullptr, &layout);
+    VkResult result = vkCreatePipelineLayout(gDevice->GetDevice(), &info, nullptr, &layout);
     RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create Pipeline Layout");
 
     LOGD("Created Pipeline Layout 0x" << std::hex << reinterpret_cast<size_t*>(layout));
@@ -127,7 +114,7 @@ VkDescriptorPool Tools::CreateDescriptorPool(const std::vector<VkDescriptorPoolS
     info.pPoolSizes = poolSizes.data();
     info.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
     info.maxSets = maxSets;
-    VkResult result = vkCreateDescriptorPool(mDevicePtr->GetDevice(), &info, nullptr, &pool);
+    VkResult result = vkCreateDescriptorPool(gDevice->GetDevice(), &info, nullptr, &pool);
     RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create Descriptor Pool");
 
     LOGD("Created Descriptor Pool 0x" << std::hex << reinterpret_cast<size_t*>(pool));
@@ -159,7 +146,7 @@ VkDescriptorSetLayout Tools::CreateDescriptorSetLayout(std::vector<DescriptorSet
     info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     info.bindingCount = static_cast<uint32_t>(bindings.size());
     info.pBindings = bindings.data();
-    VkResult result = vkCreateDescriptorSetLayout(mDevicePtr->GetDevice(), &info, nullptr, &layout);
+    VkResult result = vkCreateDescriptorSetLayout(gDevice->GetDevice(), &info, nullptr, &layout);
     RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create Descriptor Set Layout");
 
     LOGD("Created Descriptor Set Layout 0x" << std::hex << reinterpret_cast<size_t*>(layout) <<
@@ -178,7 +165,7 @@ VkDescriptorSet Tools::AllocateDescriptorSet(VkDescriptorPool pool, VkDescriptor
     info.descriptorPool = pool;
     info.descriptorSetCount = 1;
     info.pSetLayouts = &layout;
-    VkResult result = vkAllocateDescriptorSets(mDevicePtr->GetDevice(), &info, &set);
+    VkResult result = vkAllocateDescriptorSets(gDevice->GetDevice(), &info, &set);
     RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to allocate Descriptor Set");
 
     LOGD("Allocated Descriptor Set 0x" << std::hex << reinterpret_cast<size_t*>(set) <<
@@ -203,7 +190,7 @@ void Tools::UpdateBufferDescriptorSet(VkDescriptorSet set, VkDescriptorType type
     write.descriptorCount = 1;
     write.pBufferInfo = &info;
 
-    vkUpdateDescriptorSets(mDevicePtr->GetDevice(), 1, &write, 0, nullptr);
+    vkUpdateDescriptorSets(gDevice->GetDevice(), 1, &write, 0, nullptr);
 }
 
 VkFence Tools::CreateFence()
@@ -214,7 +201,7 @@ VkFence Tools::CreateFence()
     ZERO_MEMORY(info);
     info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 
-    VkResult result = vkCreateFence(mDevicePtr->GetDevice(), &info, nullptr, &fence);
+    VkResult result = vkCreateFence(gDevice->GetDevice(), &info, nullptr, &fence);
     RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create fence");
 
     return fence;

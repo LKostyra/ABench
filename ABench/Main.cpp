@@ -102,10 +102,11 @@ int main()
         return -1;
 
     ABench::Scene::Mesh mesh;
-    mesh.Init(rend.GetDevice());
+    mesh.Init();
 
     ABench::Scene::Scene scene;
-    scene.Init(rend.GetDevice(), "Data/FBX/sponza.fbx");
+    //scene.Init("Data/FBX/sponza.fbx");
+    scene.Init("");
     for (int x = -5; x < 5; ++x)
     {
         for (int y = -11; y < -1; ++y)

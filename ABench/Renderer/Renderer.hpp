@@ -52,12 +52,11 @@ public:
 
     bool Init(const Common::Window& window, bool debugEnable = false, bool debugVerbose = false);
     void Draw(const Scene::Scene& scene, const Scene::Camera& camera);
-
-    ABENCH_INLINE Device* GetDevice()
-    {
-        return &mDevice;
-    }
 };
+
+// TODO hack to enable global device for all objects
+// consider something else
+extern Device* gDevice;
 
 } // namespace Renderer
 } // namespace ABench

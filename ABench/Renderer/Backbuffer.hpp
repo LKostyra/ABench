@@ -19,7 +19,6 @@ namespace Renderer {
 struct BackbufferDesc
 {
     Instance* instancePtr;
-    Device* devicePtr;
 
     BackbufferWindowDesc windowDesc;
 

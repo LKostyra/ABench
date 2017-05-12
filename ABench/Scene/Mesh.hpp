@@ -17,8 +17,6 @@ struct Vertex
 
 class Mesh final: public Component
 {
-    ABench::Renderer::Device* mDevicePtr;
-
     ABench::Renderer::Buffer mVertexBuffer;
     ABench::Renderer::Buffer mIndexBuffer;
     uint32_t mIndexCount;
@@ -31,7 +29,7 @@ public:
     Mesh();
     ~Mesh();
 
-    bool Init(ABench::Renderer::Device* devicePtr, FbxMesh* mesh = nullptr);
+    bool Init(FbxMesh* mesh = nullptr);
 
     ABENCH_INLINE const ABench::Renderer::Buffer* GetVertexBuffer() const
     {

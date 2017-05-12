@@ -21,8 +21,6 @@ class CommandBuffer
     friend class Device;
     friend class Texture;
 
-    Device* mDevicePtr;
-
     VkCommandBuffer mCommandBuffer;
     Framebuffer* mCurrentFramebuffer;
 
@@ -30,7 +28,7 @@ public:
     CommandBuffer();
     ~CommandBuffer();
 
-    bool Init(Device* devicePtr);
+    bool Init();
 
     void Begin();
     void BeginRenderPass(VkRenderPass rp, Framebuffer* fb, ClearTypes types, float clearValues[4], float depthValue = 0.0f);

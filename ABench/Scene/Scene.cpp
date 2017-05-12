@@ -14,10 +14,8 @@ Scene::~Scene()
 {
 }
 
-bool Scene::Init(ABench::Renderer::Device* devicePtr, const std::string& fbxFile)
+bool Scene::Init(const std::string& fbxFile)
 {
-    mDevicePtr = devicePtr;
-
     if (!fbxFile.empty())
     {
         LOGD("Loading scene from FBX file");
@@ -46,7 +44,7 @@ bool Scene::Init(ABench::Renderer::Device* devicePtr, const std::string& fbxFile
                     Object* o = CreateObject();
                     Mesh* m = dynamic_cast<Mesh*>(CreateComponent(ComponentType::Mesh));
 
-                    m->Init(mDevicePtr, node->GetMesh());
+                    m->Init(node->GetMesh());
                     o->SetComponent(m);
                     o->SetPosition(static_cast<float>(node->LclTranslation.Get()[0]),
                                    static_cast<float>(node->LclTranslation.Get()[1]),

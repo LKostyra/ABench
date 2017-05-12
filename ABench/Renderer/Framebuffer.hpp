@@ -10,8 +10,6 @@ namespace Renderer {
 
 struct FramebufferDesc
 {
-    Device* devicePtr;
-
     Texture* colorTex;
     Texture* depthTex;
     VkRenderPass renderPass;
@@ -27,8 +25,6 @@ struct FramebufferDesc
 class Framebuffer
 {
     friend class CommandBuffer;
-
-    Device* mDevicePtr;
 
     std::vector<VkFramebuffer> mFramebuffers;
     uint32_t mWidth;
