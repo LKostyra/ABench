@@ -26,6 +26,7 @@ Device* gDevice = nullptr;
 Renderer::Renderer()
     : mRenderPass(VK_NULL_HANDLE)
     , mPipelineLayout(VK_NULL_HANDLE)
+    , mRenderFence(VK_NULL_HANDLE)
     , mVertexShaderSet(VK_NULL_HANDLE)
     , mVertexShaderLayout(VK_NULL_HANDLE)
     , mDescriptorPool(VK_NULL_HANDLE)
@@ -72,6 +73,8 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     bbWindowDesc.hInstance = window.GetInstance();
     bbWindowDesc.hWnd = window.GetHandle();
 #elif defined(__linux__) | defined(__LINUX__)
+    bbWindowDesc.connection = window.GetConnection();
+    bbWindowDesc.window = window.GetWindow();
 #else
 #error "Target platform not supported"
 #endif

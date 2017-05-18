@@ -70,7 +70,7 @@ bool Mesh::InitFromFBX(FbxMesh* mesh)
         if (!mesh->GenerateNormals(true, true))
         {
             LOGE("Failed to regenerate normals by control point");
-            return nullptr;
+            return false;
         }
 
         for (int l = 0; l < mesh->GetLayerCount(); ++l)
@@ -83,7 +83,7 @@ bool Mesh::InitFromFBX(FbxMesh* mesh)
         if (!normals)
         {
             LOGE("Mesh has no normals generated!");
-            return nullptr;
+            return false;
         }
     }
 

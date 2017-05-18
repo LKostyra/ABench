@@ -10,6 +10,7 @@ namespace ABench {
 namespace Renderer {
 
 Pipeline::Pipeline()
+    : mPipeline(VK_NULL_HANDLE)
 {
 }
 

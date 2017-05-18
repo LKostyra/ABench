@@ -32,7 +32,7 @@ ADD_DEPENDENCIES(ABenchTest gtest)
 
 # TODO uncomment when glslang will be added
 #TARGET_LINK_LIBRARIES(ABench glslang hlsl SPIRV OGLCompiler OSDependent)
-TARGET_LINK_LIBRARIES(ABenchTest dl gtest fbxsdk pthread)
+TARGET_LINK_LIBRARIES(ABenchTest gtest fbxsdk dl pthread)
 
 ADD_CUSTOM_COMMAND(TARGET ABenchTest POST_BUILD COMMAND
                    ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ABenchTest> ${ABENCH_OUTPUT_DIRECTORY}/${targetfile})

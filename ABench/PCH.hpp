@@ -4,6 +4,11 @@
 // WinAPI & other Windows internals
 #include <Windows.h>
 #include <windowsx.h>
+#elif defined(__linux__) || defined(__LINUX__)
+#include <time.h> // for Timer
+#include <xcb/xcb.h>
+#else
+#error "Target platform not defined"
 #endif
 
 // Vulkan SDK
@@ -24,3 +29,4 @@
 #include <list>
 #include <memory>
 #include <functional>
+#include <type_traits>

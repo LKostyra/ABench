@@ -12,6 +12,10 @@ namespace ABench {
 namespace Renderer {
 
 Buffer::Buffer()
+    : mType(BufferType::Static)
+    , mBuffer(VK_NULL_HANDLE)
+    , mBufferMemory(VK_NULL_HANDLE)
+    , mBufferSize(0)
 {
 }
 

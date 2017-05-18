@@ -12,6 +12,8 @@ namespace ABench {
 namespace Renderer {
 
 CommandBuffer::CommandBuffer()
+    : mCommandBuffer(VK_NULL_HANDLE)
+    , mCurrentFramebuffer(nullptr)
 {
 }
 

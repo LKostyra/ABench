@@ -51,6 +51,22 @@ STRING(TOLOWER ${CMAKE_BUILD_TYPE} BUILD_TYPE_LOWER)
 SET(ABENCH_DEPS_FBXSDK_LIB_DIRECTORY ${ABENCH_DEPS_FBXSDK_DIRECTORY}/lib/gcc4/x64/${BUILD_TYPE_LOWER})
 
 
+### Verify dependency existence ###
+
+IF(NOT EXISTS "${ABENCH_DEPS_GTEST_DIRECTORY}")
+    MESSAGE(FATAL_ERROR "Missing gtest dependency")
+ENDIF()
+
+
+IF(NOT EXISTS "${ABENCH_DEPS_VULKAN_DIRECTORY}")
+    MESSAGE(FATAL_ERROR "Missing vulkan dependency")
+ENDIF()
+
+IF(NOT EXISTS "${ABENCH_DEPS_FBXSDK_DIRECTORY}")
+    MESSAGE(FATAL_ERROR "Missing fbxsdk dependency")
+ENDIF()
+
+
 ### Compiler configuration ###
 
 # Enable all warnings and make them errors
@@ -63,6 +79,7 @@ ADD_DEFINITIONS("-Wno-unused-result")
 ADD_DEFINITIONS("-Wno-ignored-qualifiers")
 ADD_DEFINITIONS("-Wno-unused-parameter")
 ADD_DEFINITIONS("-Wno-missing-field-initializers")
+ADD_DEFINITIONS("-Wl,--no-as-needed")
 
 
 ### Building outputs ###

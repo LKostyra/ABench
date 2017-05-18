@@ -9,6 +9,7 @@ class Timer
     LARGE_INTEGER mFreq;
     LARGE_INTEGER mStart;
 #elif defined(__linux__) | defined(__LINUX__)
+    timespec mStart;
 #else
 #error "Target platform not supported."
 #endif

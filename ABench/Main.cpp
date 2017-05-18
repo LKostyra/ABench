@@ -41,12 +41,12 @@ class ABenchWindow: public ABench::Common::Window
         ABench::Math::Vector cameraRightDir = cameraFrontDir.Cross(mCamera.GetUpVector());
         ABench::Math::Vector cameraUpDir = cameraRightDir.Cross(cameraFrontDir);
 
-        if (mKeys['W']) newPos += cameraFrontDir;
-        if (mKeys['S']) newPos -= cameraFrontDir;
-        if (mKeys['D']) newPos += cameraRightDir;
-        if (mKeys['A']) newPos -= cameraRightDir;
-        if (mKeys['R']) newPos += cameraUpDir;
-        if (mKeys['F']) newPos -= cameraUpDir;
+        if (IsKeyPressed(ABench::Common::KeyCode::W)) newPos += cameraFrontDir;
+        if (IsKeyPressed(ABench::Common::KeyCode::S)) newPos -= cameraFrontDir;
+        if (IsKeyPressed(ABench::Common::KeyCode::D)) newPos += cameraRightDir;
+        if (IsKeyPressed(ABench::Common::KeyCode::A)) newPos -= cameraRightDir;
+        if (IsKeyPressed(ABench::Common::KeyCode::R)) newPos += cameraUpDir;
+        if (IsKeyPressed(ABench::Common::KeyCode::F)) newPos -= cameraUpDir;
 
         // new direction
         ABench::Math::Vector updateDir;
@@ -69,7 +69,7 @@ class ABenchWindow: public ABench::Common::Window
         UNUSED(x);
         UNUSED(y);
 
-        if (mMouseButtons[0])
+        if (IsMouseKeyPressed(0))
         {
             mAngleX += -deltaX * 0.005f;
             mAngleY += -deltaY * 0.005f;
@@ -89,7 +89,10 @@ int main()
 
     window.Init();
     if (!window.Open(300, 300, windowWidth, windowHeight, "ABench"))
+    {
+        LOGE("Failed to initialize Window");
         return -1;
+    }
 
     bool debug = false;
 
@@ -99,7 +102,10 @@ int main()
 
     ABench::Renderer::Renderer rend;
     if (!rend.Init(window, debug, false))
+    {
+        LOGE("Failed to initialize Renderer");
         return -1;
+    }
 
     ABench::Scene::Mesh mesh;
     mesh.Init();

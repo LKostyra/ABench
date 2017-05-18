@@ -40,12 +40,12 @@ LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 
     case WM_KEYDOWN:
         wnd->mKeys[wParam] = true;
-        wnd->OnKeyDown(static_cast<int>(wParam));
+        wnd->OnKeyDown(static_cast<KeyCode>(wParam));
         break;
 
     case WM_KEYUP:
         wnd->mKeys[wParam] = false;
-        wnd->OnKeyUp(static_cast<int>(wParam));
+        wnd->OnKeyUp(static_cast<KeyCode>(wParam));
         break;
 
     case WM_LBUTTONDOWN:
@@ -256,12 +256,12 @@ void Window::OnClose()
 {
 }
 
-void Window::OnKeyDown(int key)
+void Window::OnKeyDown(KeyCode key)
 {
     UNUSED(key);
 }
 
-void Window::OnKeyUp(int key)
+void Window::OnKeyUp(KeyCode key)
 {
     UNUSED(key);
 }

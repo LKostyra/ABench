@@ -32,7 +32,17 @@ bool Instance::Init(VkDebugReportFlagsEXT debugFlags)
     if (mInstance)
         return true; // already initialized
 
-    if (!mVulkanLibrary.Open("vulkan-1"))
+    std::string vulkanLibraryName;
+
+#ifdef WIN32
+    vulkanLibraryName = "vulkan-1";
+#elif defined(__linux__) | defined(__LINUX__)
+    vulkanLibraryName = "vulkan";
+#else
+#error "Target platform not supported"
+#endif
+
+    if (!mVulkanLibrary.Open(vulkanLibraryName.c_str()))
     {
         LOGE("Failed to open Vulkan library");
         return false;
