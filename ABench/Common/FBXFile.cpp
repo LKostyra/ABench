@@ -13,6 +13,7 @@ FBXFile::FBXFile()
     , mFbxImporter(nullptr)
     , mFbxScene(nullptr)
     , mIsOpened(false)
+    , mNodeCount(0)
 {
     mFbxManager = FbxManager::Create();
     mFbxIOSettings = FbxIOSettings::Create(mFbxManager, IOSROOT);
@@ -69,13 +70,16 @@ std::string FBXFile::GetLightTypeName(FbxLight::EType type)
     }
 }
 
-void FBXFile::PrintNode(FbxNode* node, int tabs)
+void FBXFile::InitialTraverseNode(FbxNode* node, int printTabs)
 {
     std::string start;
-    for (int i = 0; i < tabs; ++i)
+    for (int i = 0; i < printTabs; ++i)
         start += "  ";
 
     LOGD(start << node->GetName());
+
+    mNodeCount++;
+
     for (int i = 0; i < node->GetNodeAttributeCount(); i++)
     {
         FbxNodeAttribute* attr = node->GetNodeAttributeByIndex(i);
@@ -95,12 +99,24 @@ void FBXFile::PrintNode(FbxNode* node, int tabs)
     }
 
     for (int i = 0; i < node->GetChildCount(); ++i)
-        PrintNode(node->GetChild(i), tabs+1);
+        InitialTraverseNode(node->GetChild(i), printTabs + 1);
 }
 
 void FBXFile::TraverseNode(TraverseCallback func, FbxNode* node)
 {
     func(node);
+    mCurrentNode++;
+
+    if (mNodeCount > 100)
+    {
+        if ((static_cast<float>(mCurrentNode) / static_cast<float>(mNodeCount)) >= mLastHitRatio)
+        {
+            LOGI("Nodes processed: " << mCurrentNode << "/" << mNodeCount);
+            mLastHitRatio += 0.1f;
+            if (mLastHitRatio > 1.0f)
+                mLastHitRatio = 1.0f;
+        }
+    }
 
     uint32_t childCount = node->GetChildCount();
     for (uint32_t i = 0; i < childCount; ++i)
@@ -113,6 +129,12 @@ bool FBXFile::Open(const std::string& path)
 {
     if (mIsOpened)
         Close();
+
+    if (path.rfind(".fbx") == std::string::npos)
+    {
+        LOGE("Provided file is not an FBX file");
+        return false;
+    }
 
     mFbxImporter = FbxImporter::Create(mFbxManager, "");
     mFbxScene = FbxScene::Create(mFbxManager, "");
@@ -137,10 +159,18 @@ bool FBXFile::Open(const std::string& path)
     if (root)
     {
         LOGD("FBX file structure:");
-        PrintNode(root, 0);
+        InitialTraverseNode(root, 0);
     }
 
-    LOGI("Opened FBX file " << path);
+    // no validation here - on this stage the path should be valid (scene is loaded from file)
+    size_t filenameStart = path.rfind('/');
+    size_t extensionStart = path.rfind('.');
+    size_t filenameLength = extensionStart - filenameStart - 1;
+
+    LOGD(path.substr(filenameStart + 1, filenameLength));
+    mFbxScene->SetName(path.substr(filenameStart + 1, filenameLength).c_str());
+
+    LOGI("Opened FBX file " << path << " (" << mNodeCount << " nodes)");
     mIsOpened = true;
     return true;
 }
@@ -148,9 +178,15 @@ bool FBXFile::Open(const std::string& path)
 void FBXFile::Traverse(TraverseCallback func)
 {
     FbxNode* root = mFbxScene->GetRootNode();
+    LOGI("Traversing " << mFbxScene->GetName() << " scene (" << mNodeCount << " nodes)...");
+
+    mCurrentNode = 0;
+    mLastHitRatio = 0.1f;
 
     if (root)
         TraverseNode(func, root);
+
+    LOGI(mFbxScene->GetName() << " scene traversed.");
 }
 
 void FBXFile::Close()
@@ -164,6 +200,7 @@ void FBXFile::Close()
     mFbxImporter->Destroy();
     mFbxImporter = nullptr;
 
+    mNodeCount = 0;
     mIsOpened = false;
 }
 

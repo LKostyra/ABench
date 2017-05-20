@@ -111,18 +111,7 @@ int main()
     mesh.Init();
 
     ABench::Scene::Scene scene;
-    //scene.Init("Data/FBX/sponza.fbx");
-    scene.Init("");
-    for (int x = -5; x < 5; ++x)
-    {
-        for (int y = -11; y < -1; ++y)
-        {
-            ABench::Scene::Object* o = scene.CreateObject();
-
-            o->SetComponent(&mesh);
-            o->SetPosition(x*1.5f, y*1.5f, 0.0f);
-        }
-    }
+    scene.Init("Data/FBX/sponza.fbx");
 
     ABench::Common::Timer timer;
     timer.Start();

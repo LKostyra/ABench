@@ -37,7 +37,7 @@ bool Scene::Init(const std::string& fbxFile)
                 {
                     if (!node->GetMesh()->IsTriangleMesh())
                     {
-                        LOGD("Mesh " << node->GetName() << " requires triangulation - converting");
+                        LOGW("Mesh " << node->GetName() << " requires triangulation - converting, this might take some time.");
                         mFBXFile.GetConverter()->Triangulate(attr, true);
                     }
 

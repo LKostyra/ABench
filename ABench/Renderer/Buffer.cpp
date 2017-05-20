@@ -136,7 +136,6 @@ bool Buffer::Init(const BufferDesc& desc)
     }
 
     mType = desc.type;
-    LOGI(std::dec << mBufferSize << "-byte " << memTypeStr << " Buffer initialized successfully");
     return true;
 }
 

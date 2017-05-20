@@ -15,12 +15,14 @@ class FBXFile
     FbxImporter* mFbxImporter;
     FbxScene* mFbxScene;
     bool mIsOpened;
+    uint32_t mNodeCount;
+    uint32_t mCurrentNode;
+    float mLastHitRatio;
 
     // debugging info print functions/enum translators
     std::string GetAttributeTypeName(FbxNodeAttribute::EType type);
     std::string GetLightTypeName(FbxLight::EType type);
-    void PrintNode(FbxNode* node, int tabs);
-
+    void InitialTraverseNode(FbxNode* node, int printTabs);
     void TraverseNode(TraverseCallback func, FbxNode* node);
 
 public:

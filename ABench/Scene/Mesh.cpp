@@ -66,7 +66,6 @@ bool Mesh::InitFromFBX(FbxMesh* mesh)
 
     if (normals->GetMappingMode() != FbxLayerElement::eByPolygonVertex)
     {
-        LOGI("Normals were generated not by control point - recreating");
         if (!mesh->GenerateNormals(true, true))
         {
             LOGE("Failed to regenerate normals by control point");
