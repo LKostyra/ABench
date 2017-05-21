@@ -146,6 +146,19 @@ void CommandBuffer::CopyBuffer(VkBuffer src, VkBuffer dst, VkDeviceSize size)
     vkCmdCopyBuffer(mCommandBuffer, src, dst, 1, &region);
 }
 
+void CommandBuffer::CopyBufferToTexture(Buffer* src, Texture* dst)
+{
+    VkBufferImageCopy region;
+    ZERO_MEMORY(region);
+    region.imageExtent.width = dst->GetWidth();
+    region.imageExtent.height = dst->GetHeight();
+    region.imageSubresource.aspectMask = dst->mSubresourceRange.aspectMask;
+    region.imageSubresource.baseArrayLayer = dst->mSubresourceRange.baseArrayLayer;
+    region.imageSubresource.layerCount = dst->mSubresourceRange.layerCount;
+    region.imageSubresource.mipLevel = dst->mSubresourceRange.baseMipLevel;
+    vkCmdCopyBufferToImage(mCommandBuffer, src->GetVkBuffer(), dst->GetVkImage(0), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+}
+
 void CommandBuffer::Draw(uint32_t vertCount)
 {
     vkCmdDraw(mCommandBuffer, vertCount, 1, 0, 0);

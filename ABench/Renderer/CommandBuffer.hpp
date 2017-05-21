@@ -39,6 +39,7 @@ public:
     void BindDescriptorSet(VkDescriptorSet set, VkPipelineLayout layout, uint32_t dynamicOffset);
     void Clear(ClearTypes types, float clearValues[4], float depthValue);
     void CopyBuffer(VkBuffer src, VkBuffer dst, VkDeviceSize size);
+    void CopyBufferToTexture(Buffer* src, Texture* dst);
     void Draw(uint32_t vertCount);
     void DrawIndexed(uint32_t vertCount);
     void EndRenderPass();

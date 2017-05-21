@@ -114,8 +114,9 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     VertexLayoutDesc vlDesc;
 
     std::vector<VertexLayoutEntry> vlEntries;
-    vlEntries.push_back({VK_FORMAT_R32G32B32_SFLOAT, 0, 0, 24, false});
-    vlEntries.push_back({VK_FORMAT_R32G32B32_SFLOAT, 12, 0, 24, false});
+    vlEntries.push_back({VK_FORMAT_R32G32B32_SFLOAT, 0, 0, 32, false}); // vertex position
+    vlEntries.push_back({VK_FORMAT_R32G32B32_SFLOAT, 12, 0, 32, false}); // vertex normal
+    vlEntries.push_back({VK_FORMAT_R32G32_SFLOAT, 24, 0, 32, false}); // vertex uv
 
     vlDesc.entryCount = static_cast<uint32_t>(vlEntries.size());
     vlDesc.entries = vlEntries.data();

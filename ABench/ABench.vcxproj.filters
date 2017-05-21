@@ -113,6 +113,12 @@
     <ClCompile Include="Scene\Scene.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
+    <ClCompile Include="Scene\Material.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\Image.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\Window.hpp">
@@ -213,5 +219,11 @@
       <Filter>Scene</Filter>
     </ClInclude>
     <ClInclude Include="Prerequisites.hpp" />
+    <ClInclude Include="Scene\Material.hpp">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\Image.hpp">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

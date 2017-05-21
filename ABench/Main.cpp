@@ -24,7 +24,7 @@ class ABenchWindow: public ABench::Common::Window
         ABench::Scene::CameraDesc desc;
         desc.view.pos = ABench::Math::Vector(0.0f, 0.0f, 2.0f, 1.0f);
         desc.view.at = ABench::Math::Vector(0.0f, 0.0f, 1.0f, 1.0f);
-        desc.view.up = ABench::Math::Vector(0.0f, 1.0f, 0.0f, 0.0f);
+        desc.view.up = ABench::Math::Vector(0.0f,-1.0f, 0.0f, 0.0f); // to comply with Vulkan's coord system
         desc.fov = 60.0f;
         desc.aspect = static_cast<float>(GetWidth()) / static_cast<float>(GetHeight());
         desc.nearZ = 0.1f;
@@ -71,8 +71,8 @@ class ABenchWindow: public ABench::Common::Window
 
         if (IsMouseKeyPressed(0))
         {
-            mAngleX += -deltaX * 0.005f;
-            mAngleY += -deltaY * 0.005f;
+            mAngleX += deltaX * 0.005f;
+            mAngleY += deltaY * 0.005f;
         }
     }
 
@@ -88,7 +88,7 @@ int main()
     ABenchWindow window;
 
     window.Init();
-    if (!window.Open(300, 300, windowWidth, windowHeight, "ABench"))
+    if (!window.Open(200, 200, windowWidth, windowHeight, "ABench"))
     {
         LOGE("Failed to initialize Window");
         return -1;
@@ -107,11 +107,34 @@ int main()
         return -1;
     }
 
+    ABench::Scene::Scene scene;
+    scene.Init("Data/FBX/sponza.fbx");
+
     ABench::Scene::Mesh mesh;
     mesh.Init();
 
-    ABench::Scene::Scene scene;
-    scene.Init("Data/FBX/sponza.fbx");
+    ABench::Common::Image tex;
+    if (!tex.Init("Data/Textures/test.bmp"))
+    {
+        LOGE("Failed to load texture");
+        return -1;
+    }
+
+    ABench::Scene::Material mat;
+    ABench::Scene::MaterialDesc matDesc;
+    matDesc.diffuse = &tex;
+    // FIXME
+/*    if (!mat.Init(matDesc))
+    {
+        LOGE("Failed to initialize material");
+        return -1;
+    }
+
+    mesh.SetMaterial(&mat);
+    */
+    ABench::Scene::Object* obj = scene.CreateObject();
+    obj->SetComponent(&mesh);
+    obj->SetPosition(0.0f, 1.0f, 0.0f);
 
     ABench::Common::Timer timer;
     timer.Start();

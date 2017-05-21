@@ -87,6 +87,22 @@ bool Texture::Init(const TextureDesc& desc)
     mSubresourceRange.baseArrayLayer = 0;
     mSubresourceRange.layerCount = 1;
 
+    mWidth = desc.width;
+    mHeight = desc.height;
+    mFormat = desc.format;
+
+    Buffer tempBuffer;
+
+    if (desc.data != nullptr)
+    {
+        BufferDesc tempBufferDesc;
+        tempBufferDesc.type = BufferType::Dynamic;
+        tempBufferDesc.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+        if (!tempBuffer.Init(tempBufferDesc))
+            return false;
+        tempBuffer.Write(desc.data, desc.dataSize);
+    }
+
     // transition Image to desired layout and eventually copy data to buffer
     // TODO OPTIMIZE this uses graphics queue and waits; after implementing queue manager, switch to Transfer queue
     CommandBuffer transitionCmdBuffer;
@@ -94,7 +110,10 @@ bool Texture::Init(const TextureDesc& desc)
         return false;
 
     transitionCmdBuffer.Begin();
-    // TODO copy initial data (if possible) using staging buffer
+
+    if (desc.data != nullptr)
+        transitionCmdBuffer.CopyBufferToTexture(&tempBuffer, this);
+
     Transition(transitionCmdBuffer.mCommandBuffer);
     transitionCmdBuffer.End();
 
@@ -117,10 +136,6 @@ bool Texture::Init(const TextureDesc& desc)
     };
     result = vkCreateImageView(gDevice->GetDevice(), &ivInfo, nullptr, &mImages[0].view);
     RETURN_FALSE_IF_FAILED(result, "Failed to create Image View for Texture");
-
-    mWidth = desc.width;
-    mHeight = desc.height;
-    mFormat = desc.format;
 
     const char* type;
     if (desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)

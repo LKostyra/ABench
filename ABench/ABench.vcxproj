@@ -178,6 +178,7 @@ copy /B $(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll $(Targ
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Common\FBXFile.cpp" />
+    <ClCompile Include="Common\Image.cpp" />
     <ClCompile Include="Common\Win\Common.cpp" />
     <ClCompile Include="Common\Win\Library.cpp" />
     <ClCompile Include="Common\Win\Logger.cpp" />
@@ -306,6 +307,7 @@ copy /B $(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll $(Targ
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="Scene\Material.cpp" />
     <ClCompile Include="Scene\Mesh.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PCH.hpp</PrecompiledHeaderFile>
@@ -322,6 +324,7 @@ copy /B $(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll $(Targ
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\FBXFile.hpp" />
+    <ClInclude Include="Common\Image.hpp" />
     <ClInclude Include="Common\Library.hpp" />
     <ClInclude Include="Common\Logger.hpp" />
     <ClInclude Include="Common\Common.hpp" />
@@ -352,6 +355,7 @@ copy /B $(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll $(Targ
     <ClInclude Include="Renderer\Win\WinBackbuffer.hpp" />
     <ClInclude Include="Scene\Camera.hpp" />
     <ClInclude Include="Scene\Component.hpp" />
+    <ClInclude Include="Scene\Material.hpp" />
     <ClInclude Include="Scene\Mesh.hpp" />
     <ClInclude Include="Scene\Object.hpp" />
     <ClInclude Include="Scene\Scene.hpp" />

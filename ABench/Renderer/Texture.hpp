@@ -14,12 +14,16 @@ struct TextureDesc
     uint32_t width;
     uint32_t height;
     VkImageUsageFlags usage;
+    void* data;
+    uint32_t dataSize;
 
     TextureDesc()
         : format(VK_FORMAT_UNDEFINED)
         , width(0)
         , height(0)
         , usage(0)
+        , data(nullptr)
+        , dataSize(0)
     {
     }
 };
@@ -45,6 +49,7 @@ class Texture
     friend class Backbuffer;
     friend class RenderPass;
     friend class Framebuffer;
+    friend class CommandBuffer;
 
     uint32_t mWidth;
     uint32_t mHeight;
@@ -76,6 +81,11 @@ public:
     ABENCH_INLINE uint32_t GetCurrentBuffer() const
     {
         return mCurrentBuffer;
+    }
+
+    ABENCH_INLINE VkImage GetVkImage(uint32_t i) const
+    {
+        return mImages[i].image;
     }
 
     // Records a layout transition in given command buffer. UNDEFINED layout reverts to default.

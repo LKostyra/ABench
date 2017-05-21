@@ -49,8 +49,29 @@ bool Mesh::InitFromFBX(FbxMesh* mesh)
         return false;
     }
 
+    // find UV layer
+    FbxLayerElementUV* uvs = nullptr;
+    for (int l = 0; l < mesh->GetLayerCount(); ++l)
+    {
+        uvs = mesh->GetLayer(l)->GetUVs();
+        if (uvs)
+            break;
+    }
+
+    if (!uvs)
+    {
+        LOGE("Mesh has no UVs generated!");
+        return false;
+    }
+
+    if (uvs->GetMappingMode() != FbxLayerElement::eByPolygonVertex)
+    {
+        LOGE("UVs are not generated on per-vertex basis.");
+        return false;
+    }
+
     // find normal layer
-    FbxLayerElementNormal* normals = nullptr;;
+    FbxLayerElementNormal* normals = nullptr;
     for (int l = 0; l < mesh->GetLayerCount(); ++l)
     {
         normals = mesh->GetLayer(l)->GetNormals();
@@ -97,6 +118,8 @@ bool Mesh::InitFromFBX(FbxMesh* mesh)
         vert.norm[0] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[0]);
         vert.norm[1] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[1]);
         vert.norm[2] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[2]);
+        vert.uv[0] = static_cast<float>(uvs->GetDirectArray()[p].Buffer()[0]);
+        vert.uv[1] = static_cast<float>(uvs->GetDirectArray()[p].Buffer()[1]);
         vertices.push_back(vert);
     }
 
@@ -107,15 +130,15 @@ bool Mesh::InitDefault()
 {
     std::vector<Vertex> vertices
     {
-        { -0.5f,-0.5f, 0.5f, 1.0f, 0.0f, 0.0f }, // 0        7----6
-        {  0.5f,-0.5f, 0.5f, 0.0f, 1.0f, 0.0f }, // 1      3----2 |
-        {  0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 0.0f }, // 2      | 4--|-5
-        { -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f }, // 3      0----1
+        { -0.5f,-0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f }, // 0        7----6
+        {  0.5f,-0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f }, // 1      3----2 |
+        {  0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f }, // 2      | 4--|-5
+        { -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f }, // 3      0----1
 
-        { -0.5f,-0.5f,-0.5f, 1.0f, 0.0f, 0.0f }, // 4
-        {  0.5f,-0.5f,-0.5f, 0.0f, 1.0f, 0.0f }, // 5
-        {  0.5f, 0.5f,-0.5f, 1.0f, 1.0f, 0.0f }, // 6
-        { -0.5f, 0.5f,-0.5f, 0.0f, 0.0f, 1.0f }, // 7
+        { -0.5f,-0.5f,-0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f }, // 4
+        {  0.5f,-0.5f,-0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f }, // 5
+        {  0.5f, 0.5f,-0.5f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f }, // 6
+        { -0.5f, 0.5f,-0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f }, // 7
     };
 
     std::vector<int> indices
