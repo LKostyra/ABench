@@ -40,7 +40,7 @@ ADD_EXECUTABLE(ABench
 
 # TODO uncomment when glslang will be added
 #TARGET_LINK_LIBRARIES(ABench glslang hlsl SPIRV OGLCompiler OSDependent)
-TARGET_LINK_LIBRARIES(ABench dl fbxsdk
+TARGET_LINK_LIBRARIES(ABench dl fbxsdk freeimage
                       ${ABENCH_PKG_DEPS_LIBRARIES})
 
 ADD_CUSTOM_COMMAND(TARGET ABench POST_BUILD COMMAND

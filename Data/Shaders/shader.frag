@@ -2,13 +2,16 @@
 #extension GL_ARB_separate_shader_objects: enable
 #extension GL_ARB_shading_language_420pack: enable
 
+
 layout (location = 0) in VertexShaderOutput
 {
     vec3 Norm;
     vec2 UV;
 } Input;
 
+
 layout (location = 0) out vec4 color;
+
 
 void main()
 {

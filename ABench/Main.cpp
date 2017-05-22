@@ -1,5 +1,4 @@
 #include "PCH.hpp"
-#include <iostream>
 #include "Common/Window.hpp"
 #include "Common/Logger.hpp"
 #include "Common/Timer.hpp"
@@ -120,18 +119,17 @@ int main()
         return -1;
     }
 
-    ABench::Scene::Material mat;
+    /*ABench::Scene::Material mat;
     ABench::Scene::MaterialDesc matDesc;
     matDesc.diffuse = &tex;
-    // FIXME
-/*    if (!mat.Init(matDesc))
+    if (!mat.Init(matDesc))
     {
         LOGE("Failed to initialize material");
         return -1;
     }
 
-    mesh.SetMaterial(&mat);
-    */
+    mesh.SetMaterial(&mat);*/
+
     ABench::Scene::Object* obj = scene.CreateObject();
     obj->SetComponent(&mesh);
     obj->SetPosition(0.0f, 1.0f, 0.0f);
@@ -150,7 +148,7 @@ int main()
         rend.Draw(scene, window.GetCamera());
     }
 
-#ifdef _DEBUG
+#if defined(_DEBUG) && defined(WIN32)
     system("PAUSE");
 #endif
 

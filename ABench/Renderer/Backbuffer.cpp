@@ -107,9 +107,9 @@ bool Backbuffer::SelectSurfaceFormat(const BackbufferDesc& desc)
     {
         LOGE("Requested surface format " << desc.requestedFormat << " ("
           << TranslateVkFormatToString(desc.requestedFormat) << ") is not supported by device.");
-        LOGD("Available surface formats:");
-        for (auto format: surfaceFormats)
-            LOGD("  " << format.format << " (" << TranslateVkFormatToString(format.format) << ")");
+        LOGI("Available surface formats:");
+        for (auto& format: surfaceFormats)
+            LOGI("  " << format.format << " (" << TranslateVkFormatToString(format.format) << ")");
         return false;
     }
 

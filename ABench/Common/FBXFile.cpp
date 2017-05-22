@@ -33,27 +33,27 @@ std::string FBXFile::GetAttributeTypeName(FbxNodeAttribute::EType type)
     // function copied from FBX manual/introduction
     switch (type)
     {
-        case FbxNodeAttribute::eUnknown: return "unidentified"; 
-        case FbxNodeAttribute::eNull: return "null"; 
-        case FbxNodeAttribute::eMarker: return "marker"; 
-        case FbxNodeAttribute::eSkeleton: return "skeleton"; 
-        case FbxNodeAttribute::eMesh: return "mesh"; 
-        case FbxNodeAttribute::eNurbs: return "nurbs"; 
-        case FbxNodeAttribute::ePatch: return "patch"; 
-        case FbxNodeAttribute::eCamera: return "camera"; 
-        case FbxNodeAttribute::eCameraStereo: return "camera stereo"; 
-        case FbxNodeAttribute::eCameraSwitcher: return "camera switcher"; 
-        case FbxNodeAttribute::eLight: return "light"; 
-        case FbxNodeAttribute::eOpticalReference: return "optical reference"; 
-        case FbxNodeAttribute::eOpticalMarker: return "optical marker"; 
-        case FbxNodeAttribute::eNurbsCurve: return "nurbs curve"; 
-        case FbxNodeAttribute::eTrimNurbsSurface: return "trim nurbs surface"; 
-        case FbxNodeAttribute::eBoundary: return "boundary"; 
-        case FbxNodeAttribute::eNurbsSurface: return "nurbs surface"; 
-        case FbxNodeAttribute::eShape: return "shape"; 
-        case FbxNodeAttribute::eLODGroup: return "lodgroup"; 
-        case FbxNodeAttribute::eSubDiv: return "subdiv"; 
-        default: return "unknown"; 
+        case FbxNodeAttribute::eUnknown: return "unidentified";
+        case FbxNodeAttribute::eNull: return "null";
+        case FbxNodeAttribute::eMarker: return "marker";
+        case FbxNodeAttribute::eSkeleton: return "skeleton";
+        case FbxNodeAttribute::eMesh: return "mesh";
+        case FbxNodeAttribute::eNurbs: return "nurbs";
+        case FbxNodeAttribute::ePatch: return "patch";
+        case FbxNodeAttribute::eCamera: return "camera";
+        case FbxNodeAttribute::eCameraStereo: return "camera stereo";
+        case FbxNodeAttribute::eCameraSwitcher: return "camera switcher";
+        case FbxNodeAttribute::eLight: return "light";
+        case FbxNodeAttribute::eOpticalReference: return "optical reference";
+        case FbxNodeAttribute::eOpticalMarker: return "optical marker";
+        case FbxNodeAttribute::eNurbsCurve: return "nurbs curve";
+        case FbxNodeAttribute::eTrimNurbsSurface: return "trim nurbs surface";
+        case FbxNodeAttribute::eBoundary: return "boundary";
+        case FbxNodeAttribute::eNurbsSurface: return "nurbs surface";
+        case FbxNodeAttribute::eShape: return "shape";
+        case FbxNodeAttribute::eLODGroup: return "lodgroup";
+        case FbxNodeAttribute::eSubDiv: return "subdiv";
+        default: return "unknown";
     }
 }
 
@@ -76,10 +76,9 @@ void FBXFile::InitialTraverseNode(FbxNode* node, int printTabs)
     for (int i = 0; i < printTabs; ++i)
         start += "  ";
 
-    LOGD(start << node->GetName());
-
     mNodeCount++;
 
+    /*LOGD(start << node->GetName());
     for (int i = 0; i < node->GetNodeAttributeCount(); i++)
     {
         FbxNodeAttribute* attr = node->GetNodeAttributeByIndex(i);
@@ -91,12 +90,12 @@ void FBXFile::InitialTraverseNode(FbxNode* node, int printTabs)
             LOGD(start << "   VertCount: " << node->GetMesh()->GetPolygonCount());
             LOGD(start << "   Layers: " << node->GetMesh()->GetLayerCount());
         }
-        
+
         if (attr->GetAttributeType() == FbxNodeAttribute::eLight)
         {
             LOGD(start << "   Type: " << GetLightTypeName(node->GetLight()->LightType.Get()));
         }
-    }
+    }*/
 
     for (int i = 0; i < node->GetChildCount(); ++i)
         InitialTraverseNode(node->GetChild(i), printTabs + 1);
@@ -111,7 +110,7 @@ void FBXFile::TraverseNode(TraverseCallback func, FbxNode* node)
     {
         if ((static_cast<float>(mCurrentNode) / static_cast<float>(mNodeCount)) >= mLastHitRatio)
         {
-            LOGI("Nodes processed: " << mCurrentNode << "/" << mNodeCount);
+            LOGI("  Nodes processed: " << mCurrentNode << "/" << mNodeCount);
             mLastHitRatio += 0.1f;
             if (mLastHitRatio > 1.0f)
                 mLastHitRatio = 1.0f;

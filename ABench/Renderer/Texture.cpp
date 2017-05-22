@@ -145,7 +145,7 @@ bool Texture::Init(const TextureDesc& desc)
     else
         type = "Unknown Type";
 
-    LOGD(mWidth << "x" << mHeight << " " << type << " Texture initialized successfully");
+    LOGI(mWidth << "x" << mHeight << " " << type << " Texture initialized successfully");
     return true;
 }
 

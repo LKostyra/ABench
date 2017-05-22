@@ -125,10 +125,10 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
 
     ShaderDesc shaderDesc;
     shaderDesc.language = ABench::Renderer::ShaderLanguage::SPIRV;
-    shaderDesc.path = "Data/Shaders/vert.spv";
+    shaderDesc.path = "Data/Shaders/shader.vert.spv";
     if (!mVertexShader.Init(shaderDesc))
         return false;
-    shaderDesc.path = "Data/Shaders/frag.spv";
+    shaderDesc.path = "Data/Shaders/shader.frag.spv";
     if (!mFragmentShader.Init(shaderDesc))
         return false;
 
@@ -204,6 +204,7 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
 void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
 {
     // Update viewport
+    // TODO view could be pushed to dynamic buffer for optimization
     VertexShaderCBuffer buf;
     buf.viewMatrix = camera.GetView();
     buf.projMatrix = camera.GetProjection();

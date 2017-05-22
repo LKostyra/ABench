@@ -12,7 +12,7 @@
 /Bin
 
 # Common name for build directory
-/build
+/build-*
 
 # Visual Studio
 *.vsp

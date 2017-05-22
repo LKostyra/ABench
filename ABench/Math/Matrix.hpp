@@ -79,6 +79,7 @@ private:
 Vector operator*(const Matrix& a, const Vector& b);
 
 // Matrix creators
+// TODO create LH versions
 Matrix CreateRHLookAtMatrix(const Vector& pos, const Vector& dir, const Vector& up);
 Matrix CreateRHProjectionMatrix(const float fov, const float aspectRatio,
                                 const float nearDist, const float farDist);

@@ -121,20 +121,6 @@ bool Buffer::Init(const BufferDesc& desc)
         vkDestroyBuffer(gDevice->GetDevice(), staging, nullptr);
     }
 
-    const char* memTypeStr = nullptr;
-    switch (desc.type)
-    {
-    case BufferType::Static:
-        memTypeStr = "Static";
-        break;
-    case BufferType::Dynamic:
-        memTypeStr = "Dynamic";
-        break;
-    case BufferType::Volatile:
-        memTypeStr = "Volatile";
-        break;
-    }
-
     mType = desc.type;
     return true;
 }
