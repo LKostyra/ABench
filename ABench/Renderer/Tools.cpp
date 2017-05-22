@@ -193,6 +193,25 @@ void Tools::UpdateBufferDescriptorSet(VkDescriptorSet set, VkDescriptorType type
     vkUpdateDescriptorSets(gDevice->GetDevice(), 1, &write, 0, nullptr);
 }
 
+void Tools::UpdateTextureDescriptorSet(VkDescriptorSet set, VkDescriptorType type, uint32_t binding, VkImageView view)
+{
+    VkDescriptorImageInfo imgInfo;
+    ZERO_MEMORY(imgInfo);
+    imgInfo.imageView = view;
+
+    VkWriteDescriptorSet writeSet;
+    ZERO_MEMORY(writeSet);
+    writeSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    writeSet.dstSet = set;
+    writeSet.dstBinding = binding;
+    writeSet.dstArrayElement = 0;
+    writeSet.descriptorCount = 1;
+    writeSet.descriptorType = type;
+    writeSet.pImageInfo = &imgInfo;
+
+    vkUpdateDescriptorSets(gDevice->GetDevice(), 1, &writeSet, 0, nullptr);
+}
+
 VkFence Tools::CreateFence()
 {
     VkFence fence;
@@ -205,6 +224,32 @@ VkFence Tools::CreateFence()
     RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create fence");
 
     return fence;
+}
+
+VkSampler Tools::CreateSampler()
+{
+    VkSampler sampler;
+
+    VkSamplerCreateInfo sampInfo;
+    ZERO_MEMORY(sampInfo);
+    sampInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    sampInfo.magFilter = VK_FILTER_LINEAR;
+    sampInfo.minFilter = VK_FILTER_LINEAR;
+    sampInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    sampInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+    sampInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+    sampInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+    sampInfo.mipLodBias = 0.0f;
+    sampInfo.anisotropyEnable = VK_FALSE;
+    sampInfo.maxAnisotropy = 0.0f;
+    sampInfo.compareEnable = VK_FALSE;
+    sampInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+    sampInfo.minLod = FLT_MIN;
+    sampInfo.maxLod = FLT_MAX;
+    sampInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
+    sampInfo.unnormalizedCoordinates = VK_FALSE;
+    VkResult result = vkCreateSampler(gDevice->GetDevice(), &sampInfo, nullptr, &sampler);
+    RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create Sampler");
 }
 
 } // namespace Renderer

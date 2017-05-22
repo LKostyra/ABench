@@ -107,7 +107,8 @@ int main()
     }
 
     ABench::Scene::Scene scene;
-    scene.Init("Data/FBX/sponza.fbx");
+    //scene.Init("Data/FBX/sponza.fbx");
+    scene.Init("");
 
     ABench::Scene::Mesh mesh;
     mesh.Init();
@@ -119,7 +120,7 @@ int main()
         return -1;
     }
 
-    /*ABench::Scene::Material mat;
+    ABench::Scene::Material mat;
     ABench::Scene::MaterialDesc matDesc;
     matDesc.diffuse = &tex;
     if (!mat.Init(matDesc))
@@ -128,7 +129,7 @@ int main()
         return -1;
     }
 
-    mesh.SetMaterial(&mat);*/
+    mesh.SetMaterial(&mat);
 
     ABench::Scene::Object* obj = scene.CreateObject();
     obj->SetComponent(&mesh);

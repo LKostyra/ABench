@@ -51,8 +51,8 @@ bool Texture::Init(const TextureDesc& desc)
     imageInfo.extent.depth = 1;
     imageInfo.arrayLayers = 1;
     imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-    imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
     imageInfo.usage = desc.usage;
+    if (desc.data != nullptr) imageInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     imageInfo.initialLayout = mImages[mCurrentBuffer].currentLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
     VkResult result = vkCreateImage(gDevice->GetDevice(), &imageInfo, nullptr, &mImages[0].image);
@@ -76,12 +76,14 @@ bool Texture::Init(const TextureDesc& desc)
         mDefaultLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     else if (desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
         mDefaultLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    else if (desc.usage & VK_IMAGE_USAGE_SAMPLED_BIT)
+        mDefaultLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
     ZERO_MEMORY(mSubresourceRange);
-    if (desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-        mSubresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    else if (desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+    if (desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
         mSubresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+    else
+        mSubresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     mSubresourceRange.baseMipLevel = 0;
     mSubresourceRange.levelCount = 1;
     mSubresourceRange.baseArrayLayer = 0;
@@ -98,6 +100,7 @@ bool Texture::Init(const TextureDesc& desc)
         BufferDesc tempBufferDesc;
         tempBufferDesc.type = BufferType::Dynamic;
         tempBufferDesc.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+        tempBufferDesc.dataSize = desc.dataSize;
         if (!tempBuffer.Init(tempBufferDesc))
             return false;
         tempBuffer.Write(desc.data, desc.dataSize);
@@ -112,7 +115,10 @@ bool Texture::Init(const TextureDesc& desc)
     transitionCmdBuffer.Begin();
 
     if (desc.data != nullptr)
+    {
+        Transition(transitionCmdBuffer.mCommandBuffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
         transitionCmdBuffer.CopyBufferToTexture(&tempBuffer, this);
+    }
 
     Transition(transitionCmdBuffer.mCommandBuffer);
     transitionCmdBuffer.End();

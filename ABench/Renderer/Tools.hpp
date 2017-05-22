@@ -60,9 +60,13 @@ public:
 
     // Updating descriptor sets
     void UpdateBufferDescriptorSet(VkDescriptorSet set, VkDescriptorType type, uint32_t binding, VkBuffer buffer, VkDeviceSize size);
+    void UpdateTextureDescriptorSet(VkDescriptorSet set, VkDescriptorType type, uint32_t binding, VkImageView view);
 
     // Fence creation
     VkFence CreateFence();
+
+    // Sampler creation
+    VkSampler CreateSampler();
 };
 
 } // namespace Renderer

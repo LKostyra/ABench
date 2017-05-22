@@ -152,6 +152,7 @@ void CommandBuffer::CopyBufferToTexture(Buffer* src, Texture* dst)
     ZERO_MEMORY(region);
     region.imageExtent.width = dst->GetWidth();
     region.imageExtent.height = dst->GetHeight();
+    region.imageExtent.depth = 1;
     region.imageSubresource.aspectMask = dst->mSubresourceRange.aspectMask;
     region.imageSubresource.baseArrayLayer = dst->mSubresourceRange.baseArrayLayer;
     region.imageSubresource.layerCount = dst->mSubresourceRange.layerCount;

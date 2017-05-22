@@ -26,12 +26,12 @@ bool Material::CreateRendererTexture(Common::Image* image, VkImageUsageFlags usa
     switch (image->GetColorType())
     {
     case FIC_RGB:
-        texDesc.format = VK_FORMAT_R8G8B8_UINT;
-        bpp = 24;
+        texDesc.format = VK_FORMAT_R8G8B8_UNORM;
+        bpp = 3;
         break;
     case FIC_RGBALPHA:
-        texDesc.format = VK_FORMAT_R8G8B8A8_UINT;
-        bpp = 32;
+        texDesc.format = VK_FORMAT_R8G8B8A8_UNORM;
+        bpp = 4;
         break;
     default:
         LOGE("Incorrect color type in loaded image - cannot match format");

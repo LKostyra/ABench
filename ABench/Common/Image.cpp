@@ -34,16 +34,24 @@ bool Image::Init(const std::string& path)
     }
 
 
-    mBitmap = FreeImage_Load(fif, path.c_str());
-    if (!mBitmap)
+    FIBITMAP* bitmap = FreeImage_Load(fif, path.c_str());
+    if (!bitmap)
     {
         LOGE("Error while loading file " << path);
         return false;
     }
 
+    if (FreeImage_GetColorType(bitmap) == FIC_RGB)
+    {
+        mBitmap = FreeImage_ConvertTo32Bits(bitmap);
+        FreeImage_Unload(bitmap);
+    }
+    else
+        mBitmap = bitmap;
+
     mWidth = FreeImage_GetWidth(mBitmap);
     mHeight = FreeImage_GetHeight(mBitmap);
-    mColorType = FreeImage_GetColorType(mBitmap);
+    mColorType = FIC_RGBALPHA;
 
     return true;
 }

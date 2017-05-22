@@ -27,6 +27,7 @@ Renderer::Renderer()
     : mRenderPass(VK_NULL_HANDLE)
     , mPipelineLayout(VK_NULL_HANDLE)
     , mRenderFence(VK_NULL_HANDLE)
+    , mSampler(VK_NULL_HANDLE)
     , mVertexShaderSet(VK_NULL_HANDLE)
     , mVertexShaderLayout(VK_NULL_HANDLE)
     , mDescriptorPool(VK_NULL_HANDLE)
@@ -37,6 +38,8 @@ Renderer::~Renderer()
 {
     if (mRenderFence != VK_NULL_HANDLE)
         vkDestroyFence(mDevice.GetDevice(), mRenderFence, nullptr);
+    if (mSampler != VK_NULL_HANDLE)
+        vkDestroySampler(mDevice.GetDevice(), mSampler, nullptr);
     if (mVertexShaderLayout != VK_NULL_HANDLE)
         vkDestroyDescriptorSetLayout(mDevice.GetDevice(), mVertexShaderLayout, nullptr);
     if (mDescriptorPool != VK_NULL_HANDLE)
@@ -136,6 +139,7 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     std::vector<DescriptorSetLayoutDesc> layoutDesc;
     layoutDesc.push_back({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT, VK_NULL_HANDLE});
     layoutDesc.push_back({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, VK_NULL_HANDLE});
+    layoutDesc.push_back({VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, mSampler});
     mVertexShaderLayout = mTools.CreateDescriptorSetLayout(layoutDesc);
     if (mVertexShaderLayout == VK_NULL_HANDLE)
         return false;
@@ -152,6 +156,8 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
     poolSizes.push_back(poolSize);
     poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSizes.push_back(poolSize);
+    poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     poolSizes.push_back(poolSize);
 
     mDescriptorPool = mTools.CreateDescriptorPool(poolSizes);
@@ -229,10 +235,15 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
         scene.ForEachObject([&](const Scene::Object* o) {
             if (o->GetComponent()->GetType() == Scene::ComponentType::Mesh)
             {
+                Scene::Mesh* mesh = dynamic_cast<Scene::Mesh*>(o->GetComponent());
+                if (mesh->GetMaterial() == nullptr)
+                    return; // TODO maybe use default material?
+
+
+
                 uint32_t offset = mRingBuffer.Write(&o->GetTransform(), sizeof(ABench::Math::Matrix));
                 mCommandBuffer.BindDescriptorSet(mVertexShaderSet, mPipelineLayout, offset);
 
-                Scene::Mesh* mesh = dynamic_cast<Scene::Mesh*>(o->GetComponent());
                 mCommandBuffer.BindVertexBuffer(mesh->GetVertexBuffer());
                 mCommandBuffer.BindIndexBuffer(mesh->GetIndexBuffer());
                 mCommandBuffer.DrawIndexed(mesh->GetIndexCount());
