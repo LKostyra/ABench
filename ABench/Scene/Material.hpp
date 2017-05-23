@@ -26,6 +26,11 @@ public:
     ~Material();
 
     bool Init(const MaterialDesc& desc);
+
+    ABENCH_INLINE const VkImageView GetImageView() const
+    {
+        return mDiffuse.GetVkImageView(0);
+    }
 };
 
 } // namespace Scene

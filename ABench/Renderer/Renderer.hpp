@@ -44,6 +44,8 @@ class Renderer final
 
     VkDescriptorSet mVertexShaderSet;
     VkDescriptorSetLayout mVertexShaderLayout;
+    VkDescriptorSet mFragmentShaderSet;
+    VkDescriptorSetLayout mFragmentShaderLayout;
     VkDescriptorPool mDescriptorPool;
     Buffer mVertexShaderCBuffer;
 

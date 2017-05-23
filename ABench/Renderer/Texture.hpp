@@ -88,6 +88,11 @@ public:
         return mImages[i].image;
     }
 
+    ABENCH_INLINE VkImageView GetVkImageView(uint32_t i) const
+    {
+        return mImages[i].view;
+    }
+
     // Records a layout transition in given command buffer. UNDEFINED layout reverts to default.
     void Transition(VkCommandBuffer cmdBuffer, VkImageLayout targetLayout = VK_IMAGE_LAYOUT_UNDEFINED);
 };

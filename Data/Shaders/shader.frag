@@ -13,6 +13,9 @@ layout (location = 0) in VertexShaderOutput
 layout (location = 0) out vec4 color;
 
 
+layout (set = 1, binding = 0) uniform sampler2D tex;
+
+
 void main()
 {
     // treat normal vector as color for now

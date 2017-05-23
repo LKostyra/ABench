@@ -250,6 +250,8 @@ VkSampler Tools::CreateSampler()
     sampInfo.unnormalizedCoordinates = VK_FALSE;
     VkResult result = vkCreateSampler(gDevice->GetDevice(), &sampInfo, nullptr, &sampler);
     RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create Sampler");
+
+    return sampler;
 }
 
 } // namespace Renderer
