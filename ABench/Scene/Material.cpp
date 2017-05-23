@@ -22,23 +22,17 @@ bool Material::CreateRendererTexture(Common::Image* image, VkImageUsageFlags usa
     texDesc.usage = usage;
     texDesc.data = image->GetData();
 
-    uint32_t bpp = 0;
     switch (image->GetColorType())
     {
-    case FIC_RGB:
-        texDesc.format = VK_FORMAT_R8G8B8_UNORM;
-        bpp = 3;
-        break;
     case FIC_RGBALPHA:
-        texDesc.format = VK_FORMAT_R8G8B8A8_UNORM;
-        bpp = 4;
+        texDesc.format = VK_FORMAT_B8G8R8A8_UNORM;
         break;
     default:
         LOGE("Incorrect color type in loaded image - cannot match format");
         return false;
     }
 
-    texDesc.dataSize = bpp * texDesc.width * texDesc.height;
+    texDesc.dataSize = 4 * texDesc.width * texDesc.height;
 
     return mDiffuse.Init(texDesc);
 }

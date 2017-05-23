@@ -255,11 +255,14 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
                 if (mesh->GetMaterial() == nullptr)
                     return; // TODO maybe use default material?
                 else
+                {
                     mTools.UpdateTextureDescriptorSet(mFragmentShaderSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                                                       0, mesh->GetMaterial()->GetImageView());
+                    mCommandBuffer.BindDescriptorSet(mFragmentShaderSet, 1, mPipelineLayout);
+                }
 
                 uint32_t offset = mRingBuffer.Write(&o->GetTransform(), sizeof(ABench::Math::Matrix));
-                mCommandBuffer.BindDescriptorSet(mVertexShaderSet, mPipelineLayout, offset);
+                mCommandBuffer.BindDescriptorSet(mVertexShaderSet, 0, mPipelineLayout, offset);
 
                 mCommandBuffer.BindVertexBuffer(mesh->GetVertexBuffer());
                 mCommandBuffer.BindIndexBuffer(mesh->GetIndexBuffer());

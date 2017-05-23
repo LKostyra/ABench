@@ -241,7 +241,7 @@ VkSampler Tools::CreateSampler()
     sampInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
     sampInfo.mipLodBias = 0.0f;
     sampInfo.anisotropyEnable = VK_FALSE;
-    sampInfo.maxAnisotropy = 0.0f;
+    sampInfo.maxAnisotropy = 1.0f;
     sampInfo.compareEnable = VK_FALSE;
     sampInfo.compareOp = VK_COMPARE_OP_ALWAYS;
     sampInfo.minLod = FLT_MIN;

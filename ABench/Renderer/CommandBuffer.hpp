@@ -35,8 +35,8 @@ public:
     void BindVertexBuffer(const Buffer* buffer);
     void BindIndexBuffer(const Buffer* buffer);
     void BindPipeline(Pipeline* pipeline);
-    void BindDescriptorSet(VkDescriptorSet set, VkPipelineLayout layout);
-    void BindDescriptorSet(VkDescriptorSet set, VkPipelineLayout layout, uint32_t dynamicOffset);
+    void BindDescriptorSet(VkDescriptorSet set, uint32_t setSlot, VkPipelineLayout layout);
+    void BindDescriptorSet(VkDescriptorSet set, uint32_t setSlot, VkPipelineLayout layout, uint32_t dynamicOffset);
     void Clear(ClearTypes types, float clearValues[4], float depthValue);
     void CopyBuffer(VkBuffer src, VkBuffer dst, VkDeviceSize size);
     void CopyBufferToTexture(Buffer* src, Texture* dst);

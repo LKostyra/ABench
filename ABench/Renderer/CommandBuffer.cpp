@@ -97,14 +97,14 @@ void CommandBuffer::BindPipeline(Pipeline* pipeline)
     vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->mPipeline);
 }
 
-void CommandBuffer::BindDescriptorSet(VkDescriptorSet set, VkPipelineLayout layout)
+void CommandBuffer::BindDescriptorSet(VkDescriptorSet set, uint32_t setSlot, VkPipelineLayout layout)
 {
-    vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &set, 0, nullptr);
+    vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, setSlot, 1, &set, 0, nullptr);
 }
 
-void CommandBuffer::BindDescriptorSet(VkDescriptorSet set, VkPipelineLayout layout, uint32_t dynamicOffset)
+void CommandBuffer::BindDescriptorSet(VkDescriptorSet set, uint32_t setSlot, VkPipelineLayout layout, uint32_t dynamicOffset)
 {
-    vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &set, 1, &dynamicOffset);
+    vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, setSlot, 1, &set, 1, &dynamicOffset);
 }
 
 void CommandBuffer::Clear(ClearTypes types, float clearValues[4], float depthValue)

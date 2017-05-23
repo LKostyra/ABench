@@ -139,6 +139,17 @@ bool Mesh::InitDefault()
         {  0.5f,-0.5f,-0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f }, // 5
         {  0.5f, 0.5f,-0.5f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f }, // 6
         { -0.5f, 0.5f,-0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f }, // 7
+
+        // duplicated side vertices to correct UV coordinates
+        { -0.5f,-0.5f,-0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f }, // 4
+        { -0.5f,-0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f }, // 0
+        { -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f }, // 3
+        { -0.5f, 0.5f,-0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f }, // 7
+
+        {  0.5f,-0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f }, // 1
+        {  0.5f,-0.5f,-0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f }, // 5
+        {  0.5f, 0.5f,-0.5f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f }, // 6
+        {  0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f }, // 2
     };
 
     std::vector<int> indices
@@ -147,8 +158,8 @@ bool Mesh::InitDefault()
         3, 2, 6, 3, 6, 7, // top
         7, 6, 5, 7, 5, 4, // back
         4, 5, 1, 4, 1, 0, // bottom
-        1, 5, 6, 1, 6, 2, // right
-        4, 0, 3, 4, 3, 7, // left
+        8, 9,10, 8,10,11, // left
+       12,13,14,12,14,15, // right
     };
 
     return InitBuffers(vertices, indices.data(), static_cast<int>(indices.size()));

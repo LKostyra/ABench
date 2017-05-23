@@ -114,7 +114,7 @@ int main()
     mesh.Init();
 
     ABench::Common::Image tex;
-    if (!tex.Init("Data/Textures/test.bmp"))
+    if (!tex.Init("Data/Textures/Wood_Box_Diffuse.jpg"))
     {
         LOGE("Failed to load texture");
         return -1;
