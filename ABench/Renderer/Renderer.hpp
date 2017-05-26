@@ -2,7 +2,6 @@
 
 #include "Instance.hpp"
 #include "Device.hpp"
-#include "Tools.hpp"
 #include "Backbuffer.hpp"
 #include "Texture.hpp"
 #include "Framebuffer.hpp"
@@ -26,7 +25,6 @@ class Renderer final
 {
     Instance mInstance;
     Device mDevice;
-    Tools mTools;
     Backbuffer mBackbuffer;
     Texture mDepthTexture;
     Framebuffer mFramebuffer;

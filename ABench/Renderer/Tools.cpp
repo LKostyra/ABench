@@ -10,14 +10,6 @@
 namespace ABench {
 namespace Renderer {
 
-Tools::Tools()
-{
-}
-
-Tools::~Tools()
-{
-}
-
 VkRenderPass Tools::CreateRenderPass(VkFormat colorFormat, VkFormat depthFormat)
 {
     VkRenderPass rp = VK_NULL_HANDLE;

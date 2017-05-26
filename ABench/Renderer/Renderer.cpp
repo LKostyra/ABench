@@ -2,6 +2,8 @@
 #include "Renderer.hpp"
 
 #include "Extensions.hpp"
+#include "Tools.hpp"
+
 #include "Common/Logger.hpp"
 #include "Math/Matrix.hpp"
 
@@ -105,7 +107,7 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (!mRingBuffer.Init(1024*1024))
         return false;
 
-    mRenderPass = mTools.CreateRenderPass(bbDesc.requestedFormat, VK_FORMAT_D32_SFLOAT);
+    mRenderPass = Tools::CreateRenderPass(bbDesc.requestedFormat, VK_FORMAT_D32_SFLOAT);
     if (mRenderPass == VK_NULL_HANDLE)
         return false;
 
@@ -137,7 +139,7 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (!mFragmentShader.Init(shaderDesc))
         return false;
 
-    mSampler = mTools.CreateSampler();
+    mSampler = Tools::CreateSampler();
     if (mSampler == VK_NULL_HANDLE)
         return false;
 
@@ -145,18 +147,18 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     std::vector<DescriptorSetLayoutDesc> vsLayoutDesc;
     vsLayoutDesc.push_back({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT, VK_NULL_HANDLE});
     vsLayoutDesc.push_back({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, VK_NULL_HANDLE});
-    mVertexShaderLayout = mTools.CreateDescriptorSetLayout(vsLayoutDesc);
+    mVertexShaderLayout = Tools::CreateDescriptorSetLayout(vsLayoutDesc);
     if (mVertexShaderLayout == VK_NULL_HANDLE)
         return false;
 
     std::vector<DescriptorSetLayoutDesc> fsLayoutDesc;
     fsLayoutDesc.push_back({VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, mSampler});
-    mFragmentShaderLayout = mTools.CreateDescriptorSetLayout(fsLayoutDesc);
+    mFragmentShaderLayout = Tools::CreateDescriptorSetLayout(fsLayoutDesc);
     if (mFragmentShaderLayout == VK_NULL_HANDLE)
         return false;
 
     VkDescriptorSetLayout layouts[] = { mVertexShaderLayout, mFragmentShaderLayout };
-    mPipelineLayout = mTools.CreatePipelineLayout(layouts, 2);
+    mPipelineLayout = Tools::CreatePipelineLayout(layouts, 2);
     if (mPipelineLayout == VK_NULL_HANDLE)
         return false;
 
@@ -172,16 +174,16 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     poolSizes.push_back(poolSize);
 
-    mDescriptorPool = mTools.CreateDescriptorPool(poolSizes);
+    mDescriptorPool = Tools::CreateDescriptorPool(poolSizes);
     if (mDescriptorPool == VK_NULL_HANDLE)
         return false;
 
     // set allocation
-    mVertexShaderSet = mTools.AllocateDescriptorSet(mDescriptorPool, mVertexShaderLayout);
+    mVertexShaderSet = Tools::AllocateDescriptorSet(mDescriptorPool, mVertexShaderLayout);
     if (mVertexShaderSet == VK_NULL_HANDLE)
         return false;
 
-    mFragmentShaderSet = mTools.AllocateDescriptorSet(mDescriptorPool, mFragmentShaderLayout);
+    mFragmentShaderSet = Tools::AllocateDescriptorSet(mDescriptorPool, mFragmentShaderLayout);
     if (mFragmentShaderSet == VK_NULL_HANDLE)
         return false;
 
@@ -211,12 +213,12 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
         return false;
 
     // Point vertex shader set to our dynamic buffer
-    mTools.UpdateBufferDescriptorSet(mVertexShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 0,
+    Tools::UpdateBufferDescriptorSet(mVertexShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 0,
                                      mRingBuffer.GetVkBuffer(), sizeof(VertexShaderDynamicCBuffer));
-    mTools.UpdateBufferDescriptorSet(mVertexShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
+    Tools::UpdateBufferDescriptorSet(mVertexShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
                                      mVertexShaderCBuffer.GetVkBuffer(), sizeof(VertexShaderCBuffer));
 
-    mRenderFence = mTools.CreateFence();
+    mRenderFence = Tools::CreateFence();
     if (mRenderFence == VK_NULL_HANDLE)
         return false;
 
@@ -252,11 +254,9 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
             if (o->GetComponent()->GetType() == Scene::ComponentType::Mesh)
             {
                 Scene::Mesh* mesh = dynamic_cast<Scene::Mesh*>(o->GetComponent());
-                if (mesh->GetMaterial() == nullptr)
-                    return; // TODO maybe use default material?
-                else
+                if (mesh->GetMaterial() != nullptr)
                 {
-                    mTools.UpdateTextureDescriptorSet(mFragmentShaderSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                    Tools::UpdateTextureDescriptorSet(mFragmentShaderSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                                                       0, mesh->GetMaterial()->GetImageView());
                     mCommandBuffer.BindDescriptorSet(mFragmentShaderSet, 1, mPipelineLayout);
                 }

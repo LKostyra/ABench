@@ -39,34 +39,35 @@ struct DescriptorSetLayoutDesc
  */
 class Tools
 {
-public:
-    Tools();
-    ~Tools();
+    // hide ctor/dtor - this class should only provide static methods
+    Tools() {};
+    ~Tools() {};
 
+public:
     // VkRenderPass creation
-    VkRenderPass CreateRenderPass(VkFormat colorFormat, VkFormat depthFormat);
+    static VkRenderPass CreateRenderPass(VkFormat colorFormat, VkFormat depthFormat);
 
     // VkPipelineLayout creation, sets and setCount can be null/zero.
-    VkPipelineLayout CreatePipelineLayout(VkDescriptorSetLayout* sets = nullptr, int setCount = 0);
+    static VkPipelineLayout CreatePipelineLayout(VkDescriptorSetLayout* sets = nullptr, int setCount = 0);
 
     // VkDescriptorPool creation.
-    VkDescriptorPool CreateDescriptorPool(const std::vector<VkDescriptorPoolSize>& poolSizes);
+    static VkDescriptorPool CreateDescriptorPool(const std::vector<VkDescriptorPoolSize>& poolSizes);
 
     // VkDescriptorSetLayout creation, VkSampler is optional
-    VkDescriptorSetLayout CreateDescriptorSetLayout(std::vector<DescriptorSetLayoutDesc>& descriptors);
+    static VkDescriptorSetLayout CreateDescriptorSetLayout(std::vector<DescriptorSetLayoutDesc>& descriptors);
 
     // Descriptor Sets allocation
-    VkDescriptorSet AllocateDescriptorSet(VkDescriptorPool pool, VkDescriptorSetLayout layout);
+    static VkDescriptorSet AllocateDescriptorSet(VkDescriptorPool pool, VkDescriptorSetLayout layout);
 
     // Updating descriptor sets
-    void UpdateBufferDescriptorSet(VkDescriptorSet set, VkDescriptorType type, uint32_t binding, VkBuffer buffer, VkDeviceSize size);
-    void UpdateTextureDescriptorSet(VkDescriptorSet set, VkDescriptorType type, uint32_t binding, VkImageView view);
+    static void UpdateBufferDescriptorSet(VkDescriptorSet set, VkDescriptorType type, uint32_t binding, VkBuffer buffer, VkDeviceSize size);
+    static void UpdateTextureDescriptorSet(VkDescriptorSet set, VkDescriptorType type, uint32_t binding, VkImageView view);
 
     // Fence creation
-    VkFence CreateFence();
+    static VkFence CreateFence();
 
     // Sampler creation
-    VkSampler CreateSampler();
+    static VkSampler CreateSampler();
 };
 
 } // namespace Renderer

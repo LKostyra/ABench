@@ -11,6 +11,8 @@ namespace ABench {
 namespace Scene {
 
 Mesh::Mesh()
+    : mIndexCount(0)
+    , mMaterial(nullptr)
 {
 }
 
