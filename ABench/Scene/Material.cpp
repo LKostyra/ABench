@@ -14,15 +14,18 @@ Material::~Material()
 {
 }
 
-bool Material::CreateRendererTexture(Common::Image* image, VkImageUsageFlags usage)
+bool Material::CreateRendererTexture(const std::string& image, VkImageUsageFlags usage)
 {
-    Renderer::TextureDesc texDesc;
-    texDesc.width = image->GetWidth();
-    texDesc.height = image->GetHeight();
-    texDesc.usage = usage;
-    texDesc.data = image->GetData();
+    if (!mDiffuseImage.Init(image))
+        return false;
 
-    switch (image->GetColorType())
+    Renderer::TextureDesc texDesc;
+    texDesc.width = mDiffuseImage.GetWidth();
+    texDesc.height = mDiffuseImage.GetHeight();
+    texDesc.usage = usage;
+    texDesc.data = mDiffuseImage.GetData();
+
+    switch (mDiffuseImage.GetColorType())
     {
     case FIC_RGBALPHA:
         texDesc.format = VK_FORMAT_B8G8R8A8_UNORM;
@@ -34,18 +37,18 @@ bool Material::CreateRendererTexture(Common::Image* image, VkImageUsageFlags usa
 
     texDesc.dataSize = 4 * texDesc.width * texDesc.height;
 
-    return mDiffuse.Init(texDesc);
+    return mDiffuseTexture.Init(texDesc);
 }
 
 bool Material::Init(const MaterialDesc& desc)
 {
-    if (!desc.diffuse)
+    if (desc.diffusePath.empty())
     {
         LOGE("Diffuse texture is required");
         return false;
     }
 
-    return CreateRendererTexture(desc.diffuse, VK_IMAGE_USAGE_SAMPLED_BIT);
+    return CreateRendererTexture(desc.diffusePath, VK_IMAGE_USAGE_SAMPLED_BIT);
 }
 
 } // namespace Scene

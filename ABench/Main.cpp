@@ -107,22 +107,14 @@ int main()
     }
 
     ABench::Scene::Scene scene;
-    //scene.Init("Data/FBX/sponza.fbx");
-    scene.Init("");
+    scene.Init("Data/FBX/sponza.fbx"); // TODO fs tools
 
     ABench::Scene::Mesh mesh;
     mesh.Init();
 
-    ABench::Common::Image tex;
-    if (!tex.Init("Data/Textures/Wood_Box_Diffuse.jpg"))
-    {
-        LOGE("Failed to load texture");
-        return -1;
-    }
-
     ABench::Scene::Material mat;
     ABench::Scene::MaterialDesc matDesc;
-    matDesc.diffuse = &tex;
+    matDesc.diffusePath = "Data/Textures/Wood_Box_Diffuse.jpg"; // TODO fs tools
     if (!mat.Init(matDesc))
     {
         LOGE("Failed to initialize material");

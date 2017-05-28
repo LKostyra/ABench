@@ -38,13 +38,8 @@ class Renderer final
     VkRenderPass mRenderPass;
     VkPipelineLayout mPipelineLayout;
     VkFence mRenderFence;
-    VkSampler mSampler;
 
     VkDescriptorSet mVertexShaderSet;
-    VkDescriptorSetLayout mVertexShaderLayout;
-    VkDescriptorSet mFragmentShaderSet;
-    VkDescriptorSetLayout mFragmentShaderLayout;
-    VkDescriptorPool mDescriptorPool;
     Buffer mVertexShaderCBuffer;
 
 public:

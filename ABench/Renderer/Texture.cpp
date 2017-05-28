@@ -5,6 +5,8 @@
 #include "Extensions.hpp"
 #include "CommandBuffer.hpp"
 #include "Renderer.hpp"
+#include "Tools.hpp"
+#include "DescriptorLayoutManager.hpp"
 
 #include "Common/Common.hpp"
 
@@ -19,6 +21,7 @@ Texture::Texture()
     , mFromSwapchain(false)
     , mCurrentBuffer(0)
     , mDefaultLayout(VK_IMAGE_LAYOUT_UNDEFINED)
+    , mImageDescriptorSet(VK_NULL_HANDLE)
 {
 }
 
@@ -143,15 +146,15 @@ bool Texture::Init(const TextureDesc& desc)
     result = vkCreateImageView(gDevice->GetDevice(), &ivInfo, nullptr, &mImages[0].view);
     RETURN_FALSE_IF_FAILED(result, "Failed to create Image View for Texture");
 
-    const char* type;
-    if (desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-        type = "Color";
-    else if (desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
-        type = "Depth";
-    else
-        type = "Unknown Type";
+    if (desc.usage & VK_IMAGE_USAGE_SAMPLED_BIT)
+    {
+        mImageDescriptorSet = gDevice->GetDescriptorAllocator().AllocateDescriptorSet(DescriptorLayoutManager::Instance().GetFragmentShaderLayout());
+        if (mImageDescriptorSet == VK_NULL_HANDLE)
+            return false;
 
-    LOGI(mWidth << "x" << mHeight << " " << type << " Texture initialized successfully");
+        Tools::UpdateTextureDescriptorSet(mImageDescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 0, mImages[0].view);
+    }
+
     return true;
 }
 

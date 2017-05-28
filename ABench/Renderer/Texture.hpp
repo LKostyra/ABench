@@ -61,6 +61,7 @@ class Texture
 
     VkImageLayout mDefaultLayout;
     VkImageSubresourceRange mSubresourceRange;
+    VkDescriptorSet mImageDescriptorSet;
 
 public:
     Texture();
@@ -88,9 +89,9 @@ public:
         return mImages[i].image;
     }
 
-    ABENCH_INLINE VkImageView GetVkImageView(uint32_t i) const
+    ABENCH_INLINE const VkDescriptorSet GetDescriptorSet() const
     {
-        return mImages[i].view;
+        return mImageDescriptorSet;
     }
 
     // Records a layout transition in given command buffer. UNDEFINED layout reverts to default.

@@ -119,6 +119,12 @@
     <ClCompile Include="Common\Image.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer\DescriptorAllocator.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\DescriptorLayoutManager.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\Window.hpp">
@@ -224,6 +230,12 @@
     </ClInclude>
     <ClInclude Include="Common\Image.hpp">
       <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\DescriptorAllocator.hpp">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\DescriptorLayoutManager.hpp">
+      <Filter>Renderer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -3,7 +3,9 @@
 #include "Prerequisites.hpp"
 #include "Instance.hpp"
 #include "CommandBuffer.hpp"
+#include "DescriptorAllocator.hpp"
 #include "Common/Common.hpp"
+
 
 namespace ABench {
 namespace Renderer {
@@ -21,10 +23,9 @@ class Device
     VkQueue mGraphicsQueue;
     uint32_t mGraphicsQueueIndex;
     VkCommandPool mCommandPool;
-    VkPipelineCache mPipelineCache;
+    DescriptorAllocator mDescriptorAllocator;
 
     VkPhysicalDevice SelectPhysicalDevice(const Instance& inst);
-    bool CreatePipelineCache();
 
 public:
     Device();
@@ -47,9 +48,9 @@ public:
         return mCommandPool;
     }
 
-    ABENCH_INLINE VkPipelineCache GetPipelineCache() const
+    ABENCH_INLINE DescriptorAllocator& GetDescriptorAllocator()
     {
-        return mPipelineCache;
+        return mDescriptorAllocator;
     }
 };
 

@@ -109,6 +109,8 @@ bool Mesh::InitFromFBX(FbxMesh* mesh)
         }
     }
 
+    mName = mesh->GetName();
+
     std::vector<Vertex> vertices;
     Vertex vert;
     memset(&vert, 0, sizeof(vert));

@@ -3,6 +3,7 @@
 
 #include "Extensions.hpp"
 #include "Tools.hpp"
+#include "DescriptorLayoutManager.hpp"
 
 #include "Common/Logger.hpp"
 #include "Math/Matrix.hpp"
@@ -29,25 +30,16 @@ Renderer::Renderer()
     : mRenderPass(VK_NULL_HANDLE)
     , mPipelineLayout(VK_NULL_HANDLE)
     , mRenderFence(VK_NULL_HANDLE)
-    , mSampler(VK_NULL_HANDLE)
     , mVertexShaderSet(VK_NULL_HANDLE)
-    , mVertexShaderLayout(VK_NULL_HANDLE)
-    , mDescriptorPool(VK_NULL_HANDLE)
 {
 }
 
 Renderer::~Renderer()
 {
+    DescriptorLayoutManager::Instance().Release();
+
     if (mRenderFence != VK_NULL_HANDLE)
         vkDestroyFence(mDevice.GetDevice(), mRenderFence, nullptr);
-    if (mSampler != VK_NULL_HANDLE)
-        vkDestroySampler(mDevice.GetDevice(), mSampler, nullptr);
-    if (mFragmentShaderLayout != VK_NULL_HANDLE)
-        vkDestroyDescriptorSetLayout(mDevice.GetDevice(), mFragmentShaderLayout, nullptr);
-    if (mVertexShaderLayout != VK_NULL_HANDLE)
-        vkDestroyDescriptorSetLayout(mDevice.GetDevice(), mVertexShaderLayout, nullptr);
-    if (mDescriptorPool != VK_NULL_HANDLE)
-        vkDestroyDescriptorPool(mDevice.GetDevice(), mDescriptorPool, nullptr);
     if (mRenderPass != VK_NULL_HANDLE)
         vkDestroyRenderPass(mDevice.GetDevice(), mRenderPass, nullptr);
     if (mPipelineLayout != VK_NULL_HANDLE)
@@ -139,52 +131,18 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (!mFragmentShader.Init(shaderDesc))
         return false;
 
-    mSampler = Tools::CreateSampler();
-    if (mSampler == VK_NULL_HANDLE)
+    if (!DescriptorLayoutManager::Instance().Init(mDevice.GetDevice()))
         return false;
 
-    // shader resources initialization
-    std::vector<DescriptorSetLayoutDesc> vsLayoutDesc;
-    vsLayoutDesc.push_back({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT, VK_NULL_HANDLE});
-    vsLayoutDesc.push_back({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, VK_NULL_HANDLE});
-    mVertexShaderLayout = Tools::CreateDescriptorSetLayout(vsLayoutDesc);
-    if (mVertexShaderLayout == VK_NULL_HANDLE)
-        return false;
-
-    std::vector<DescriptorSetLayoutDesc> fsLayoutDesc;
-    fsLayoutDesc.push_back({VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, mSampler});
-    mFragmentShaderLayout = Tools::CreateDescriptorSetLayout(fsLayoutDesc);
-    if (mFragmentShaderLayout == VK_NULL_HANDLE)
-        return false;
-
-    VkDescriptorSetLayout layouts[] = { mVertexShaderLayout, mFragmentShaderLayout };
+    VkDescriptorSetLayout layouts[] = { DescriptorLayoutManager::Instance().GetVertexShaderLayout(),
+                                        DescriptorLayoutManager::Instance().GetFragmentShaderLayout() };
     mPipelineLayout = Tools::CreatePipelineLayout(layouts, 2);
     if (mPipelineLayout == VK_NULL_HANDLE)
         return false;
 
-    // vertex shader binding - one uniform buffer set with two bindings
-    std::vector<VkDescriptorPoolSize> poolSizes;
-
-    VkDescriptorPoolSize poolSize;
-    poolSize.descriptorCount = 1;
-    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-    poolSizes.push_back(poolSize);
-    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSizes.push_back(poolSize);
-    poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSizes.push_back(poolSize);
-
-    mDescriptorPool = Tools::CreateDescriptorPool(poolSizes);
-    if (mDescriptorPool == VK_NULL_HANDLE)
-        return false;
-
     // set allocation
-    mVertexShaderSet = Tools::AllocateDescriptorSet(mDescriptorPool, mVertexShaderLayout);
+    mVertexShaderSet = mDevice.GetDescriptorAllocator().AllocateDescriptorSet(DescriptorLayoutManager::Instance().GetVertexShaderLayout());
     if (mVertexShaderSet == VK_NULL_HANDLE)
-        return false;
-
-    mFragmentShaderSet = Tools::AllocateDescriptorSet(mDescriptorPool, mFragmentShaderLayout);
-    if (mFragmentShaderSet == VK_NULL_HANDLE)
         return false;
 
     PipelineDesc pipeDesc;
@@ -202,7 +160,6 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
 
 
     VertexShaderCBuffer cbuffer;
-    cbuffer.viewMatrix = Math::CreateRotationMatrixZ(1.0f);
 
     BufferDesc vsBufferDesc;
     vsBufferDesc.data = &cbuffer;
@@ -212,11 +169,12 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (!mVertexShaderCBuffer.Init(vsBufferDesc))
         return false;
 
-    // Point vertex shader set to our dynamic buffer
+    // Point vertex shader set bindings to our dynamic buffer
     Tools::UpdateBufferDescriptorSet(mVertexShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 0,
                                      mRingBuffer.GetVkBuffer(), sizeof(VertexShaderDynamicCBuffer));
     Tools::UpdateBufferDescriptorSet(mVertexShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
                                      mVertexShaderCBuffer.GetVkBuffer(), sizeof(VertexShaderCBuffer));
+
 
     mRenderFence = Tools::CreateFence();
     if (mRenderFence == VK_NULL_HANDLE)
@@ -256,9 +214,12 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
                 Scene::Mesh* mesh = dynamic_cast<Scene::Mesh*>(o->GetComponent());
                 if (mesh->GetMaterial() != nullptr)
                 {
-                    Tools::UpdateTextureDescriptorSet(mFragmentShaderSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                                                      0, mesh->GetMaterial()->GetImageView());
-                    mCommandBuffer.BindDescriptorSet(mFragmentShaderSet, 1, mPipelineLayout);
+                    if (mesh->GetMaterial()->GetDescriptor() == VK_NULL_HANDLE)
+                    {
+                        LOGW("Rendered mesh " << mesh->GetName() << " has no texture - skipping");
+                        return;
+                    }
+                    mCommandBuffer.BindDescriptorSet(mesh->GetMaterial()->GetDescriptor(), 1, mPipelineLayout);
                 }
 
                 uint32_t offset = mRingBuffer.Write(&o->GetTransform(), sizeof(ABench::Math::Matrix));

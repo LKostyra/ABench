@@ -23,6 +23,7 @@ class Mesh final: public Component
     ABench::Renderer::Buffer mIndexBuffer;
     uint32_t mIndexCount;
     Material* mMaterial;
+    std::string mName;
 
     bool InitBuffers(const std::vector<Vertex>& vertices, int* indices, int indexCount);
     bool InitFromFBX(FbxMesh* mesh);
@@ -57,6 +58,11 @@ public:
     ABENCH_INLINE const Material* GetMaterial() const
     {
         return mMaterial;
+    }
+
+    ABENCH_INLINE const std::string& GetName() const
+    {
+        return mName;
     }
 
     ComponentType GetType() const override

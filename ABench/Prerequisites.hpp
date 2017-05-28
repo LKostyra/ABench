@@ -27,6 +27,7 @@ class Backbuffer;
 class Buffer;
 class CommandBuffer;
 class Debugger;
+class DescriptorAllocator;
 class Framebuffer;
 class Pipeline;
 class RingBuffer;

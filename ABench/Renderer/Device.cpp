@@ -18,14 +18,13 @@ Device::Device()
     , mMemoryProperties()
     , mGraphicsQueueIndex(UINT32_MAX)
     , mCommandPool(VK_NULL_HANDLE)
-    , mPipelineCache(VK_NULL_HANDLE)
 {
 }
 
 Device::~Device()
 {
-    if (mPipelineCache != VK_NULL_HANDLE)
-        vkDestroyPipelineCache(mDevice, mPipelineCache, nullptr);
+    mDescriptorAllocator.Release();
+
     if (mCommandPool != VK_NULL_HANDLE)
         vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
     if (mDevice != VK_NULL_HANDLE)
@@ -69,17 +68,6 @@ VkPhysicalDevice Device::SelectPhysicalDevice(const Instance& inst)
 
     // Select first one available (might be a subject to change later on)
     return devices[0];
-}
-
-bool Device::CreatePipelineCache()
-{
-    VkPipelineCacheCreateInfo cacheInfo;
-    ZERO_MEMORY(cacheInfo);
-    cacheInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
-    VkResult result = vkCreatePipelineCache(mDevice, &cacheInfo, nullptr, &mPipelineCache);
-    RETURN_FALSE_IF_FAILED(result, "Failed to create Pipeline Cache");
-
-    return true;
 }
 
 bool Device::Init(const Instance& inst)
@@ -163,6 +151,8 @@ bool Device::Init(const Instance& inst)
     // extract queue (might be useful later on when ex. submitting commands)
     vkGetDeviceQueue(mDevice, mGraphicsQueueIndex, 0, &mGraphicsQueue);
 
+
+    // Command Pool for Command Buffers
     VkCommandPoolCreateInfo poolInfo;
     ZERO_MEMORY(poolInfo);
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -170,6 +160,15 @@ bool Device::Init(const Instance& inst)
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     result = vkCreateCommandPool(mDevice, &poolInfo, nullptr, &mCommandPool);
     RETURN_FALSE_IF_FAILED(result, "Failed to create main Command Pool");
+
+    // Descriptor Allocator
+    DescriptorAllocatorDesc daDesc;
+    ZERO_MEMORY(daDesc);
+    daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER] = 1;
+    daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC] = 1;
+    daDesc.limits[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] = 1000;
+    if (!mDescriptorAllocator.Init(mDevice, daDesc))
+        return false;
 
     LOGI("Vulkan Device initialized successfully");
     return true;

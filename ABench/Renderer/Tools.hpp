@@ -8,27 +8,6 @@
 namespace ABench {
 namespace Renderer {
 
-struct DescriptorSetLayoutDesc
-{
-    VkDescriptorType type;
-    VkShaderStageFlags stage;
-    VkSampler sampler;
-
-    DescriptorSetLayoutDesc()
-        : type(VK_DESCRIPTOR_TYPE_SAMPLER)
-        , stage(0)
-        , sampler(VK_NULL_HANDLE)
-    {
-    }
-
-    DescriptorSetLayoutDesc(VkDescriptorType type, VkShaderStageFlags stage, VkSampler sampler)
-        : type(type)
-        , stage(stage)
-        , sampler(sampler)
-    {
-    }
-};
-
 /**
  * A collection of "tools" - single functions creating Vulkan object in one-line.
  *
@@ -44,30 +23,18 @@ class Tools
     ~Tools() {};
 
 public:
-    // VkRenderPass creation
-    static VkRenderPass CreateRenderPass(VkFormat colorFormat, VkFormat depthFormat);
+    // Fence creation
+    static VkFence CreateFence();
 
     // VkPipelineLayout creation, sets and setCount can be null/zero.
     static VkPipelineLayout CreatePipelineLayout(VkDescriptorSetLayout* sets = nullptr, int setCount = 0);
 
-    // VkDescriptorPool creation.
-    static VkDescriptorPool CreateDescriptorPool(const std::vector<VkDescriptorPoolSize>& poolSizes);
-
-    // VkDescriptorSetLayout creation, VkSampler is optional
-    static VkDescriptorSetLayout CreateDescriptorSetLayout(std::vector<DescriptorSetLayoutDesc>& descriptors);
-
-    // Descriptor Sets allocation
-    static VkDescriptorSet AllocateDescriptorSet(VkDescriptorPool pool, VkDescriptorSetLayout layout);
+    // VkRenderPass creation
+    static VkRenderPass CreateRenderPass(VkFormat colorFormat, VkFormat depthFormat);
 
     // Updating descriptor sets
     static void UpdateBufferDescriptorSet(VkDescriptorSet set, VkDescriptorType type, uint32_t binding, VkBuffer buffer, VkDeviceSize size);
     static void UpdateTextureDescriptorSet(VkDescriptorSet set, VkDescriptorType type, uint32_t binding, VkImageView view);
-
-    // Fence creation
-    static VkFence CreateFence();
-
-    // Sampler creation
-    static VkSampler CreateSampler();
 };
 
 } // namespace Renderer
