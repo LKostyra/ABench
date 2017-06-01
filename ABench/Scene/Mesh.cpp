@@ -45,12 +45,6 @@ bool Mesh::InitBuffers(const std::vector<Vertex>& vertices, int* indices, int in
 
 bool Mesh::InitFromFBX(FbxMesh* mesh)
 {
-    if (!mesh->GenerateNormals(true, true))
-    {
-        LOGE("Failed to generate normals for mesh");
-        return false;
-    }
-
     // find UV layer
     FbxLayerElementUV* uvs = nullptr;
     for (int l = 0; l < mesh->GetLayerCount(); ++l)
@@ -67,10 +61,7 @@ bool Mesh::InitFromFBX(FbxMesh* mesh)
     }
 
     if (uvs->GetMappingMode() != FbxLayerElement::eByPolygonVertex)
-    {
-        LOGE("UVs are not generated on per-vertex basis.");
-        return false;
-    }
+        LOGW("UVs are not generated on per-vertex basis.");
 
     // find normal layer
     FbxLayerElementNormal* normals = nullptr;
@@ -122,9 +113,15 @@ bool Mesh::InitFromFBX(FbxMesh* mesh)
         vert.norm[0] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[0]);
         vert.norm[1] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[1]);
         vert.norm[2] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[2]);
-        vert.uv[0] = static_cast<float>(uvs->GetDirectArray()[p].Buffer()[0]);
-        vert.uv[1] = static_cast<float>(uvs->GetDirectArray()[p].Buffer()[1]);
         vertices.push_back(vert);
+    }
+
+    for (int i = 0; i < mesh->GetPolygonVertexCount(); ++i)
+    {
+        int ind = mesh->GetPolygonVertices()[i];
+        int uv = uvs->GetIndexArray()[i];
+        vertices[ind].uv[0] = static_cast<float>(uvs->GetDirectArray()[uv].Buffer()[0]);
+        vertices[ind].uv[1] = static_cast<float>(uvs->GetDirectArray()[uv].Buffer()[1]);
     }
 
     return InitBuffers(vertices, mesh->GetPolygonVertices(), mesh->GetPolygonVertexCount());

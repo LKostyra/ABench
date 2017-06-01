@@ -91,8 +91,6 @@ VkDescriptorSet DescriptorAllocator::AllocateDescriptorSet(VkDescriptorSetLayout
     // TODO add new pool if limits are exceeded
     RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to allocate Descriptor Set");
 
-    LOGD("Allocated Descriptor Set 0x" << std::hex << reinterpret_cast<size_t*>(set) <<
-         " from Pool 0x" << reinterpret_cast<size_t*>(mDescriptorPools.back().pool));
     return set;
 }
 

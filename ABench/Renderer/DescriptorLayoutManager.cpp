@@ -38,9 +38,9 @@ VkSampler DescriptorLayoutManager::CreateSampler()
     sampInfo.magFilter = VK_FILTER_LINEAR;
     sampInfo.minFilter = VK_FILTER_LINEAR;
     sampInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    sampInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
-    sampInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
-    sampInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+    sampInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    sampInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    sampInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     sampInfo.mipLodBias = 0.0f;
     sampInfo.anisotropyEnable = VK_FALSE;
     sampInfo.maxAnisotropy = 1.0f;

@@ -34,7 +34,7 @@ layout (std140, set = 0, binding = 1) uniform cb
 
 void main()
 {
-    mat4 worldView = CBuffer.viewMatrix;// * dynamicCBuffer.worldMatrix;
+    mat4 worldView = CBuffer.viewMatrix * dynamicCBuffer.worldMatrix;
     mat4 worldViewProj = CBuffer.projMatrix * worldView;
     gl_Position = worldViewProj * vec4(InPos, 1.0);
     Output.Norm = InNorm;

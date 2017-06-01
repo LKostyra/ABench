@@ -62,6 +62,8 @@ bool Image::Init(const std::string& path)
     else
         mBitmap = bitmap;
 
+    // TODO mipmap generation
+
     mWidth = FreeImage_GetWidth(mBitmap);
     mHeight = FreeImage_GetHeight(mBitmap);
     mColorType = FIC_RGBALPHA;

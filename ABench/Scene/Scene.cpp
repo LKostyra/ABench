@@ -26,11 +26,7 @@ bool Scene::Init(const std::string& fbxFile)
             return false;
         }
 
-        uint32_t nodeCounter = 0;
         mFBXFile.Traverse([&](FbxNode* node) {
-            if (nodeCounter > 1)
-                return;
-
             uint32_t attributeCount = node->GetNodeAttributeCount();
 
             for (uint32_t i = 0; i < attributeCount; ++i)
@@ -53,8 +49,6 @@ bool Scene::Init(const std::string& fbxFile)
                     }
 
                     FbxSurfaceMaterial* material = node->GetSrcObject<FbxSurfaceMaterial>(0);
-                    LOGD("Mesh " << node->GetName() << " has material " << material->GetName());
-
                     FbxProperty prop = material->FindProperty("DiffuseColor");
                     if (!prop.IsValid())
                     {
@@ -85,14 +79,13 @@ bool Scene::Init(const std::string& fbxFile)
                     m->Init(node->GetMesh());
                     m->SetMaterial(mat);
                     o->SetComponent(m);
-                    o->SetPosition(static_cast<float>(node->LclTranslation.Get()[0]),
-                                   static_cast<float>(node->LclTranslation.Get()[1]),
-                                   static_cast<float>(node->LclTranslation.Get()[2]));
+
                     o->SetScale(static_cast<float>(node->LclScaling.Get()[0]),
                                 static_cast<float>(node->LclScaling.Get()[1]),
                                 static_cast<float>(node->LclScaling.Get()[2]));
-
-                    nodeCounter++;
+                    o->SetPosition(static_cast<float>(node->LclTranslation.Get()[0]),
+                                   static_cast<float>(node->LclTranslation.Get()[1]),
+                                   static_cast<float>(node->LclTranslation.Get()[2]));
                 }
             }
         });
