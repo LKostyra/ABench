@@ -48,7 +48,7 @@ bool Texture::Init(const TextureDesc& desc)
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.format = desc.format;
     imageInfo.imageType = VK_IMAGE_TYPE_2D;
-    imageInfo.mipLevels = 1;
+    imageInfo.mipLevels = desc.mipmapCount;
     imageInfo.extent.width = desc.width;
     imageInfo.extent.height = desc.height;
     imageInfo.extent.depth = 1;
@@ -88,7 +88,7 @@ bool Texture::Init(const TextureDesc& desc)
     else
         mSubresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     mSubresourceRange.baseMipLevel = 0;
-    mSubresourceRange.levelCount = 1;
+    mSubresourceRange.levelCount = desc.mipmapCount;
     mSubresourceRange.baseArrayLayer = 0;
     mSubresourceRange.layerCount = 1;
 
@@ -100,13 +100,29 @@ bool Texture::Init(const TextureDesc& desc)
 
     if (desc.data != nullptr)
     {
+        uint32_t dataSize = 0;
+        for (uint32_t i = 0; i < desc.mipmapCount; ++i)
+            dataSize += desc.data[i].dataSize;
+
+        if (dataSize > memReqs.size)
+        {
+            LOGE("Not enough memory to initialize texture");
+            return false;
+        }
+
         BufferDesc tempBufferDesc;
         tempBufferDesc.type = BufferType::Dynamic;
         tempBufferDesc.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-        tempBufferDesc.dataSize = desc.dataSize;
+        tempBufferDesc.dataSize = dataSize;
         if (!tempBuffer.Init(tempBufferDesc))
             return false;
-        tempBuffer.Write(desc.data, desc.dataSize);
+
+        uint32_t offset = 0;
+        for (uint32_t i = 0; i < desc.mipmapCount; ++i)
+        {
+            tempBuffer.Write(desc.data[i].data, desc.data[i].dataSize, offset);
+            offset += desc.data[i].dataSize;
+        }
     }
 
     // transition Image to desired layout and eventually copy data to buffer

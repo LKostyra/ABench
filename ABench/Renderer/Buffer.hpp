@@ -12,7 +12,6 @@ enum class BufferType: unsigned short
 {
     Static = 1, // Device-allocated, preinitialized
     Dynamic, // Host-allocated, can be modified. Synchronization must be ensured.
-    Volatile, // Frequently modified through Ring Buffer, for small data portions only.
 };
 
 struct BufferDesc
@@ -56,7 +55,7 @@ public:
         return mBufferSize;
     }
 
-    bool Write(const void* data, size_t size);
+    bool Write(const void* data, size_t size, size_t offset = 0);
 };
 
 } // namespace Renderer

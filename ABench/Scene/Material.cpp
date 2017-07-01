@@ -17,14 +17,20 @@ Material::~Material()
 
 bool Material::CreateRendererTexture(const std::string& image, VkImageUsageFlags usage)
 {
-    if (!mDiffuseImage.Init(image))
+    if (!mDiffuseImage.Init(image, true))
         return false;
+
+    std::vector<Renderer::TextureDataDesc> textures;
+    textures.reserve(mDiffuseImage.GetMipmapCount());
+    for (uint32_t i = 0; i < mDiffuseImage.GetMipmapCount(); ++i)
+        textures.emplace_back(mDiffuseImage.GetSubimageData(i), mDiffuseImage.GetSubimageSize(i));
 
     Renderer::TextureDesc texDesc;
     texDesc.width = mDiffuseImage.GetWidth();
     texDesc.height = mDiffuseImage.GetHeight();
     texDesc.usage = usage;
-    texDesc.data = mDiffuseImage.GetData();
+    texDesc.data = textures.data();
+    texDesc.mipmapCount = static_cast<uint32_t>(textures.size());
 
     switch (mDiffuseImage.GetColorType())
     {
@@ -35,8 +41,6 @@ bool Material::CreateRendererTexture(const std::string& image, VkImageUsageFlags
         LOGE("Incorrect color type in loaded image - cannot match format");
         return false;
     }
-
-    texDesc.dataSize = 4 * texDesc.width * texDesc.height;
 
     return mDiffuseTexture.Init(texDesc);
 }

@@ -29,13 +29,6 @@ Buffer::~Buffer()
 
 bool Buffer::Init(const BufferDesc& desc)
 {
-    // TODO implement Ring Buffer mechanism
-    if (desc.type == BufferType::Volatile)
-    {
-        LOGE("Volatile Buffers are not yet implemented");
-        return false;
-    }
-
     if ((desc.type == BufferType::Static) && (!desc.data || desc.dataSize == 0))
     {
         LOGE("Invalid/empty data provided for Static Buffer initialization");
@@ -125,7 +118,7 @@ bool Buffer::Init(const BufferDesc& desc)
     return true;
 }
 
-bool Buffer::Write(const void* data, size_t size)
+bool Buffer::Write(const void* data, size_t size, size_t offset)
 {
     if (mType == BufferType::Static)
     {
@@ -134,7 +127,8 @@ bool Buffer::Write(const void* data, size_t size)
     }
 
     void* memory;
-    VkResult result = vkMapMemory(gDevice->GetDevice(), mBufferMemory, 0, mBufferSize, 0, &memory);
+    VkResult result = vkMapMemory(gDevice->GetDevice(), mBufferMemory, static_cast<VkDeviceSize>(offset),
+                                  static_cast<VkDeviceSize>(size), 0, &memory);
     RETURN_FALSE_IF_FAILED(result, "Failed to map memory for writing");
     memcpy(memory, data, size);
     vkUnmapMemory(gDevice->GetDevice(), mBufferMemory);

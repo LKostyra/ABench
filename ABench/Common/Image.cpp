@@ -7,19 +7,34 @@ namespace ABench {
 namespace Common {
 
 Image::Image()
-    : mBitmap(nullptr)
-    , mWidth(0)
+    : mWidth(0)
     , mHeight(0)
 {
 }
 
 Image::~Image()
 {
-    if (mBitmap)
-        FreeImage_Unload(mBitmap);
+    for (auto& b: mBitmaps)
+        FreeImage_Unload(b);
 }
 
-bool Image::Init(const std::string& path)
+bool Image::GenerateMipmaps()
+{
+    uint32_t width = mWidth;
+    uint32_t height = mHeight;
+
+    FIBITMAP* b;
+    while (width > 1 && height > 1)
+    {
+        width >>= 1; height >>= 1;
+        b = FreeImage_Rescale(mBitmaps.back(), width, height);
+        mBitmaps.push_back(b);
+    }
+
+    return true;
+}
+
+bool Image::Init(const std::string& path, bool generateMipmaps)
 {
     FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
 
@@ -47,26 +62,30 @@ bool Image::Init(const std::string& path)
         return false;
     }
 
-    FIBITMAP* bitmap = FreeImage_Load(fif, newPath.c_str());
-    if (!bitmap)
+    FIBITMAP* loadedBitmap = FreeImage_Load(fif, newPath.c_str());
+    if (!loadedBitmap)
     {
         LOGE("Failed to load file " << newPath);
         return false;
     }
 
-    if (FreeImage_GetColorType(bitmap) == FIC_RGB)
+    FIBITMAP* bitmap = nullptr;
+    if (FreeImage_GetColorType(loadedBitmap) == FIC_RGB)
     {
-        mBitmap = FreeImage_ConvertTo32Bits(bitmap);
-        FreeImage_Unload(bitmap);
+        bitmap = FreeImage_ConvertTo32Bits(loadedBitmap);
+        FreeImage_Unload(loadedBitmap);
     }
     else
-        mBitmap = bitmap;
+        bitmap = loadedBitmap;
 
-    // TODO mipmap generation
-
-    mWidth = FreeImage_GetWidth(mBitmap);
-    mHeight = FreeImage_GetHeight(mBitmap);
+    mBitmaps.push_back(bitmap);
+    mWidth = FreeImage_GetWidth(mBitmaps[0]);
+    mHeight = FreeImage_GetHeight(mBitmaps[0]);
     mColorType = FIC_RGBALPHA;
+
+    if (generateMipmaps)
+        if (!GenerateMipmaps())
+            LOGW("Failed to generate mipmaps for image " << newPath);
 
     return true;
 }

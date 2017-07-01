@@ -8,22 +8,40 @@
 namespace ABench {
 namespace Renderer {
 
+struct TextureDataDesc
+{
+    void* data;
+    uint32_t dataSize;
+
+    TextureDataDesc()
+        : data(nullptr)
+        , dataSize(0)
+    {
+    }
+
+    TextureDataDesc(void* data, uint32_t dataSize)
+        : data(data)
+        , dataSize(dataSize)
+    {
+    }
+};
+
 struct TextureDesc
 {
     VkFormat format;
     uint32_t width;
     uint32_t height;
     VkImageUsageFlags usage;
-    void* data;
-    uint32_t dataSize;
+    uint32_t mipmapCount;
+    TextureDataDesc* data;
 
     TextureDesc()
         : format(VK_FORMAT_UNDEFINED)
         , width(0)
         , height(0)
         , usage(0)
+        , mipmapCount(1)
         , data(nullptr)
-        , dataSize(0)
     {
     }
 };

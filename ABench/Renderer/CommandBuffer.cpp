@@ -148,16 +148,34 @@ void CommandBuffer::CopyBuffer(VkBuffer src, VkBuffer dst, VkDeviceSize size)
 
 void CommandBuffer::CopyBufferToTexture(Buffer* src, Texture* dst)
 {
+    std::vector<VkBufferImageCopy> regions;
+
+    uint32_t width = dst->mWidth;
+    uint32_t height = dst->mHeight;
+    uint32_t offset = 0;
+
     VkBufferImageCopy region;
     ZERO_MEMORY(region);
-    region.imageExtent.width = dst->GetWidth();
-    region.imageExtent.height = dst->GetHeight();
-    region.imageExtent.depth = 1;
-    region.imageSubresource.aspectMask = dst->mSubresourceRange.aspectMask;
-    region.imageSubresource.baseArrayLayer = dst->mSubresourceRange.baseArrayLayer;
-    region.imageSubresource.layerCount = dst->mSubresourceRange.layerCount;
-    region.imageSubresource.mipLevel = dst->mSubresourceRange.baseMipLevel;
-    vkCmdCopyBufferToImage(mCommandBuffer, src->GetVkBuffer(), dst->GetVkImage(0), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+    for (uint32_t i = 0; i < dst->mSubresourceRange.levelCount; ++i)
+    {
+        region.bufferOffset = offset;
+        region.imageExtent.width = width;
+        region.imageExtent.height = height;
+        region.imageExtent.depth = 1;
+        region.imageSubresource.aspectMask = dst->mSubresourceRange.aspectMask;
+        region.imageSubresource.baseArrayLayer = dst->mSubresourceRange.baseArrayLayer;
+        region.imageSubresource.layerCount = dst->mSubresourceRange.layerCount;
+        region.imageSubresource.mipLevel = i;
+
+        regions.push_back(region);
+
+        offset += width * height * TranslateVkFormatToFormatSize(dst->mFormat);
+        width >>= 1;
+        height >>= 1;
+    }
+
+    vkCmdCopyBufferToImage(mCommandBuffer, src->GetVkBuffer(), dst->GetVkImage(0), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                           static_cast<uint32_t>(regions.size()), regions.data());
 }
 
 void CommandBuffer::Draw(uint32_t vertCount)
