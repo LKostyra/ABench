@@ -6,7 +6,8 @@
 namespace ABench {
 namespace Scene {
 
-Material::Material()
+Material::Material(const std::string& name)
+    : mMaterialName(name)
 {
 }
 
@@ -42,6 +43,7 @@ bool Material::CreateRendererTexture(const std::string& image, VkImageUsageFlags
 
 bool Material::Init(const MaterialDesc& desc)
 {
+
     if (desc.diffusePath.empty())
     {
         LOGE("Diffuse texture is required");

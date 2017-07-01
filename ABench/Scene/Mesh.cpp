@@ -10,9 +10,10 @@ using namespace ABench::Renderer;
 namespace ABench {
 namespace Scene {
 
-Mesh::Mesh()
+Mesh::Mesh(const std::string& name)
     : mIndexCount(0)
     , mMaterial(nullptr)
+    , mName(name)
 {
 }
 

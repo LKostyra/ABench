@@ -64,19 +64,27 @@ bool Scene::Init(const std::string& fbxFile)
                         return;
                     }
 
-                    Material* mat = CreateMaterial();
-                    MaterialDesc matDesc;
-                    matDesc.diffusePath = ftex->GetFileName();
-                    if (!mat->Init(matDesc))
+                    auto matResult = GetMaterial(material->GetName());
+                    Material* mat = matResult.first;
+                    if (matResult.second)
                     {
-                        LOGE("Failed to create material for mesh " << node->GetName());
-                        return;
+                        // new material, initialize
+                        MaterialDesc matDesc;
+                        matDesc.diffusePath = ftex->GetFileName();
+                        if (!mat->Init(matDesc))
+                        {
+                            LOGE("Failed to initialize material for mesh " << node->GetName());
+                            return;
+                        }
                     }
 
                     Object* o = CreateObject();
-                    Mesh* m = dynamic_cast<Mesh*>(CreateComponent(ComponentType::Mesh));
+                    auto mResult = GetComponent(ComponentType::Mesh, node->GetName());
+                    Mesh* m = dynamic_cast<Mesh*>(mResult.first);
 
-                    m->Init(node->GetMesh());
+                    if (mResult.second)
+                        m->Init(node->GetMesh());
+
                     m->SetMaterial(mat);
                     o->SetComponent(m);
 
@@ -102,26 +110,45 @@ Object* Scene::CreateObject()
     return &mObjects.back();
 }
 
-Component* Scene::CreateComponent(ComponentType type)
+GetResult<Component> Scene::GetMeshComponent(const std::string& name)
+{
+    bool created = false;
+    auto mesh = mMeshComponents.find(name);
+    if (mesh == mMeshComponents.end())
+    {
+        mesh = mMeshComponents.insert(std::make_pair(name, std::make_unique<Mesh>(name))).first;
+        created = true;
+    }
+
+    return std::make_pair(mesh->second.get(), created);
+}
+
+GetResult<Component> Scene::GetComponent(ComponentType type, const std::string& name)
 {
     switch (type)
     {
     case ComponentType::Mesh:
-        mMeshComponents.emplace_back();
-        return &mMeshComponents.back();
-
+        return GetMeshComponent(name);
     default:
-        return nullptr;
+        LOGE("Unknown component type provided to get");
+        return std::make_pair(nullptr, false);
     }
 }
 
-Material* Scene::CreateMaterial()
+GetResult<Material> Scene::GetMaterial(const std::string& name)
 {
-    mMaterials.emplace_back();
-    return &mMaterials.back();
+    bool created = false;
+    auto mat = mMaterials.find(name);
+    if (mat == mMaterials.end())
+    {
+        mat = mMaterials.insert(std::make_pair(name, std::make_unique<Material>(name))).first;
+        created = true;
+    }
+
+    return std::make_pair(mat->second.get(), created);
 }
 
-void Scene::ForEachObject(Scene::ObjectCallback func) const
+void Scene::ForEachObject(ObjectCallback func) const
 {
     for (auto& o: mObjects)
         func(&o);

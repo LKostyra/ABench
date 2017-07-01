@@ -30,7 +30,7 @@ class Mesh final: public Component
     bool InitDefault();
 
 public:
-    Mesh();
+    Mesh(const std::string& name);
     ~Mesh();
 
     bool Init(FbxMesh* mesh = nullptr);

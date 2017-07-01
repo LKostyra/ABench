@@ -109,22 +109,28 @@ int main()
     ABench::Scene::Scene scene;
     scene.Init("Data/FBX/sponza.fbx"); // TODO fs tools
 
-    ABench::Scene::Mesh mesh;
-    mesh.Init();
+    auto meshResult = scene.GetComponent(ABench::Scene::ComponentType::Mesh, "box");
+    ABench::Scene::Mesh* mesh = dynamic_cast<ABench::Scene::Mesh*>(meshResult.first);
+    if (meshResult.second)
+        mesh->Init();
 
-    ABench::Scene::Material mat;
-    ABench::Scene::MaterialDesc matDesc;
-    matDesc.diffusePath = "Data/Textures/Wood_Box_Diffuse.jpg"; // TODO fs tools
-    if (!mat.Init(matDesc))
+    auto matResult = scene.GetMaterial("boxMaterial");
+    ABench::Scene::Material* mat = matResult.first;
+    if (matResult.second)
     {
-        LOGE("Failed to initialize material");
-        return -1;
+        ABench::Scene::MaterialDesc matDesc;
+        matDesc.diffusePath = "Data/Textures/Wood_Box_Diffuse.jpg"; // TODO fs tools
+        if (!mat->Init(matDesc))
+        {
+            LOGE("Failed to initialize material");
+            return -1;
+        }
     }
 
-    mesh.SetMaterial(&mat);
+    mesh->SetMaterial(mat);
 
     ABench::Scene::Object* obj = scene.CreateObject();
-    obj->SetComponent(&mesh);
+    obj->SetComponent(mesh);
     obj->SetPosition(0.0f, 1.0f, 0.0f);
 
     ABench::Common::Timer timer;

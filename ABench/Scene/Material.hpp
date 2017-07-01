@@ -9,6 +9,7 @@ namespace Scene {
 
 struct MaterialDesc
 {
+    std::string materialName;
     std::string diffusePath;
     // TODO place for normal map, specular map and else
 };
@@ -17,13 +18,15 @@ class Material
 {
     friend class Mesh;
 
+    std::string mMaterialName;
+
     Common::Image mDiffuseImage;
     Renderer::Texture mDiffuseTexture;
 
     bool CreateRendererTexture(const std::string& image, VkImageUsageFlags usage);
 
 public:
-    Material();
+    Material(const std::string& name);
     ~Material();
 
     bool Init(const MaterialDesc& desc);
