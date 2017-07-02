@@ -2,11 +2,14 @@
 #include "Common/Window.hpp"
 #include "Common/Logger.hpp"
 #include "Common/Timer.hpp"
+#include "Common/FS.hpp"
 #include "Renderer/Renderer.hpp"
 #include "Math/Matrix.hpp"
 #include "Scene/Camera.hpp"
 #include "Scene/Mesh.hpp"
 #include "Scene/Scene.hpp"
+
+#include "ResourceDir.hpp"
 
 
 uint32_t windowWidth = 1280;
@@ -84,8 +87,11 @@ public:
 
 int main()
 {
-    ABenchWindow window;
+    std::string path = ABench::Common::FS::GetParentDir(ABench::Common::FS::GetExecutablePath());
+    if (!ABench::Common::FS::SetCWD(path + "/../../.."))
+        return -1;
 
+    ABenchWindow window;
     window.Init();
     if (!window.Open(200, 200, windowWidth, windowHeight, "ABench"))
     {
@@ -107,7 +113,7 @@ int main()
     }
 
     ABench::Scene::Scene scene;
-    scene.Init("Data/FBX/sponza.fbx"); // TODO fs tools
+    scene.Init(ABench::Common::FS::JoinPaths(ABench::ResourceDir::SCENES, "sponza.fbx"));
 
     auto meshResult = scene.GetComponent(ABench::Scene::ComponentType::Mesh, "box");
     ABench::Scene::Mesh* mesh = dynamic_cast<ABench::Scene::Mesh*>(meshResult.first);
@@ -119,7 +125,7 @@ int main()
     if (matResult.second)
     {
         ABench::Scene::MaterialDesc matDesc;
-        matDesc.diffusePath = "Data/Textures/Wood_Box_Diffuse.jpg"; // TODO fs tools
+        matDesc.diffusePath = ABench::Common::FS::JoinPaths(ABench::ResourceDir::TEXTURES, "Wood_Box_Diffuse.jpg");
         if (!mat->Init(matDesc))
         {
             LOGE("Failed to initialize material");

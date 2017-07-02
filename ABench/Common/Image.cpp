@@ -2,6 +2,9 @@
 #include "Image.hpp"
 #include "Logger.hpp"
 
+#include "Common/FS.hpp"
+#include "ResourceDir.hpp"
+
 
 namespace ABench {
 namespace Common {
@@ -38,19 +41,7 @@ bool Image::Init(const std::string& path, bool generateMipmaps)
 {
     FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
 
-    // TODO replace path shenaningans with FS class
-    // TODO cast "forward-slashify" on these pesky slashes in path
-    size_t trailingSlash = path.rfind('\\');
-    std::string newPath;
-    if (trailingSlash != std::string::npos)
-    {
-        newPath = path.substr(trailingSlash + 1);
-        newPath = "Data/Textures/" + newPath;
-    }
-    else
-    {
-        newPath = path;
-    }
+    std::string newPath = FS::JoinPaths(ResourceDir::TEXTURES, FS::GetFileName(FS::UnifySlashes(path)));
 
     fif = FreeImage_GetFileType(newPath.c_str());
     if (fif == FIF_UNKNOWN)

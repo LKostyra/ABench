@@ -125,6 +125,10 @@
     <ClCompile Include="Renderer\DescriptorLayoutManager.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Common\Win\FS.cpp">
+      <Filter>Common\Win</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceDir.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\Window.hpp">
@@ -237,5 +241,9 @@
     <ClInclude Include="Renderer\DescriptorLayoutManager.hpp">
       <Filter>Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="Common\FS.hpp">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceDir.hpp" />
   </ItemGroup>
 </Project>
