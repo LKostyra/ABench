@@ -8,6 +8,15 @@ namespace ABench {
 namespace Common {
 namespace FS {
 
+bool Exists(const std::string& path)
+{
+    std::wstring pathWStr;
+    UTF8ToUTF16(path, pathWStr);
+    DWORD attribs = GetFileAttributes(pathWStr.c_str());
+
+    return (attribs != INVALID_FILE_ATTRIBUTES);
+}
+
 std::string GetExecutablePath()
 {
     HMODULE exe = GetModuleHandle(0);
@@ -38,6 +47,34 @@ std::string GetFileName(const std::string& path)
     return path.substr(trailingSlash + 1);
 }
 
+uint64_t GetFileModificationTime(const std::string& path)
+{
+    FILETIME time;
+
+    std::wstring pathWStr;
+    if (!Common::UTF8ToUTF16(path, pathWStr))
+        return 0;
+
+    HANDLE file = CreateFile(pathWStr.c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (file == INVALID_HANDLE_VALUE)
+    {
+        DWORD err = GetLastError();
+        LOGE("Failed to open file to get modification time: " << err);
+        return 0;
+    }
+
+    bool getResult = GetFileTime(file, nullptr, nullptr, &time);
+    CloseHandle(file);
+    if (!getResult)
+    {
+        DWORD err = GetLastError();
+        LOGE("Failed to get modification time of file: " << err);
+        return 0;
+    }
+
+    return (static_cast<uint64_t>(time.dwHighDateTime) << 32) | time.dwLowDateTime;
+}
+
 std::string JoinPaths(const std::string& a, const std::string& b)
 {
     std::string first, second;
@@ -53,6 +90,14 @@ std::string JoinPaths(const std::string& a, const std::string& b)
         second = b;
 
     return first + '/' + second;
+}
+
+bool RemoveFile(const std::string& path)
+{
+    std::wstring pathWStr;
+    if (!UTF8ToUTF16(path, pathWStr))
+        return false;
+    return DeleteFile(pathWStr.c_str());
 }
 
 bool SetCWD(const std::string& path)

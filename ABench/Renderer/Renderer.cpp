@@ -8,6 +8,8 @@
 #include "Common/Logger.hpp"
 #include "Math/Matrix.hpp"
 
+#include <glslang/Public/ShaderLang.h>
+
 namespace ABench {
 namespace Renderer {
 
@@ -44,10 +46,18 @@ Renderer::~Renderer()
         vkDestroyRenderPass(mDevice.GetDevice(), mRenderPass, nullptr);
     if (mPipelineLayout != VK_NULL_HANDLE)
         vkDestroyPipelineLayout(mDevice.GetDevice(), mPipelineLayout, nullptr);
+
+    glslang::FinalizeProcess();
 }
 
 bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVerbose)
 {
+    if (!glslang::InitializeProcess())
+    {
+        LOGE("Failed to initialize glslang");
+        return false;
+    }
+
     VkDebugReportFlagsEXT debugFlags = 0;
 
     if (debugEnable)
@@ -123,11 +133,12 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
         return false;
 
     ShaderDesc shaderDesc;
-    shaderDesc.language = ABench::Renderer::ShaderLanguage::SPIRV;
-    shaderDesc.path = "Data/Shaders/shader.vert.spv";
+    shaderDesc.type = ShaderType::VERTEX;
+    shaderDesc.filename = "shader.vert";
     if (!mVertexShader.Init(shaderDesc))
         return false;
-    shaderDesc.path = "Data/Shaders/shader.frag.spv";
+    shaderDesc.type = ShaderType::FRAGMENT;
+    shaderDesc.filename = "shader.frag";
     if (!mFragmentShader.Init(shaderDesc))
         return false;
 

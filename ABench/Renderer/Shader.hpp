@@ -8,16 +8,21 @@
 namespace ABench {
 namespace Renderer {
 
-enum class ShaderLanguage: unsigned char
+enum class ShaderType: unsigned char
 {
-    SPIRV = 0,
-    GLSL,
+    UNKNOWN = 0,
+    VERTEX,
+    TESS_CONTROL,
+    TESS_EVAL,
+    GEOMETRY,
+    FRAGMENT,
+    COMPUTE
 };
 
 struct ShaderDesc
 {
-    ShaderLanguage language;
-    std::string path;
+    ShaderType type;
+    std::string filename;
 };
 
 class Shader
@@ -26,7 +31,8 @@ class Shader
 
     VkShaderModule mShaderModule;
 
-    bool Compile(ShaderLanguage lang, const std::string& path, std::unique_ptr<uint32_t[]>& code, size_t& codeSize);
+    bool CompileToFile(ShaderType type, const std::string& filename, std::vector<uint32_t>& code);
+    bool CreateVkShaderModule(const std::vector<uint32_t>& code);
 
 public:
     Shader();
