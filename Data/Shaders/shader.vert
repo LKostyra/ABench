@@ -11,6 +11,7 @@ out gl_PerVertex
 // temporarily changed from block because glslang has a bug
 layout (location = 0) out vec3 VertNorm;
 layout (location = 1) out vec2 VertUV;
+layout (location = 2) out vec3 VertPosNoProj;
 
 
 
@@ -33,4 +34,5 @@ void main()
     gl_Position = worldViewProj * vec4(InPos, 1.0);
     VertNorm = InNorm;
     VertUV = InUV;
+    VertPosNoProj = (dynamicCBuffer.worldMatrix * vec4(InPos, 1.0)).xyz;
 }

@@ -129,6 +129,9 @@
       <Filter>Common\Win</Filter>
     </ClCompile>
     <ClCompile Include="ResourceDir.cpp" />
+    <ClCompile Include="Scene\Light.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\Window.hpp">
@@ -245,5 +248,8 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="ResourceDir.hpp" />
+    <ClInclude Include="Scene\Light.hpp">
+      <Filter>Scene</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

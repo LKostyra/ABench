@@ -25,6 +25,12 @@ struct VertexShaderCBuffer
     Math::Matrix projMatrix;
 };
 
+struct FragmentShaderLightCBuffer
+{
+    Math::Vector pos;
+    Math::Vector diffuse;
+};
+
 Device* gDevice = nullptr;
 
 
@@ -33,6 +39,7 @@ Renderer::Renderer()
     , mPipelineLayout(VK_NULL_HANDLE)
     , mRenderFence(VK_NULL_HANDLE)
     , mVertexShaderSet(VK_NULL_HANDLE)
+    , mFragmentShaderSet(VK_NULL_HANDLE)
 {
 }
 
@@ -145,15 +152,21 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (!DescriptorLayoutManager::Instance().Init(mDevice.GetDevice()))
         return false;
 
-    VkDescriptorSetLayout layouts[] = { DescriptorLayoutManager::Instance().GetVertexShaderLayout(),
-                                        DescriptorLayoutManager::Instance().GetFragmentShaderLayout() };
-    mPipelineLayout = Tools::CreatePipelineLayout(layouts, 2);
+    std::vector<VkDescriptorSetLayout> layouts;
+    layouts.push_back(DescriptorLayoutManager::Instance().GetVertexShaderLayout());
+    layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderTextureLayout());
+    layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderLayout());
+    mPipelineLayout = Tools::CreatePipelineLayout(layouts.data(), static_cast<uint32_t>(layouts.size()));
     if (mPipelineLayout == VK_NULL_HANDLE)
         return false;
 
     // set allocation
     mVertexShaderSet = mDevice.GetDescriptorAllocator().AllocateDescriptorSet(DescriptorLayoutManager::Instance().GetVertexShaderLayout());
     if (mVertexShaderSet == VK_NULL_HANDLE)
+        return false;
+
+    mFragmentShaderSet = mDevice.GetDescriptorAllocator().AllocateDescriptorSet(DescriptorLayoutManager::Instance().GetFragmentShaderLayout());
+    if (mFragmentShaderSet == VK_NULL_HANDLE)
         return false;
 
     PipelineDesc pipeDesc;
@@ -170,14 +183,20 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
         return false;
 
 
-    VertexShaderCBuffer cbuffer;
-
     BufferDesc vsBufferDesc;
-    vsBufferDesc.data = &cbuffer;
+    vsBufferDesc.data = nullptr;
     vsBufferDesc.dataSize = sizeof(VertexShaderCBuffer);
     vsBufferDesc.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
     vsBufferDesc.type = BufferType::Dynamic;
     if (!mVertexShaderCBuffer.Init(vsBufferDesc))
+        return false;
+
+    BufferDesc fsBufferDesc;
+    fsBufferDesc.data = nullptr;
+    fsBufferDesc.dataSize = sizeof(FragmentShaderLightCBuffer);
+    fsBufferDesc.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+    fsBufferDesc.type = BufferType::Dynamic;
+    if (!mFragmentShaderLightCBuffer.Init(vsBufferDesc))
         return false;
 
     // Point vertex shader set bindings to our dynamic buffer
@@ -185,6 +204,8 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
                                      mRingBuffer.GetVkBuffer(), sizeof(VertexShaderDynamicCBuffer));
     Tools::UpdateBufferDescriptorSet(mVertexShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
                                      mVertexShaderCBuffer.GetVkBuffer(), sizeof(VertexShaderCBuffer));
+    Tools::UpdateBufferDescriptorSet(mFragmentShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0,
+                                     mFragmentShaderLightCBuffer.GetVkBuffer(), sizeof(FragmentShaderLightCBuffer));
 
 
     mRenderFence = Tools::CreateFence();
@@ -203,6 +224,18 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
     buf.projMatrix = camera.GetProjection();
     mVertexShaderCBuffer.Write(&buf, sizeof(VertexShaderCBuffer));
 
+    FragmentShaderLightCBuffer lightBuf;
+
+    scene.ForEachLight([&lightBuf](const Scene::Object* o) -> bool {
+        // gather only first light's position for now
+        Scene::Light* l = dynamic_cast<Scene::Light*>(o->GetComponent());
+
+        lightBuf.pos = o->GetPosition();
+        lightBuf.diffuse = l->GetDiffuseIntensity();
+        return false;
+    });
+    mFragmentShaderLightCBuffer.Write(&lightBuf, sizeof(FragmentShaderLightCBuffer));
+
 
     // Rendering
     if (!mBackbuffer.AcquireNextImage())
@@ -214,12 +247,13 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
         mCommandBuffer.SetViewport(0, 0, mBackbuffer.GetWidth(), mBackbuffer.GetHeight(), 0.0f, 1.0f);
         mCommandBuffer.SetScissor(0, 0, mBackbuffer.GetWidth(), mBackbuffer.GetHeight());
 
-        float clearValue[] = {0.2f, 0.4f, 0.8f, 0.0f};
+        float clearValue[] = {0.0f, 0.0f, 0.0f, 0.0f};
         mCommandBuffer.BeginRenderPass(mRenderPass, &mFramebuffer,
                                        static_cast<ClearTypes>(ABENCH_CLEAR_COLOR | ABENCH_CLEAR_DEPTH), clearValue, 1.0f);
         mCommandBuffer.BindPipeline(&mPipeline);
+        mCommandBuffer.BindDescriptorSet(mFragmentShaderSet, 2, mPipelineLayout);
 
-        scene.ForEachObject([&](const Scene::Object* o) {
+        scene.ForEachObject([&](const Scene::Object* o) -> bool {
             if (o->GetComponent()->GetType() == Scene::ComponentType::Mesh)
             {
                 Scene::Mesh* mesh = dynamic_cast<Scene::Mesh*>(o->GetComponent());
@@ -228,10 +262,12 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
                     if (mesh->GetMaterial()->GetDescriptor() == VK_NULL_HANDLE)
                     {
                         LOGW("Rendered mesh " << mesh->GetName() << " has no texture - skipping");
-                        return;
+                        return true;
                     }
                     mCommandBuffer.BindDescriptorSet(mesh->GetMaterial()->GetDescriptor(), 1, mPipelineLayout);
                 }
+                else
+                    LOGW("Mesh " << mesh->GetName() << " has no material attached");
 
                 uint32_t offset = mRingBuffer.Write(&o->GetTransform(), sizeof(ABench::Math::Matrix));
                 mCommandBuffer.BindDescriptorSet(mVertexShaderSet, 0, mPipelineLayout, offset);
@@ -240,6 +276,8 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
                 mCommandBuffer.BindIndexBuffer(mesh->GetIndexBuffer());
                 mCommandBuffer.DrawIndexed(mesh->GetIndexCount());
             }
+
+            return true;
         });
 
         mCommandBuffer.EndRenderPass();

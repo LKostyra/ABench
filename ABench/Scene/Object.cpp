@@ -5,7 +5,8 @@ namespace ABench {
 namespace Scene {
 
 Object::Object()
-    : mTransform(ABench::Math::MATRIX_IDENTITY)
+    : mPosition(0.0f)
+    , mScale(1.0f)
     , mComponent(nullptr)
 {
 }

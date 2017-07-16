@@ -108,8 +108,14 @@ bool DescriptorLayoutManager::Init(const VkDevice device)
     if (mVertexShaderLayout == VK_NULL_HANDLE)
         return false;
 
+    std::vector<DescriptorSetLayoutDesc> fsTexLayoutDesc;
+    fsTexLayoutDesc.push_back({VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, mFragmentShaderSampler});
+    mFragmentShaderTextureLayout = CreateLayout(fsTexLayoutDesc);
+    if (mFragmentShaderTextureLayout == VK_NULL_HANDLE)
+        return false;
+
     std::vector<DescriptorSetLayoutDesc> fsLayoutDesc;
-    fsLayoutDesc.push_back({VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, mFragmentShaderSampler});
+    fsLayoutDesc.push_back({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, VK_NULL_HANDLE});
     mFragmentShaderLayout = CreateLayout(fsLayoutDesc);
     if (mFragmentShaderLayout == VK_NULL_HANDLE)
         return false;
@@ -123,6 +129,12 @@ void DescriptorLayoutManager::Release()
     {
         vkDestroyDescriptorSetLayout(mDevice, mFragmentShaderLayout, nullptr);
         mFragmentShaderLayout = VK_NULL_HANDLE;
+    }
+
+    if (mFragmentShaderTextureLayout != VK_NULL_HANDLE)
+    {
+        vkDestroyDescriptorSetLayout(mDevice, mFragmentShaderTextureLayout, nullptr);
+        mFragmentShaderTextureLayout = VK_NULL_HANDLE;
     }
 
     if (mVertexShaderLayout != VK_NULL_HANDLE)

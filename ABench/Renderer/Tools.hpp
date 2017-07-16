@@ -27,7 +27,7 @@ public:
     static VkFence CreateFence();
 
     // VkPipelineLayout creation, sets and setCount can be null/zero.
-    static VkPipelineLayout CreatePipelineLayout(VkDescriptorSetLayout* sets = nullptr, int setCount = 0);
+    static VkPipelineLayout CreatePipelineLayout(VkDescriptorSetLayout* sets = nullptr, uint32_t setCount = 0);
 
     // VkRenderPass creation
     static VkRenderPass CreateRenderPass(VkFormat colorFormat, VkFormat depthFormat);

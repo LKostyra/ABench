@@ -24,7 +24,7 @@ VkFence Tools::CreateFence()
     return fence;
 }
 
-VkPipelineLayout Tools::CreatePipelineLayout(VkDescriptorSetLayout* sets, int setCount)
+VkPipelineLayout Tools::CreatePipelineLayout(VkDescriptorSetLayout* sets, uint32_t setCount)
 {
     VkPipelineLayout layout = VK_NULL_HANDLE;
 

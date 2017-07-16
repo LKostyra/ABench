@@ -161,10 +161,11 @@ bool Device::Init(const Instance& inst)
     result = vkCreateCommandPool(mDevice, &poolInfo, nullptr, &mCommandPool);
     RETURN_FALSE_IF_FAILED(result, "Failed to create main Command Pool");
 
+
     // Descriptor Allocator
     DescriptorAllocatorDesc daDesc;
     ZERO_MEMORY(daDesc);
-    daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER] = 1;
+    daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER] = 2;
     daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC] = 1;
     daDesc.limits[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] = 1000;
     if (!mDescriptorAllocator.Init(mDevice, daDesc))

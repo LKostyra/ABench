@@ -7,6 +7,7 @@ enum class ComponentType: unsigned char
 {
     Invalid = 0,
     Mesh,
+    Light,
 };
 
 class Component

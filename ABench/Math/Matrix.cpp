@@ -67,7 +67,7 @@ Matrix::Matrix(Matrix&& other)
     std::swap(f, other.f);
 }
 
-const float* Matrix::Data() const
+float* Matrix::Data()
 {
     return f;
 }
@@ -377,6 +377,17 @@ Matrix CreateScaleMatrix(const float scaleX, const float scaleY, const float sca
     result.f[0] = scaleX;
     result.f[5] = scaleY;
     result.f[10] = scaleZ;
+
+    return result;
+}
+
+Matrix CreateScaleMatrix(const Vector& scale)
+{
+    Matrix result(MATRIX_IDENTITY);
+
+    result.f[0] = scale[0];
+    result.f[5] = scale[1];
+    result.f[10] = scale[2];
 
     return result;
 }

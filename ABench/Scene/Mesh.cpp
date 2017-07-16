@@ -65,6 +65,7 @@ bool Mesh::InitFromFBX(FbxMesh* mesh)
         LOGW("UVs are not generated on per-vertex basis.");
 
     // find normal layer
+    mesh->GenerateNormals(true, true);
     FbxLayerElementNormal* normals = nullptr;
     for (int l = 0; l < mesh->GetLayerCount(); ++l)
     {
@@ -79,33 +80,11 @@ bool Mesh::InitFromFBX(FbxMesh* mesh)
         return false;
     }
 
-    if (normals->GetMappingMode() != FbxLayerElement::eByPolygonVertex)
-    {
-        if (!mesh->GenerateNormals(true, true))
-        {
-            LOGE("Failed to regenerate normals by control point");
-            return false;
-        }
-
-        for (int l = 0; l < mesh->GetLayerCount(); ++l)
-        {
-            normals = mesh->GetLayer(l)->GetNormals();
-            if (normals)
-                break;
-        }
-
-        if (!normals)
-        {
-            LOGE("Mesh has no normals generated!");
-            return false;
-        }
-    }
-
     mName = mesh->GetName();
 
     std::vector<Vertex> vertices;
     Vertex vert;
-    memset(&vert, 0, sizeof(vert));
+    ZERO_MEMORY(vert);
     for (int p = 0; p < mesh->GetControlPointsCount(); ++p)
     {
         vert.pos[0] = static_cast<float>(mesh->GetControlPoints()[p].Buffer()[0]);
@@ -132,36 +111,48 @@ bool Mesh::InitDefault()
 {
     std::vector<Vertex> vertices
     {
-        { -0.5f,-0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f }, // 0        7----6
-        {  0.5f,-0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f }, // 1      3----2 |
-        {  0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f }, // 2      | 4--|-5
+        // front
+        { -0.5f,-0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f }, // 0        7----6
+        {  0.5f,-0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f }, // 1      3----2 |
+        {  0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f }, // 2      | 4--|-5
         { -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f }, // 3      0----1
 
-        { -0.5f,-0.5f,-0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f }, // 4
-        {  0.5f,-0.5f,-0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f }, // 5
-        {  0.5f, 0.5f,-0.5f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f }, // 6
-        { -0.5f, 0.5f,-0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f }, // 7
+        { -0.5f,-0.5f,-0.5f, 0.0f, 0.0f,-1.0f, 0.0f, 1.0f }, // 4
+        {  0.5f,-0.5f,-0.5f, 0.0f, 0.0f,-1.0f, 1.0f, 1.0f }, // 5
+        {  0.5f, 0.5f,-0.5f, 0.0f, 0.0f,-1.0f, 1.0f, 0.0f }, // 6
+        { -0.5f, 0.5f,-0.5f, 0.0f, 0.0f,-1.0f, 0.0f, 0.0f }, // 7
 
-        // duplicated side vertices to correct UV coordinates
-        { -0.5f,-0.5f,-0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f }, // 4
-        { -0.5f,-0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f }, // 0
-        { -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f }, // 3
-        { -0.5f, 0.5f,-0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f }, // 7
+        // side
+        { -0.5f,-0.5f,-0.5f,-1.0f, 0.0f, 0.0f, 0.0f, 0.0f }, // 4
+        { -0.5f,-0.5f, 0.5f,-1.0f, 0.0f, 0.0f, 1.0f, 0.0f }, // 0
+        { -0.5f, 0.5f, 0.5f,-1.0f, 0.0f, 0.0f, 1.0f, 1.0f }, // 3
+        { -0.5f, 0.5f,-0.5f,-1.0f, 0.0f, 0.0f, 0.0f, 1.0f }, // 7
 
-        {  0.5f,-0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f }, // 1
-        {  0.5f,-0.5f,-0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f }, // 5
-        {  0.5f, 0.5f,-0.5f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f }, // 6
-        {  0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f }, // 2
+        {  0.5f,-0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f }, // 1
+        {  0.5f,-0.5f,-0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f }, // 5
+        {  0.5f, 0.5f,-0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f }, // 6
+        {  0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f }, // 2
+
+        // top
+        { -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f }, // 3
+        {  0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f }, // 2
+        {  0.5f, 0.5f,-0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f }, // 6
+        { -0.5f, 0.5f,-0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f }, // 7
+
+        { -0.5f,-0.5f,-0.5f, 0.0f,-1.0f, 0.0f, 0.0f, 1.0f }, // 4
+        {  0.5f,-0.5f,-0.5f, 0.0f,-1.0f, 0.0f, 1.0f, 1.0f }, // 5
+        {  0.5f,-0.5f, 0.5f, 0.0f,-1.0f, 0.0f, 1.0f, 0.0f }, // 1
+        { -0.5f,-0.5f, 0.5f, 0.0f,-1.0f, 0.0f, 0.0f, 0.0f }, // 0
     };
 
     std::vector<int> indices
     {
         0, 1, 2, 0, 2, 3, // front
-        3, 2, 6, 3, 6, 7, // top
         7, 6, 5, 7, 5, 4, // back
-        4, 5, 1, 4, 1, 0, // bottom
         8, 9,10, 8,10,11, // left
        12,13,14,12,14,15, // right
+       16,17,18,16,18,19, // top
+       20,21,22,20,22,23, // bottom
     };
 
     return InitBuffers(vertices, indices.data(), static_cast<int>(indices.size()));

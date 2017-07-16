@@ -39,7 +39,7 @@ Vector::Vector(Vector&& other)
     std::swap(f, other.f);
 }
 
-const float* Vector::Data() const
+float* Vector::Data()
 {
     return f;
 }

@@ -40,7 +40,9 @@ class Renderer final
     VkFence mRenderFence;
 
     VkDescriptorSet mVertexShaderSet;
+    VkDescriptorSet mFragmentShaderSet;
     Buffer mVertexShaderCBuffer;
+    Buffer mFragmentShaderLightCBuffer;
 
 public:
     Renderer();

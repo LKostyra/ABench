@@ -7,6 +7,7 @@
 #include "Math/Matrix.hpp"
 #include "Scene/Camera.hpp"
 #include "Scene/Mesh.hpp"
+#include "Scene/Light.hpp"
 #include "Scene/Scene.hpp"
 
 #include "ResourceDir.hpp"
@@ -14,6 +15,8 @@
 
 uint32_t windowWidth = 1280;
 uint32_t windowHeight = 720;
+ABench::Scene::Light* gLight;
+ABench::Scene::Object* gLightObj;
 
 class ABenchWindow: public ABench::Common::Window
 {
@@ -47,8 +50,8 @@ class ABenchWindow: public ABench::Common::Window
         if (IsKeyPressed(ABench::Common::KeyCode::S)) newPos -= cameraFrontDir;
         if (IsKeyPressed(ABench::Common::KeyCode::D)) newPos += cameraRightDir;
         if (IsKeyPressed(ABench::Common::KeyCode::A)) newPos -= cameraRightDir;
-        if (IsKeyPressed(ABench::Common::KeyCode::R)) newPos += cameraUpDir;
-        if (IsKeyPressed(ABench::Common::KeyCode::F)) newPos -= cameraUpDir;
+        if (IsKeyPressed(ABench::Common::KeyCode::R)) newPos -= cameraUpDir;
+        if (IsKeyPressed(ABench::Common::KeyCode::F)) newPos += cameraUpDir;
 
         // new direction
         ABench::Math::Vector updateDir;
@@ -64,6 +67,17 @@ class ABenchWindow: public ABench::Common::Window
         desc.at = desc.pos + updateDir;
         desc.up = mCamera.GetUpVector();
         mCamera.Update(desc);
+
+        // Light
+        ABench::Math::Vector lightNewPos;
+        float lightSpeed = 2.0f;
+        if (IsKeyPressed(ABench::Common::KeyCode::I)) lightNewPos.Data()[0] += lightSpeed;
+        if (IsKeyPressed(ABench::Common::KeyCode::K)) lightNewPos.Data()[0] -= lightSpeed;
+        if (IsKeyPressed(ABench::Common::KeyCode::L)) lightNewPos.Data()[2] += lightSpeed;
+        if (IsKeyPressed(ABench::Common::KeyCode::J)) lightNewPos.Data()[2] -= lightSpeed;
+        if (IsKeyPressed(ABench::Common::KeyCode::U)) lightNewPos.Data()[1] += lightSpeed;
+        if (IsKeyPressed(ABench::Common::KeyCode::O)) lightNewPos.Data()[1] -= lightSpeed;
+        gLightObj->SetPosition(gLightObj->GetPosition() + (lightNewPos * deltaTime));
     }
 
     void OnMouseMove(int x, int y, int deltaX, int deltaY) override
@@ -138,6 +152,14 @@ int main()
     ABench::Scene::Object* obj = scene.CreateObject();
     obj->SetComponent(mesh);
     obj->SetPosition(0.0f, 1.0f, 0.0f);
+
+    auto lightResult = scene.GetComponent(ABench::Scene::ComponentType::Light, "light");
+    gLight = dynamic_cast<ABench::Scene::Light*>(lightResult.first);
+    gLight->SetDiffuseIntensity(ABench::Math::Vector(1.0f, 1.0f, 1.0f, 1.0f));
+
+    gLightObj = scene.CreateObject();
+    gLightObj->SetComponent(gLight);
+    gLightObj->SetPosition(3.0f, 3.0f, 0.0f);
 
     ABench::Common::Timer timer;
     timer.Start();

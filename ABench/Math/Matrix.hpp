@@ -8,7 +8,7 @@ namespace Math {
 class Matrix
 {
 public:
-    const float* Data() const;
+    float* Data();
 
     Matrix();
     Matrix(float a);
@@ -69,6 +69,7 @@ public:
     friend Matrix CreateTranslationMatrix(const Vector& translation);
     friend Matrix CreateScaleMatrix(const float scale);
     friend Matrix CreateScaleMatrix(const float scaleX, const float scaleY, const float scaleZ);
+    friend Matrix CreateScaleMatrix(const Vector& scale);
 
 private:
     float f[4 * 4];
@@ -89,6 +90,7 @@ Matrix CreateRotationMatrixZ(const float angle);
 Matrix CreateTranslationMatrix(const Vector& translation);
 Matrix CreateScaleMatrix(const float scale);
 Matrix CreateScaleMatrix(const float scaleX, const float scaleY, const float scaleZ);
+Matrix CreateScaleMatrix(const Vector& scale);
 
 // Matrix constants
 const Matrix MATRIX_IDENTITY(1.0f, 0.0f, 0.0f, 0.0f,

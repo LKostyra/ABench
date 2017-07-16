@@ -8,7 +8,7 @@ namespace Math {
 class Vector
 {
 public:
-    const float* Data() const;
+    float* Data();
 
     float Length() const;
     void Normalize();

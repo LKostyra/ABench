@@ -123,12 +123,27 @@ GetResult<Component> Scene::GetMeshComponent(const std::string& name)
     return std::make_pair(mesh->second.get(), created);
 }
 
+GetResult<Component> Scene::GetLightComponent(const std::string& name)
+{
+    bool created = false;
+    auto light = mLightComponents.find(name);
+    if (light == mLightComponents.end())
+    {
+        light = mLightComponents.insert(std::make_pair(name, std::make_unique<Light>(name))).first;
+        created = true;
+    }
+
+    return std::make_pair(light->second.get(), created);
+}
+
 GetResult<Component> Scene::GetComponent(ComponentType type, const std::string& name)
 {
     switch (type)
     {
     case ComponentType::Mesh:
         return GetMeshComponent(name);
+    case ComponentType::Light:
+        return GetLightComponent(name);
     default:
         LOGE("Unknown component type provided to get");
         return std::make_pair(nullptr, false);
@@ -148,10 +163,19 @@ GetResult<Material> Scene::GetMaterial(const std::string& name)
     return std::make_pair(mat->second.get(), created);
 }
 
-void Scene::ForEachObject(ObjectCallback func) const
+void Scene::ForEachLight(Callback<Object> func) const
+{
+    for (auto& l: mObjects)
+        if (l.GetComponent()->GetType() == ComponentType::Light)
+            if (!func(&l))
+                return;
+}
+
+void Scene::ForEachObject(Callback<Object> func) const
 {
     for (auto& o: mObjects)
-        func(&o);
+        if (!func(&o))
+            return;
 }
 
 } // namespace Scene
