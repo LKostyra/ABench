@@ -160,6 +160,7 @@
     <ClCompile Include="..\ABench\Common\FBXFile.cpp" />
     <ClCompile Include="..\ABench\Common\Win\Common.cpp" />
     <ClCompile Include="..\ABench\Common\Win\Logger.cpp" />
+    <ClCompile Include="..\ABench\Common\Win\Timer.cpp" />
     <ClCompile Include="..\ABench\Math\Vector.cpp" />
     <ClCompile Include="Main.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
@@ -178,6 +179,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="Tests\FBXFileTest.cpp" />
+    <ClCompile Include="Tests\SortTest.cpp" />
     <ClCompile Include="Tests\VectorTest.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -20,3 +20,6 @@
 #include <vector>
 #include <memory>
 #include <functional>
+#include <random>
+#include <algorithm>
+#include <iterator>

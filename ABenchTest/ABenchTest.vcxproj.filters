@@ -21,6 +21,12 @@
     <ClCompile Include="..\ABench\Common\Win\Common.cpp">
       <Filter>Modules\Win</Filter>
     </ClCompile>
+    <ClCompile Include="Tests\SortTest.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ABench\Common\Win\Timer.cpp">
+      <Filter>Modules\Win</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Tests">

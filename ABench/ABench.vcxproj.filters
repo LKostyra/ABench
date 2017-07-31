@@ -132,6 +132,9 @@
     <ClCompile Include="Scene\Light.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
+    <ClCompile Include="Math\SortImpl.hpp">
+      <Filter>Math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\Window.hpp">
@@ -250,6 +253,9 @@
     <ClInclude Include="ResourceDir.hpp" />
     <ClInclude Include="Scene\Light.hpp">
       <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Sort.hpp">
+      <Filter>Math</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -192,6 +192,7 @@ copy /B $(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll $(Targ
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
     </ClCompile>
+    <ClInclude Include="Math\SortImpl.hpp" />
     <ClCompile Include="Math\Vector.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PCH.hpp</PrecompiledHeaderFile>
@@ -338,6 +339,7 @@ copy /B $(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll $(Targ
     <ClInclude Include="Common\Window.hpp" />
     <ClInclude Include="Math\Common.hpp" />
     <ClInclude Include="Math\Matrix.hpp" />
+    <ClInclude Include="Math\Sort.hpp" />
     <ClInclude Include="Math\Vector.hpp" />
     <ClInclude Include="PCH.hpp" />
     <ClInclude Include="Prerequisites.hpp" />
