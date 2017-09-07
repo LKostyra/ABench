@@ -101,8 +101,8 @@
       <AdditionalDependencies>libfbxsdk-md.lib;libfbxsdk.lib;FreeImage.lib;glslangd.lib;OSDependentd.lib;OGLCompilerd.lib;SPIRVd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /B $(SolutionDir)Deps\fbxsdk\lib\vs2015\$(PlatformTarget)\$(Configuration)\libfbxsdk.dll $(TargetDir)
-copy /B $(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll $(TargetDir)</Command>
+      <Command>copy /B "$(SolutionDir)Deps\fbxsdk\lib\vs2015\$(PlatformTarget)\$(Configuration)\libfbxsdk.dll" "$(TargetDir)"
+copy /B "$(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll" "$(TargetDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -122,8 +122,8 @@ copy /B $(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll $(Targ
       <AdditionalDependencies>libfbxsdk-md.lib;libfbxsdk.lib;FreeImage.lib;glslangd.lib;OSDependentd.lib;OGLCompilerd.lib;SPIRVd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /B $(SolutionDir)Deps\fbxsdk\lib\vs2015\$(PlatformTarget)\$(Configuration)\libfbxsdk.dll $(TargetDir)
-copy /B $(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll $(TargetDir)</Command>
+      <Command>copy /B "$(SolutionDir)Deps\fbxsdk\lib\vs2015\$(PlatformTarget)\$(Configuration)\libfbxsdk.dll" "$(TargetDir)"
+copy /B "$(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll" "$(TargetDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -147,8 +147,8 @@ copy /B $(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll $(Targ
       <AdditionalDependencies>libfbxsdk-md.lib;libfbxsdk.lib;FreeImage.lib;glslang.lib;OSDependent.lib;OGLCompiler.lib;SPIRV.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /B $(SolutionDir)Deps\fbxsdk\lib\vs2015\$(PlatformTarget)\$(Configuration)\libfbxsdk.dll $(TargetDir)
-copy /B $(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll $(TargetDir)</Command>
+      <Command>copy /B "$(SolutionDir)Deps\fbxsdk\lib\vs2015\$(PlatformTarget)\$(Configuration)\libfbxsdk.dll" "$(TargetDir)"
+copy /B "$(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll" "$(TargetDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -172,8 +172,8 @@ copy /B $(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll $(Targ
       <AdditionalDependencies>libfbxsdk-md.lib;libfbxsdk.lib;FreeImage.lib;glslang.lib;OSDependent.lib;OGLCompiler.lib;SPIRV.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /B $(SolutionDir)Deps\fbxsdk\lib\vs2015\$(PlatformTarget)\$(Configuration)\libfbxsdk.dll $(TargetDir)
-copy /B $(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll $(TargetDir)</Command>
+      <Command>copy /B "$(SolutionDir)Deps\fbxsdk\lib\vs2015\$(PlatformTarget)\$(Configuration)\libfbxsdk.dll" "$(TargetDir)"
+copy /B "$(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll" "$(TargetDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -255,6 +255,7 @@ copy /B $(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll $(Targ
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="Renderer\MultiPipeline.cpp" />
     <ClCompile Include="Renderer\Pipeline.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PCH.hpp</PrecompiledHeaderFile>
@@ -279,6 +280,7 @@ copy /B $(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll $(Targ
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="Renderer\ShaderMacroDefinitions.cpp" />
     <ClCompile Include="Renderer\Texture.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PCH.hpp</PrecompiledHeaderFile>
@@ -353,10 +355,12 @@ copy /B $(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll $(Targ
     <ClInclude Include="Renderer\Extensions.hpp" />
     <ClInclude Include="Renderer\Framebuffer.hpp" />
     <ClInclude Include="Renderer\Instance.hpp" />
+    <ClInclude Include="Renderer\MultiPipeline.hpp" />
     <ClInclude Include="Renderer\Pipeline.hpp" />
     <ClInclude Include="Renderer\Renderer.hpp" />
     <ClInclude Include="Renderer\RingBuffer.hpp" />
     <ClInclude Include="Renderer\Shader.hpp" />
+    <ClInclude Include="Renderer\ShaderMacroDefinitions.hpp" />
     <ClInclude Include="Renderer\Texture.hpp" />
     <ClInclude Include="Renderer\Tools.hpp" />
     <ClInclude Include="Renderer\Translations.hpp" />

@@ -16,6 +16,7 @@ Pipeline::Pipeline()
 
 Pipeline::~Pipeline()
 {
+    LOGD("Destroying Pipeline " << std::hex << mPipeline);
     if (mPipeline != VK_NULL_HANDLE)
         vkDestroyPipeline(gDevice->GetDevice(), mPipeline, nullptr);
 }
@@ -68,10 +69,15 @@ VkPipelineVertexInputStateCreateInfo Pipeline::BuildVertexInputStateInfo(const P
     VkPipelineVertexInputStateCreateInfo info;
     ZERO_MEMORY(info);
     info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    info.vertexAttributeDescriptionCount = static_cast<uint32_t>(desc.vertexLayout->mAttributes.size());
-    info.pVertexAttributeDescriptions = desc.vertexLayout->mAttributes.data();
-    info.vertexBindingDescriptionCount = static_cast<uint32_t>(desc.vertexLayout->mBindings.size());
-    info.pVertexBindingDescriptions = desc.vertexLayout->mBindings.data();
+
+    if (desc.vertexLayout)
+    {
+        info.vertexAttributeDescriptionCount = static_cast<uint32_t>(desc.vertexLayout->mAttributes.size());
+        info.pVertexAttributeDescriptions = desc.vertexLayout->mAttributes.data();
+        info.vertexBindingDescriptionCount = static_cast<uint32_t>(desc.vertexLayout->mBindings.size());
+        info.pVertexBindingDescriptions = desc.vertexLayout->mBindings.data();
+    }
+
     return info;
 }
 
@@ -214,6 +220,13 @@ bool Pipeline::Init(const PipelineDesc& desc)
     pipeInfo.layout = desc.pipelineLayout;
     pipeInfo.renderPass = desc.renderPass;
     pipeInfo.subpass = 0;
+    pipeInfo.flags = desc.flags;
+    if (desc.flags & VK_PIPELINE_CREATE_DERIVATIVE_BIT)
+    {
+        pipeInfo.basePipelineHandle = desc.basePipeline;
+        pipeInfo.basePipelineIndex = -1;
+    }
+
     VkResult result = vkCreateGraphicsPipelines(gDevice->GetDevice(), VK_NULL_HANDLE, 1,
                                                 &pipeInfo, nullptr, &mPipeline);
     RETURN_FALSE_IF_FAILED(result, "Failed to create a Graphics Pipeline");

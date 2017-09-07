@@ -17,22 +17,23 @@ Material::~Material()
 
 bool Material::CreateRendererTexture(const std::string& image, VkImageUsageFlags usage)
 {
-    if (!mDiffuseImage.Init(image, true))
+    Common::Image diffuseImage;
+    if (!diffuseImage.Init(image, true))
         return false;
 
     std::vector<Renderer::TextureDataDesc> textures;
-    textures.reserve(mDiffuseImage.GetMipmapCount());
-    for (uint32_t i = 0; i < mDiffuseImage.GetMipmapCount(); ++i)
-        textures.emplace_back(mDiffuseImage.GetSubimageData(i), mDiffuseImage.GetSubimageSize(i));
+    textures.reserve(diffuseImage.GetMipmapCount());
+    for (uint32_t i = 0; i < diffuseImage.GetMipmapCount(); ++i)
+        textures.emplace_back(diffuseImage.GetSubimageData(i), diffuseImage.GetSubimageSize(i));
 
     Renderer::TextureDesc texDesc;
-    texDesc.width = mDiffuseImage.GetWidth();
-    texDesc.height = mDiffuseImage.GetHeight();
+    texDesc.width = diffuseImage.GetWidth();
+    texDesc.height = diffuseImage.GetHeight();
     texDesc.usage = usage;
     texDesc.data = textures.data();
     texDesc.mipmapCount = static_cast<uint32_t>(textures.size());
 
-    switch (mDiffuseImage.GetColorType())
+    switch (diffuseImage.GetColorType())
     {
     case FIC_RGBALPHA:
         texDesc.format = VK_FORMAT_B8G8R8A8_UNORM;
@@ -47,14 +48,19 @@ bool Material::CreateRendererTexture(const std::string& image, VkImageUsageFlags
 
 bool Material::Init(const MaterialDesc& desc)
 {
-
     if (desc.diffusePath.empty())
     {
         LOGE("Diffuse texture is required");
         return false;
     }
 
-    return CreateRendererTexture(desc.diffusePath, VK_IMAGE_USAGE_SAMPLED_BIT);
+    if (!CreateRendererTexture(desc.diffusePath, VK_IMAGE_USAGE_SAMPLED_BIT))
+    {
+        LOGE("Failed to create diffuse texture for material " << mMaterialName);
+        return false;
+    }
+
+    return true;
 }
 
 } // namespace Scene

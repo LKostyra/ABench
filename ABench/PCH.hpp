@@ -20,6 +20,9 @@
 // FreeImage
 #include <FreeImage.h>
 
+// C library
+#include <cassert>
+
 // STL
 #include <string>
 #include <sstream>
@@ -31,3 +34,4 @@
 #include <functional>
 #include <type_traits>
 #include <unordered_map>
+#include <map>

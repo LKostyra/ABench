@@ -19,10 +19,36 @@ enum class ShaderType: unsigned char
     COMPUTE
 };
 
+struct ShaderMacroDesc
+{
+    std::string name;
+    uint32_t value;
+
+    bool operator<(const ShaderMacroDesc& b) const
+    {
+        return this->value < b.value;
+    }
+
+    ShaderMacroDesc()
+        : name()
+        , value(0)
+    {
+    }
+
+    ShaderMacroDesc(const std::string& name, uint32_t value)
+        : name(name)
+        , value(value)
+    {
+    }
+};
+
+using ShaderMacros = std::vector<ShaderMacroDesc>;
+
 struct ShaderDesc
 {
     ShaderType type;
     std::string filename;
+    std::vector<ShaderMacroDesc> macros;
 };
 
 class Shader
@@ -31,7 +57,8 @@ class Shader
 
     VkShaderModule mShaderModule;
 
-    bool CompileToFile(ShaderType type, const std::string& filename, std::vector<uint32_t>& code);
+    bool CompileToFile(ShaderType type, const std::string& shaderFile, const std::string& spvShaderFile,
+                       const ShaderMacros& macros, std::vector<uint32_t>& code);
     bool CreateVkShaderModule(const std::vector<uint32_t>& code);
 
 public:
@@ -40,6 +67,8 @@ public:
 
     bool Init(const ShaderDesc& desc);
 };
+
+using ShaderPtr = std::shared_ptr<Shader>;
 
 } // namespace Renderer
 } // namespace ABench

@@ -92,9 +92,9 @@ void CommandBuffer::BindIndexBuffer(const Buffer* buffer)
     vkCmdBindIndexBuffer(mCommandBuffer, buffer->mBuffer, 0, VK_INDEX_TYPE_UINT32);
 }
 
-void CommandBuffer::BindPipeline(Pipeline* pipeline)
+void CommandBuffer::BindPipeline(VkPipeline pipeline)
 {
-    vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->mPipeline);
+    vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 }
 
 void CommandBuffer::BindDescriptorSet(VkDescriptorSet set, uint32_t setSlot, VkPipelineLayout layout)

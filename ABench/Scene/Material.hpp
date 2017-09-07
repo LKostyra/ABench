@@ -11,7 +11,7 @@ struct MaterialDesc
 {
     std::string materialName;
     std::string diffusePath;
-    // TODO place for normal map, specular map and else
+    // TODO place for any other needed textures
 };
 
 class Material
@@ -20,7 +20,6 @@ class Material
 
     std::string mMaterialName;
 
-    Common::Image mDiffuseImage;
     Renderer::Texture mDiffuseTexture;
 
     bool CreateRendererTexture(const std::string& image, VkImageUsageFlags usage);

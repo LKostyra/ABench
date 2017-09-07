@@ -152,7 +152,8 @@ Shader::~Shader()
         vkDestroyShaderModule(gDevice->GetDevice(), mShaderModule, nullptr);
 }
 
-bool Shader::CompileToFile(ShaderType type, const std::string& filename, std::vector<uint32_t>& code)
+bool Shader::CompileToFile(ShaderType type, const std::string& shaderFile, const std::string& spvShaderFile,
+                           const ShaderMacros& macros, std::vector<uint32_t>& code)
 {
     EShLanguage lang = GetShaderLanguage(type);
     if (lang == EShLangCount)
@@ -160,19 +161,18 @@ bool Shader::CompileToFile(ShaderType type, const std::string& filename, std::ve
         LOGE("Incorrect shader type provided");
         return false;
     }
-
-    std::string shaderFile = Common::FS::JoinPaths(ResourceDir::SHADERS, filename);
-    std::string spvShaderFile = shaderFile + ".spv";
-
     std::ifstream glslSource(shaderFile, std::ifstream::in);
     if (!glslSource.good())
     {
-        LOGE("Failed to open GLSL source file " << filename);
+        LOGE("Failed to open GLSL source file " << shaderFile);
         return false;
     }
 
     std::string shaderHead = SHADER_HEADER_START;
-    // TODO macros
+    for (auto& macro: macros)
+    {
+        shaderHead += DEFINE_STR + macro.name + " " + std::to_string(macro.value) + "\n";
+    }
     shaderHead += SHADER_HEADER_TAIL;
 
     std::string shaderCode((std::istreambuf_iterator<char>(glslSource)), std::istreambuf_iterator<char>());
@@ -193,7 +193,7 @@ bool Shader::CompileToFile(ShaderType type, const std::string& filename, std::ve
     EShMessages msg = static_cast<EShMessages>(EShMsgSpvRules | EShMsgVulkanRules);
     if (!shader->parse(&DEFAULT_LIMITS, DEFAULT_VERSION, false, msg))
     {
-        LOGE("Failed to parse shader file " << filename << ":");
+        LOGE("Failed to parse shader file " << shaderFile << ":");
         std::stringstream log(shader->getInfoLog());
         for (std::string line; std::getline(log, line); )
         {
@@ -212,7 +212,7 @@ bool Shader::CompileToFile(ShaderType type, const std::string& filename, std::ve
     program->addShader(shader.get());
     if (!program->link(msg))
     {
-        LOGE("Failed to link shader " << filename << ":");
+        LOGE("Failed to link shader " << shaderFile << ":");
         std::stringstream log(program->getInfoLog());
         for (std::string line; std::getline(log, line); )
         {
@@ -235,7 +235,7 @@ bool Shader::CompileToFile(ShaderType type, const std::string& filename, std::ve
     std::string logs = spvLogger.getAllMessages();
     if (!logs.empty())
     {
-        LOGW("GlslangToSpv returned some messages for shader " << filename << ":\n" << spvLogger.getAllMessages());
+        LOGW("GlslangToSpv returned some messages for shader " << shaderFile << ":\n" << spvLogger.getAllMessages());
         return false;
     }
 
@@ -243,7 +243,7 @@ bool Shader::CompileToFile(ShaderType type, const std::string& filename, std::ve
     std::ofstream spvFile(spvShaderFile, std::ofstream::out | std::ofstream::binary);
     if (!spvFile)
     {
-        LOGE("Unable to open SPV shader file " << filename << ".spv for writing");
+        LOGE("Unable to open SPV shader file " << shaderFile << ".spv for writing");
         return false;
     }
 
@@ -270,13 +270,24 @@ bool Shader::Init(const ShaderDesc& desc)
     std::vector<uint32_t> code;
 
     std::string shaderPath(Common::FS::JoinPaths(ResourceDir::SHADERS, desc.filename));
-    std::string spvShaderPath(shaderPath + ".spv");
+    std::string spvShaderPath = shaderPath;
+    if (!desc.macros.empty())
+    {
+        spvShaderPath += ".";
+        for (auto& m: desc.macros)
+        {
+            std::stringstream macroSS;
+            macroSS << std::hex << m.value;
+            spvShaderPath += macroSS.str();
+        }
+    }
+    spvShaderPath += ".spv";
 
     if (!Common::FS::Exists(spvShaderPath))
     {
         LOGW("Generating SPV version of shader file " << desc.filename);
 
-        if (!CompileToFile(desc.type, desc.filename, code))
+        if (!CompileToFile(desc.type, shaderPath, spvShaderPath, desc.macros, code))
         {
             LOGE("Failed to compile shader to SPIRV");
             return false;
@@ -292,7 +303,7 @@ bool Shader::Init(const ShaderDesc& desc)
             return false;
         }
 
-        if (!CompileToFile(desc.type, desc.filename, code))
+        if (!CompileToFile(desc.type, shaderPath, spvShaderPath, desc.macros, code))
         {
             LOGE("Failed to compile shader to SPIRV");
             return false;

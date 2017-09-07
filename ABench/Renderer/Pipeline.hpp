@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Prerequisites.hpp"
+#include "Common/Common.hpp"
 #include "Device.hpp"
 #include "Shader.hpp"
 #include "VertexLayout.hpp"
@@ -21,6 +22,8 @@ struct PipelineDesc
     VkPrimitiveTopology topology;
     VkRenderPass renderPass;
     VkPipelineLayout pipelineLayout;
+    VkPipelineCreateFlags flags;
+    VkPipeline basePipeline;
 
     bool enableDepth;
 
@@ -35,6 +38,8 @@ struct PipelineDesc
         , renderPass(VK_NULL_HANDLE)
         , pipelineLayout(VK_NULL_HANDLE)
         , enableDepth(false)
+        , flags(0)
+        , basePipeline(VK_NULL_HANDLE)
     {
     }
 };
@@ -59,7 +64,14 @@ public:
     ~Pipeline();
 
     bool Init(const PipelineDesc& desc);
+
+    ABENCH_INLINE VkPipeline GetPipeline() const
+    {
+        return mPipeline;
+    }
 };
+
+using PipelinePtr = std::shared_ptr<Pipeline>;
 
 } // namespace Renderer
 } // namespace ABench

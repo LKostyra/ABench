@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstring>
+#include "Common/Logger.hpp"
 
 // Common defines
 #define ZERO_MEMORY(x) memset(&x, 0, sizeof(x))
@@ -13,6 +14,13 @@
 #else
 #error "Target platform not supported"
 #endif
+
+#define ASSERT(exp, msg) \
+    if (!exp) \
+    { \
+        LOGE("Assertion " << #exp << " failed: " << msg); \
+        assert(exp); \
+    }
 
 namespace ABench {
 namespace Common {

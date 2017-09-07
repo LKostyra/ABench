@@ -4,6 +4,7 @@
 #include "Extensions.hpp"
 #include "Tools.hpp"
 #include "DescriptorLayoutManager.hpp"
+#include "ShaderMacroDefinitions.hpp"
 
 #include "Common/Logger.hpp"
 #include "Math/Matrix.hpp"
@@ -139,16 +140,6 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (!mVertexLayout.Init(vlDesc))
         return false;
 
-    ShaderDesc shaderDesc;
-    shaderDesc.type = ShaderType::VERTEX;
-    shaderDesc.filename = "shader.vert";
-    if (!mVertexShader.Init(shaderDesc))
-        return false;
-    shaderDesc.type = ShaderType::FRAGMENT;
-    shaderDesc.filename = "shader.frag";
-    if (!mFragmentShader.Init(shaderDesc))
-        return false;
-
     if (!DescriptorLayoutManager::Instance().Init(mDevice.GetDevice()))
         return false;
 
@@ -169,15 +160,23 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (mFragmentShaderSet == VK_NULL_HANDLE)
         return false;
 
+
     PipelineDesc pipeDesc;
-    pipeDesc.vertexShader = &mVertexShader;
-    pipeDesc.fragmentShader = &mFragmentShader;
     pipeDesc.vertexLayout = &mVertexLayout;
     pipeDesc.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     pipeDesc.renderPass = mRenderPass;
     pipeDesc.pipelineLayout = mPipelineLayout;
     pipeDesc.enableDepth = true;
-    mPipeline.Init(pipeDesc);
+
+    MultiPipelineDesc mpDesc;
+    mpDesc.vertexShader.path = "shader.vert";
+    mpDesc.fragmentShader.path = "shader.frag";
+    mpDesc.fragmentShader.macros = { { ShaderMacro::HAS_TEXTURE, 1 } };
+    mpDesc.pipelineDesc = pipeDesc;
+
+    if (!mPipeline.Init(mpDesc))
+        return false;
+
 
     if (!mCommandBuffer.Init())
         return false;
@@ -250,8 +249,10 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
         float clearValue[] = {0.0f, 0.0f, 0.0f, 0.0f};
         mCommandBuffer.BeginRenderPass(mRenderPass, &mFramebuffer,
                                        static_cast<ClearTypes>(ABENCH_CLEAR_COLOR | ABENCH_CLEAR_DEPTH), clearValue, 1.0f);
-        mCommandBuffer.BindPipeline(&mPipeline);
         mCommandBuffer.BindDescriptorSet(mFragmentShaderSet, 2, mPipelineLayout);
+
+        MultiPipelineShaderMacros macros;
+        macros.fragmentShader = { { ShaderMacro::HAS_TEXTURE, 0 } };
 
         scene.ForEachObject([&](const Scene::Object* o) -> bool {
             if (o->GetComponent()->GetType() == Scene::ComponentType::Mesh)
@@ -261,13 +262,20 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
                 {
                     if (mesh->GetMaterial()->GetDescriptor() == VK_NULL_HANDLE)
                     {
-                        LOGW("Rendered mesh " << mesh->GetName() << " has no texture - skipping");
-                        return true;
+                        // tell shader we don't have texture attached
+                        macros.fragmentShader[0].value = 0;
                     }
-                    mCommandBuffer.BindDescriptorSet(mesh->GetMaterial()->GetDescriptor(), 1, mPipelineLayout);
+                    else
+                    {
+                        // tell shader we have a texture and bind it
+                        macros.fragmentShader[0].value = 1;
+                        mCommandBuffer.BindDescriptorSet(mesh->GetMaterial()->GetDescriptor(), 1, mPipelineLayout);
+                    }
                 }
                 else
-                    LOGW("Mesh " << mesh->GetName() << " has no material attached");
+                    LOGW("Rendered mesh " << mesh->GetName() << " has no material attached");
+
+                mCommandBuffer.BindPipeline(mPipeline.GetPipelineWithShaders(macros));
 
                 uint32_t offset = mRingBuffer.Write(&o->GetTransform(), sizeof(ABench::Math::Matrix));
                 mCommandBuffer.BindDescriptorSet(mVertexShaderSet, 0, mPipelineLayout, offset);

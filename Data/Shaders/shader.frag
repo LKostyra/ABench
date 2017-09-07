@@ -28,5 +28,9 @@ void main()
 
     color += coeff * lightCBuffer.diffuse * (5.0 / (distance * distance));
 
+#if HAS_TEXTURE == 0
+    color *= vec4(0.3, 0.6, 0.9, 1.0);
+#else
     color *= texture(tex, VertUV);
+#endif
 }

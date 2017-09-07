@@ -10,6 +10,7 @@
 #include "CommandBuffer.hpp"
 #include "VertexLayout.hpp"
 #include "RingBuffer.hpp"
+#include "MultiPipeline.hpp"
 
 #include "Common/Window.hpp"
 
@@ -29,9 +30,7 @@ class Renderer final
     Texture mDepthTexture;
     Framebuffer mFramebuffer;
     VertexLayout mVertexLayout;
-    Shader mVertexShader;
-    Shader mFragmentShader;
-    Pipeline mPipeline;
+    MultiPipeline mPipeline;
     CommandBuffer mCommandBuffer;
     RingBuffer mRingBuffer;
 

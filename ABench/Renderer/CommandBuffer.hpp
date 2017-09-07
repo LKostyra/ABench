@@ -34,7 +34,7 @@ public:
     void BeginRenderPass(VkRenderPass rp, Framebuffer* fb, ClearTypes types, float clearValues[4], float depthValue = 0.0f);
     void BindVertexBuffer(const Buffer* buffer);
     void BindIndexBuffer(const Buffer* buffer);
-    void BindPipeline(Pipeline* pipeline);
+    void BindPipeline(VkPipeline pipeline);
     void BindDescriptorSet(VkDescriptorSet set, uint32_t setSlot, VkPipelineLayout layout);
     void BindDescriptorSet(VkDescriptorSet set, uint32_t setSlot, VkPipelineLayout layout, uint32_t dynamicOffset);
     void Clear(ClearTypes types, float clearValues[4], float depthValue);
