@@ -23,6 +23,7 @@ class ABenchWindow: public ABench::Common::Window
     ABench::Scene::Camera mCamera;
     float mAngleX = 0.0f;
     float mAngleY = 0.0f;
+    bool mLightFollowsCamera = false;
 
     void OnOpen() override
     {
@@ -71,13 +72,22 @@ class ABenchWindow: public ABench::Common::Window
         // Light
         ABench::Math::Vector lightNewPos;
         float lightSpeed = 2.0f;
-        if (IsKeyPressed(ABench::Common::KeyCode::I)) lightNewPos.Data()[0] += lightSpeed;
-        if (IsKeyPressed(ABench::Common::KeyCode::K)) lightNewPos.Data()[0] -= lightSpeed;
-        if (IsKeyPressed(ABench::Common::KeyCode::L)) lightNewPos.Data()[2] += lightSpeed;
-        if (IsKeyPressed(ABench::Common::KeyCode::J)) lightNewPos.Data()[2] -= lightSpeed;
-        if (IsKeyPressed(ABench::Common::KeyCode::U)) lightNewPos.Data()[1] += lightSpeed;
-        if (IsKeyPressed(ABench::Common::KeyCode::O)) lightNewPos.Data()[1] -= lightSpeed;
-        gLightObj->SetPosition(gLightObj->GetPosition() + (lightNewPos * deltaTime));
+        
+        if (mLightFollowsCamera)
+        {
+            lightNewPos = mCamera.GetPosition();
+            gLightObj->SetPosition(lightNewPos);
+        }
+        else
+        {
+            if (IsKeyPressed(ABench::Common::KeyCode::I)) lightNewPos.Data()[0] += lightSpeed;
+            if (IsKeyPressed(ABench::Common::KeyCode::K)) lightNewPos.Data()[0] -= lightSpeed;
+            if (IsKeyPressed(ABench::Common::KeyCode::L)) lightNewPos.Data()[2] += lightSpeed;
+            if (IsKeyPressed(ABench::Common::KeyCode::J)) lightNewPos.Data()[2] -= lightSpeed;
+            if (IsKeyPressed(ABench::Common::KeyCode::U)) lightNewPos.Data()[1] += lightSpeed;
+            if (IsKeyPressed(ABench::Common::KeyCode::O)) lightNewPos.Data()[1] -= lightSpeed;
+            gLightObj->SetPosition(gLightObj->GetPosition() + (lightNewPos * deltaTime));
+        }
     }
 
     void OnMouseMove(int x, int y, int deltaX, int deltaY) override
@@ -90,6 +100,12 @@ class ABenchWindow: public ABench::Common::Window
             mAngleX += deltaX * 0.005f;
             mAngleY += deltaY * 0.005f;
         }
+    }
+
+    void OnKeyDown(ABench::Common::KeyCode key)
+    {
+        if (key == ABench::Common::KeyCode::T)
+            mLightFollowsCamera ^= true;
     }
 
 public:
@@ -153,7 +169,6 @@ int main()
     }
 
     mesh1->SetMaterial(mat);
-    mesh2->SetMaterial(mat);
 
     ABench::Scene::Object* obj = scene.CreateObject();
     obj->SetComponent(mesh1);

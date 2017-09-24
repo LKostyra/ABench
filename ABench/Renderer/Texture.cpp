@@ -164,7 +164,9 @@ bool Texture::Init(const TextureDesc& desc)
 
     if (desc.usage & VK_IMAGE_USAGE_SAMPLED_BIT)
     {
-        mImageDescriptorSet = gDevice->GetDescriptorAllocator().AllocateDescriptorSet(DescriptorLayoutManager::Instance().GetFragmentShaderTextureLayout());
+        mImageDescriptorSet = gDevice->GetDescriptorAllocator().AllocateDescriptorSet(
+            DescriptorLayoutManager::Instance().GetFragmentShaderDiffuseTextureLayout()
+        );
         if (mImageDescriptorSet == VK_NULL_HANDLE)
             return false;
 

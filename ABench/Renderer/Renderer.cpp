@@ -145,13 +145,14 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
 
     std::vector<VkDescriptorSetLayout> layouts;
     layouts.push_back(DescriptorLayoutManager::Instance().GetVertexShaderLayout());
-    layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderTextureLayout());
+    layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderDiffuseTextureLayout());
+    layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderNormalTextureLayout());
     layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderLayout());
     mPipelineLayout = Tools::CreatePipelineLayout(layouts.data(), static_cast<uint32_t>(layouts.size()));
     if (mPipelineLayout == VK_NULL_HANDLE)
         return false;
 
-    // set allocation
+    // buffer-related set allocation
     mVertexShaderSet = mDevice.GetDescriptorAllocator().AllocateDescriptorSet(DescriptorLayoutManager::Instance().GetVertexShaderLayout());
     if (mVertexShaderSet == VK_NULL_HANDLE)
         return false;
@@ -171,7 +172,10 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     MultiPipelineDesc mpDesc;
     mpDesc.vertexShader.path = "shader.vert";
     mpDesc.fragmentShader.path = "shader.frag";
-    mpDesc.fragmentShader.macros = { { ShaderMacro::HAS_TEXTURE, 1 } };
+    mpDesc.fragmentShader.macros = {
+        { ShaderMacro::HAS_TEXTURE, 1 },
+        { ShaderMacro::HAS_NORMAL, 1 },
+    };
     mpDesc.pipelineDesc = pipeDesc;
 
     if (!mPipeline.Init(mpDesc))
@@ -249,10 +253,13 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
         float clearValue[] = {0.0f, 0.0f, 0.0f, 0.0f};
         mCommandBuffer.BeginRenderPass(mRenderPass, &mFramebuffer,
                                        static_cast<ClearTypes>(ABENCH_CLEAR_COLOR | ABENCH_CLEAR_DEPTH), clearValue, 1.0f);
-        mCommandBuffer.BindDescriptorSet(mFragmentShaderSet, 2, mPipelineLayout);
+        mCommandBuffer.BindDescriptorSet(mFragmentShaderSet, 3, mPipelineLayout);
 
         MultiPipelineShaderMacros macros;
-        macros.fragmentShader = { { ShaderMacro::HAS_TEXTURE, 0 } };
+        macros.fragmentShader = {
+            { ShaderMacro::HAS_TEXTURE, 0 },
+            { ShaderMacro::HAS_NORMAL, 0 }
+        };
 
         scene.ForEachObject([&](const Scene::Object* o) -> bool {
             if (o->GetComponent()->GetType() == Scene::ComponentType::Mesh)
@@ -260,20 +267,21 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
                 Scene::Mesh* mesh = dynamic_cast<Scene::Mesh*>(o->GetComponent());
                 if (mesh->GetMaterial() != nullptr)
                 {
-                    if (mesh->GetMaterial()->GetDescriptor() == VK_NULL_HANDLE)
+                    macros.fragmentShader[0].value = 1;
+
+                    if (mesh->GetMaterial()->GetDiffuseDescriptor() != VK_NULL_HANDLE)
                     {
-                        // tell shader we don't have texture attached
-                        macros.fragmentShader[0].value = 0;
+                        mCommandBuffer.BindDescriptorSet(mesh->GetMaterial()->GetDiffuseDescriptor(), 1, mPipelineLayout);
                     }
-                    else
+
+                    if (mesh->GetMaterial()->GetNormalDescriptor() != VK_NULL_HANDLE)
                     {
-                        // tell shader we have a texture and bind it
-                        macros.fragmentShader[0].value = 1;
-                        mCommandBuffer.BindDescriptorSet(mesh->GetMaterial()->GetDescriptor(), 1, mPipelineLayout);
+                        macros.fragmentShader[1].value = 1;
+                        mCommandBuffer.BindDescriptorSet(mesh->GetMaterial()->GetNormalDescriptor(), 2, mPipelineLayout);
                     }
                 }
                 else
-                    LOGW("Rendered mesh " << mesh->GetName() << " has no material attached");
+                    macros.fragmentShader[0].value = 0;
 
                 mCommandBuffer.BindPipeline(mPipeline.GetPipelineWithShaders(macros));
 

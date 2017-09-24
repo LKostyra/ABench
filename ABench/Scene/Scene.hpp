@@ -33,6 +33,9 @@ class Scene
     GetResult<Component> GetMeshComponent(const std::string& name);
     GetResult<Component> GetLightComponent(const std::string& name);
 
+    // helpers
+    FbxFileTexture* FileTextureFromMaterial(FbxSurfaceMaterial* material, const std::string& propertyName);
+
 public:
     Scene();
     ~Scene();

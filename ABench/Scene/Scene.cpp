@@ -14,6 +14,20 @@ Scene::~Scene()
 {
 }
 
+FbxFileTexture* Scene::FileTextureFromMaterial(FbxSurfaceMaterial* material, const std::string& propertyName)
+{
+    FbxProperty prop = material->FindProperty(propertyName.c_str());
+    if (!prop.IsValid())
+    {
+        LOGW("Material " << material->GetName() << " has no " << propertyName << " property");
+        return nullptr;
+    }
+
+    FbxTexture* tex = prop.GetSrcObject<FbxTexture>(0);
+    FbxFileTexture* texFile = FbxCast<FbxFileTexture>(tex);
+    return texFile; // can return nullptr here if requested property does not exist
+}
+
 bool Scene::Init(const std::string& fbxFile)
 {
     if (!fbxFile.empty())
@@ -42,27 +56,17 @@ bool Scene::Init(const std::string& fbxFile)
                     }
 
                     // check if we have materials
-                    if (node->GetSrcObjectCount<FbxSurfaceMaterial>() == 0)
+                    int32_t matCount = node->GetSrcObjectCount<FbxSurfaceMaterial>();
+                    if (matCount == 0)
                     {
                         LOGW("Mesh " << node->GetName() << " has no materials - skipping");
                         return;
                     }
 
+                    // TODO here we might want to extract more than one material!
                     FbxSurfaceMaterial* material = node->GetSrcObject<FbxSurfaceMaterial>(0);
-                    FbxProperty prop = material->FindProperty("DiffuseColor");
-                    if (!prop.IsValid())
-                    {
-                        LOGW("Material " << node->GetName() << "::" << material->GetName() << " has no DiffuseColor property - skipping");
-                        return;
-                    }
-
-                    FbxTexture* tex = prop.GetSrcObject<FbxTexture>(0);
-                    FbxFileTexture* ftex = FbxCast<FbxFileTexture>(tex);
-                    if (ftex == nullptr)
-                    {
-                        LOGW("Texture is not from file - skipping");
-                        return;
-                    }
+                    FbxFileTexture* diffTex = FileTextureFromMaterial(material, material->sDiffuse);
+                    FbxFileTexture* normTex = FileTextureFromMaterial(material, material->sNormalMap);
 
                     auto matResult = GetMaterial(material->GetName());
                     Material* mat = matResult.first;
@@ -70,7 +74,8 @@ bool Scene::Init(const std::string& fbxFile)
                     {
                         // new material, initialize
                         MaterialDesc matDesc;
-                        matDesc.diffusePath = ftex->GetFileName();
+                        if (diffTex) matDesc.diffusePath = diffTex->GetFileName();
+                        if (normTex) matDesc.normalPath = normTex->GetFileName();
                         if (!mat->Init(matDesc))
                         {
                             LOGE("Failed to initialize material for mesh " << node->GetName());

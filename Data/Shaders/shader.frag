@@ -7,9 +7,10 @@ layout (location = 2) in vec3 VertPosNoProj;
 layout (location = 0) out vec4 color;
 
 
-layout (set = 1, binding = 0) uniform sampler2D tex;
+layout (set = 1, binding = 0) uniform sampler2D diffTex;
+layout (set = 2, binding = 0) uniform sampler2D normTex;
 
-layout (set = 2, binding = 0) uniform lightcb
+layout (set = 3, binding = 0) uniform lightcb
 {
     vec4 pos;
     vec4 diffuse;
@@ -28,9 +29,13 @@ void main()
 
     color += coeff * lightCBuffer.diffuse * (5.0 / (distance * distance));
 
-#if HAS_TEXTURE == 0
-    color *= vec4(0.3, 0.6, 0.9, 1.0);
-#else
-    color *= texture(tex, VertUV);
-#endif
+    #if HAS_TEXTURE == 1
+        #if HAS_NORMAL == 1
+            color *= texture(normTex, VertUV);
+        #else // HAS_NORMAL == 1
+            color *= texture(diffTex, VertUV);
+        #endif // HAS_NORMAL == 1
+    #else // HAS_TEXTURE == 1
+        color *= vec4(0.3, 0.6, 0.9, 1.0);
+    #endif // HAS_TEXTURE == 1
 }

@@ -90,6 +90,15 @@ VkDescriptorSetLayout DescriptorLayoutManager::CreateLayout(std::vector<Descript
     return layout;
 }
 
+void DescriptorLayoutManager::DestroyLayout(VkDescriptorSetLayout& layout)
+{
+    if (layout != VK_NULL_HANDLE)
+    {
+        vkDestroyDescriptorSetLayout(mDevice, layout, nullptr);
+        layout = VK_NULL_HANDLE;
+    }
+}
+
 bool DescriptorLayoutManager::Init(const VkDevice device)
 {
     mDevice = device;
@@ -110,8 +119,12 @@ bool DescriptorLayoutManager::Init(const VkDevice device)
 
     std::vector<DescriptorSetLayoutDesc> fsTexLayoutDesc;
     fsTexLayoutDesc.push_back({VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, mFragmentShaderSampler});
-    mFragmentShaderTextureLayout = CreateLayout(fsTexLayoutDesc);
-    if (mFragmentShaderTextureLayout == VK_NULL_HANDLE)
+    mFragmentShaderDiffuseTextureLayout = CreateLayout(fsTexLayoutDesc);
+    if (mFragmentShaderDiffuseTextureLayout == VK_NULL_HANDLE)
+        return false;
+
+    mFragmentShaderNormalTextureLayout = CreateLayout(fsTexLayoutDesc);
+    if (mFragmentShaderNormalTextureLayout == VK_NULL_HANDLE)
         return false;
 
     std::vector<DescriptorSetLayoutDesc> fsLayoutDesc;
@@ -125,23 +138,10 @@ bool DescriptorLayoutManager::Init(const VkDevice device)
 
 void DescriptorLayoutManager::Release()
 {
-    if (mFragmentShaderLayout != VK_NULL_HANDLE)
-    {
-        vkDestroyDescriptorSetLayout(mDevice, mFragmentShaderLayout, nullptr);
-        mFragmentShaderLayout = VK_NULL_HANDLE;
-    }
-
-    if (mFragmentShaderTextureLayout != VK_NULL_HANDLE)
-    {
-        vkDestroyDescriptorSetLayout(mDevice, mFragmentShaderTextureLayout, nullptr);
-        mFragmentShaderTextureLayout = VK_NULL_HANDLE;
-    }
-
-    if (mVertexShaderLayout != VK_NULL_HANDLE)
-    {
-        vkDestroyDescriptorSetLayout(mDevice, mVertexShaderLayout, nullptr);
-        mVertexShaderLayout = VK_NULL_HANDLE;
-    }
+    DestroyLayout(mFragmentShaderLayout);
+    DestroyLayout(mFragmentShaderDiffuseTextureLayout);
+    DestroyLayout(mFragmentShaderNormalTextureLayout);
+    DestroyLayout(mVertexShaderLayout);
 
     if (mFragmentShaderSampler != VK_NULL_HANDLE)
     {

@@ -33,7 +33,8 @@ class DescriptorLayoutManager
     VkSampler mFragmentShaderSampler;
 
     VkDescriptorSetLayout mVertexShaderLayout;
-    VkDescriptorSetLayout mFragmentShaderTextureLayout;
+    VkDescriptorSetLayout mFragmentShaderDiffuseTextureLayout;
+    VkDescriptorSetLayout mFragmentShaderNormalTextureLayout;
     VkDescriptorSetLayout mFragmentShaderLayout;
 
     DescriptorLayoutManager();
@@ -44,6 +45,7 @@ class DescriptorLayoutManager
     ~DescriptorLayoutManager();
 
     VkDescriptorSetLayout CreateLayout(std::vector<DescriptorSetLayoutDesc>& descriptors);
+    void DestroyLayout(VkDescriptorSetLayout& layout);
     VkSampler CreateSampler();
 
 public:
@@ -57,9 +59,14 @@ public:
         return mVertexShaderLayout;
     }
 
-    ABENCH_INLINE const VkDescriptorSetLayout GetFragmentShaderTextureLayout() const
+    ABENCH_INLINE const VkDescriptorSetLayout GetFragmentShaderDiffuseTextureLayout() const
     {
-        return mFragmentShaderTextureLayout;
+        return mFragmentShaderDiffuseTextureLayout;
+    }
+
+    ABENCH_INLINE const VkDescriptorSetLayout GetFragmentShaderNormalTextureLayout() const
+    {
+        return mFragmentShaderNormalTextureLayout;
     }
 
     ABENCH_INLINE const VkDescriptorSetLayout GetFragmentShaderLayout() const
