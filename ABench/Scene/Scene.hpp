@@ -3,7 +3,7 @@
 #include "Prerequisites.hpp"
 #include "Common/FBXFile.hpp"
 #include "Object.hpp"
-#include "Mesh.hpp"
+#include "Model.hpp"
 #include "Light.hpp"
 #include "Material.hpp"
 
@@ -25,12 +25,12 @@ class Scene
 
     ABench::Common::FBXFile mFBXFile;
     std::vector<Object> mObjects;
-    ResourceMap<Mesh> mMeshComponents;
+    ResourceMap<Model> mModelComponents;
     ResourceMap<Light> mLightComponents;
     ResourceMap<Material> mMaterials;
 
     // getters per each component type
-    GetResult<Component> GetMeshComponent(const std::string& name);
+    GetResult<Component> GetModelComponent(const std::string& name);
     GetResult<Component> GetLightComponent(const std::string& name);
 
     // helpers

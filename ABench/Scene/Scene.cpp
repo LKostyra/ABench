@@ -55,35 +55,44 @@ bool Scene::Init(const std::string& fbxFile)
                         mFBXFile.GetConverter()->Triangulate(attr, true);
                     }
 
-                    // check if we have materials
+                    // Material loading
                     int32_t matCount = node->GetSrcObjectCount<FbxSurfaceMaterial>();
                     Material* mat = nullptr;
                     if (matCount > 0)
                     {
-                        // TODO here we might want to extract more than one material!
-                        FbxSurfaceMaterial* material = node->GetSrcObject<FbxSurfaceMaterial>(0);
-                        FbxFileTexture* diffTex = FileTextureFromMaterial(material, material->sDiffuse);
-                        FbxFileTexture* normTex = FileTextureFromMaterial(material, material->sNormalMap);
-
-                        auto matResult = GetMaterial(material->GetName());
-                        mat = matResult.first;
-                        if (matResult.second)
+                        if (matCount > 1)
                         {
-                            // new material, initialize
-                            MaterialDesc matDesc;
-                            if (diffTex) matDesc.diffusePath = diffTex->GetFileName();
-                            if (normTex) matDesc.normalPath = normTex->GetFileName();
-                            if (!mat->Init(matDesc))
+                            LOGD("matCount = " << matCount << " for mesh " << node->GetName() << ":");
+                            for (int32_t m = 0; m < matCount; ++m)
+                                LOGD("  " << node->GetSrcObject<FbxSurfaceMaterial>(m)->GetName());
+                        }
+
+                        for (int32_t m = 0; m < matCount; ++m)
+                        {
+                            FbxSurfaceMaterial* material = node->GetSrcObject<FbxSurfaceMaterial>(m);
+                            FbxFileTexture* diffTex = FileTextureFromMaterial(material, material->sDiffuse);
+                            FbxFileTexture* normTex = FileTextureFromMaterial(material, material->sNormalMap);
+
+                            auto matResult = GetMaterial(material->GetName());
+                            mat = matResult.first;
+                            if (matResult.second)
                             {
-                                LOGE("Failed to initialize material for mesh " << node->GetName());
-                                mat = nullptr;
+                                // new material, initialize
+                                MaterialDesc matDesc;
+                                if (diffTex) matDesc.diffusePath = diffTex->GetFileName();
+                                if (normTex) matDesc.normalPath = normTex->GetFileName();
+                                if (!mat->Init(matDesc))
+                                {
+                                    LOGE("Failed to initialize material for mesh " << node->GetName());
+                                    mat = nullptr;
+                                }
                             }
                         }
                     }
 
                     Object* o = CreateObject();
-                    auto mResult = GetComponent(ComponentType::Mesh, node->GetName());
-                    Mesh* m = dynamic_cast<Mesh*>(mResult.first);
+                    auto mResult = GetComponent(ComponentType::Model, node->GetName());
+                    Model* m = dynamic_cast<Model*>(mResult.first);
 
                     if (mResult.second)
                         m->Init(node->GetMesh());
@@ -112,13 +121,13 @@ Object* Scene::CreateObject()
     return &mObjects.back();
 }
 
-GetResult<Component> Scene::GetMeshComponent(const std::string& name)
+GetResult<Component> Scene::GetModelComponent(const std::string& name)
 {
     bool created = false;
-    auto mesh = mMeshComponents.find(name);
-    if (mesh == mMeshComponents.end())
+    auto mesh = mModelComponents.find(name);
+    if (mesh == mModelComponents.end())
     {
-        mesh = mMeshComponents.insert(std::make_pair(name, std::make_unique<Mesh>(name))).first;
+        mesh = mModelComponents.insert(std::make_pair(name, std::make_unique<Model>(name))).first;
         created = true;
     }
 
@@ -142,8 +151,8 @@ GetResult<Component> Scene::GetComponent(ComponentType type, const std::string& 
 {
     switch (type)
     {
-    case ComponentType::Mesh:
-        return GetMeshComponent(name);
+    case ComponentType::Model:
+        return GetModelComponent(name);
     case ComponentType::Light:
         return GetLightComponent(name);
     default:

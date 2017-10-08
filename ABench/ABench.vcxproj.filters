@@ -138,6 +138,9 @@
     <ClCompile Include="Renderer\ShaderMacroDefinitions.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Scene\Model.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\Window.hpp">
@@ -268,6 +271,9 @@
     </ClInclude>
     <ClInclude Include="Math\SortImpl.hpp">
       <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Model.hpp">
+      <Filter>Scene</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

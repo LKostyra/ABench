@@ -145,15 +145,15 @@ int main()
     ABench::Scene::Scene scene;
     scene.Init(ABench::Common::FS::JoinPaths(ABench::ResourceDir::SCENES, "sponza.fbx"));
 
-    auto meshResult = scene.GetComponent(ABench::Scene::ComponentType::Mesh, "box1");
-    ABench::Scene::Mesh* mesh1 = dynamic_cast<ABench::Scene::Mesh*>(meshResult.first);
-    if (meshResult.second)
-        mesh1->Init();
+    auto modelResult = scene.GetComponent(ABench::Scene::ComponentType::Model, "box1");
+    ABench::Scene::Model* model1 = dynamic_cast<ABench::Scene::Model*>(modelResult.first);
+    if (modelResult.second)
+        model1->Init();
 
-    meshResult = scene.GetComponent(ABench::Scene::ComponentType::Mesh, "box2");
-    ABench::Scene::Mesh* mesh2 = dynamic_cast<ABench::Scene::Mesh*>(meshResult.first);
-    if (meshResult.second)
-        mesh2->Init();
+    modelResult = scene.GetComponent(ABench::Scene::ComponentType::Model, "box2");
+    ABench::Scene::Model* model2 = dynamic_cast<ABench::Scene::Model*>(modelResult.first);
+    if (modelResult.second)
+        model2->Init();
 
     auto matResult = scene.GetMaterial("boxMaterial");
     ABench::Scene::Material* mat = matResult.first;
@@ -168,14 +168,14 @@ int main()
         }
     }
 
-    mesh1->SetMaterial(mat);
+    model1->SetMaterial(mat);
 
     ABench::Scene::Object* obj = scene.CreateObject();
-    obj->SetComponent(mesh1);
+    obj->SetComponent(model1);
     obj->SetPosition(0.0f, 1.0f, 0.0f);
 
     obj = scene.CreateObject();
-    obj->SetComponent(mesh2);
+    obj->SetComponent(model2);
     obj->SetPosition(2.0f, 1.0f, 0.0f);
 
     auto lightResult = scene.GetComponent(ABench::Scene::ComponentType::Light, "light");

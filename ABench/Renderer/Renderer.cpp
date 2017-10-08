@@ -262,9 +262,10 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
         };
 
         scene.ForEachObject([&](const Scene::Object* o) -> bool {
-            if (o->GetComponent()->GetType() == Scene::ComponentType::Mesh)
+            if (o->GetComponent()->GetType() == Scene::ComponentType::Model)
             {
-                Scene::Mesh* mesh = dynamic_cast<Scene::Mesh*>(o->GetComponent());
+                Scene::Model* model = dynamic_cast<Scene::Model*>(o->GetComponent());
+                Scene::Mesh* mesh = model->GetMesh(0);
                 if (mesh->GetMaterial() != nullptr)
                 {
                     macros.fragmentShader[0].value = 1;

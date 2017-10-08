@@ -17,13 +17,12 @@ struct Vertex
     float uv[2];
 };
 
-class Mesh final: public Component
+class Mesh final
 {
     ABench::Renderer::Buffer mVertexBuffer;
     ABench::Renderer::Buffer mIndexBuffer;
     uint32_t mPointCount;
     Material* mMaterial;
-    std::string mName;
     bool mByIndices;
 
     bool InitBuffers(const std::vector<Vertex>& vertices, int* indices, int indexCount);
@@ -31,7 +30,7 @@ class Mesh final: public Component
     bool InitDefault();
 
 public:
-    Mesh(const std::string& name);
+    Mesh();
     ~Mesh();
 
     bool Init(FbxMesh* mesh = nullptr);
@@ -61,19 +60,9 @@ public:
         return mMaterial;
     }
 
-    ABENCH_INLINE const std::string& GetName() const
-    {
-        return mName;
-    }
-
     ABENCH_INLINE bool ByIndices() const
     {
         return mByIndices;
-    }
-
-    ComponentType GetType() const override
-    {
-        return ComponentType::Mesh;
     }
 };
 

@@ -10,10 +10,9 @@ using namespace ABench::Renderer;
 namespace ABench {
 namespace Scene {
 
-Mesh::Mesh(const std::string& name)
+Mesh::Mesh()
     : mPointCount(0)
     , mMaterial(nullptr)
-    , mName(name)
     , mByIndices(false)
 {
 }
@@ -86,8 +85,6 @@ bool Mesh::InitFromFBX(FbxMesh* mesh)
         LOGE("Mesh has no normals generated!");
         return false;
     }
-
-    mName = mesh->GetName();
 
     std::vector<Vertex> vertices;
     vertices.reserve(mesh->GetPolygonVertexCount());

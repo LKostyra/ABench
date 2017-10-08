@@ -6,7 +6,7 @@ namespace Scene {
 enum class ComponentType: unsigned char
 {
     Invalid = 0,
-    Mesh,
+    Model,
     Light,
 };
 

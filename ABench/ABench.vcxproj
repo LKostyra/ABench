@@ -322,6 +322,7 @@ copy /B "$(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll" "$(T
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="Scene\Model.cpp" />
     <ClCompile Include="Scene\Object.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PCH.hpp</PrecompiledHeaderFile>
@@ -373,6 +374,7 @@ copy /B "$(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll" "$(T
     <ClInclude Include="Scene\Light.hpp" />
     <ClInclude Include="Scene\Material.hpp" />
     <ClInclude Include="Scene\Mesh.hpp" />
+    <ClInclude Include="Scene\Model.hpp" />
     <ClInclude Include="Scene\Object.hpp" />
     <ClInclude Include="Scene\Scene.hpp" />
   </ItemGroup>

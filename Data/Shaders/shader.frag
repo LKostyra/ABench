@@ -31,7 +31,7 @@ void main()
 
     #if HAS_TEXTURE == 1
         #if HAS_NORMAL == 1
-            color *= texture(diffTex, VertUV);
+            color *= texture(normTex, VertUV);
         #else // HAS_NORMAL == 1
             color *= texture(diffTex, VertUV);
         #endif // HAS_NORMAL == 1
