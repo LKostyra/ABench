@@ -250,7 +250,7 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
         mCommandBuffer.SetViewport(0, 0, mBackbuffer.GetWidth(), mBackbuffer.GetHeight(), 0.0f, 1.0f);
         mCommandBuffer.SetScissor(0, 0, mBackbuffer.GetWidth(), mBackbuffer.GetHeight());
 
-        float clearValue[] = {0.0f, 0.0f, 0.0f, 0.0f};
+        float clearValue[] = {0.1f, 0.1f, 0.1f, 0.0f};
         mCommandBuffer.BeginRenderPass(mRenderPass, &mFramebuffer,
                                        static_cast<ClearTypes>(ABENCH_CLEAR_COLOR | ABENCH_CLEAR_DEPTH), clearValue, 1.0f);
         mCommandBuffer.BindDescriptorSet(mFragmentShaderSet, 3, mPipelineLayout);

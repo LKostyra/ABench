@@ -51,35 +51,33 @@ bool Scene::Init(const std::string& fbxFile)
                 {
                     if (!node->GetMesh()->IsTriangleMesh())
                     {
-                        LOGW("Mesh " << node->GetName() << " requires triangulation - converting, this might take some time.");
+                        LOGD("Mesh " << node->GetName() << " requires triangulation - converting, this might take some time.");
                         mFBXFile.GetConverter()->Triangulate(attr, true);
                     }
 
                     // check if we have materials
                     int32_t matCount = node->GetSrcObjectCount<FbxSurfaceMaterial>();
-                    if (matCount == 0)
+                    Material* mat = nullptr;
+                    if (matCount > 0)
                     {
-                        LOGW("Mesh " << node->GetName() << " has no materials - skipping");
-                        return;
-                    }
+                        // TODO here we might want to extract more than one material!
+                        FbxSurfaceMaterial* material = node->GetSrcObject<FbxSurfaceMaterial>(0);
+                        FbxFileTexture* diffTex = FileTextureFromMaterial(material, material->sDiffuse);
+                        FbxFileTexture* normTex = FileTextureFromMaterial(material, material->sNormalMap);
 
-                    // TODO here we might want to extract more than one material!
-                    FbxSurfaceMaterial* material = node->GetSrcObject<FbxSurfaceMaterial>(0);
-                    FbxFileTexture* diffTex = FileTextureFromMaterial(material, material->sDiffuse);
-                    FbxFileTexture* normTex = FileTextureFromMaterial(material, material->sNormalMap);
-
-                    auto matResult = GetMaterial(material->GetName());
-                    Material* mat = matResult.first;
-                    if (matResult.second)
-                    {
-                        // new material, initialize
-                        MaterialDesc matDesc;
-                        if (diffTex) matDesc.diffusePath = diffTex->GetFileName();
-                        if (normTex) matDesc.normalPath = normTex->GetFileName();
-                        if (!mat->Init(matDesc))
+                        auto matResult = GetMaterial(material->GetName());
+                        mat = matResult.first;
+                        if (matResult.second)
                         {
-                            LOGE("Failed to initialize material for mesh " << node->GetName());
-                            return;
+                            // new material, initialize
+                            MaterialDesc matDesc;
+                            if (diffTex) matDesc.diffusePath = diffTex->GetFileName();
+                            if (normTex) matDesc.normalPath = normTex->GetFileName();
+                            if (!mat->Init(matDesc))
+                            {
+                                LOGE("Failed to initialize material for mesh " << node->GetName());
+                                mat = nullptr;
+                            }
                         }
                     }
 
@@ -92,7 +90,6 @@ bool Scene::Init(const std::string& fbxFile)
 
                     m->SetMaterial(mat);
                     o->SetComponent(m);
-
                     o->SetScale(static_cast<float>(node->LclScaling.Get()[0]),
                                 static_cast<float>(node->LclScaling.Get()[1]),
                                 static_cast<float>(node->LclScaling.Get()[2]));

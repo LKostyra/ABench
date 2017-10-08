@@ -16,7 +16,7 @@
 #endif
 
 #define ASSERT(exp, msg) \
-    if (!exp) \
+    if (!(exp)) \
     { \
         LOGE("Assertion " << #exp << " failed: " << msg); \
         assert(exp); \

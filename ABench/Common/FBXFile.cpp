@@ -172,6 +172,23 @@ bool FBXFile::Open(const std::string& path)
     LOGD(path.substr(filenameStart + 1, filenameLength));
     mFbxScene->SetName(path.substr(filenameStart + 1, filenameLength).c_str());
 
+    // scale to meter units
+    if(mFbxScene->GetGlobalSettings().GetSystemUnit() == FbxSystemUnit::cm)
+    {
+        LOGI("Converting scene to meter unit system");
+        const FbxSystemUnit::ConversionOptions lConversionOptions = {
+            false, /* mConvertRrsNodes */
+            true, /* mConvertAllLimits */
+            true, /* mConvertClusters */
+            true, /* mConvertLightIntensity */
+            true, /* mConvertPhotometricLProperties */
+            true  /* mConvertCameraClipPlanes */
+        };
+
+        // Convert the scene to meters using the defined options.
+        FbxSystemUnit::m.ConvertScene(mFbxScene, lConversionOptions);
+    }
+
     LOGI("Opened FBX file " << path << " (" << mNodeCount << " nodes)");
     mIsOpened = true;
     return true;

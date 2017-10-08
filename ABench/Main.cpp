@@ -144,13 +144,13 @@ int main()
 
     ABench::Scene::Scene scene;
     scene.Init(ABench::Common::FS::JoinPaths(ABench::ResourceDir::SCENES, "sponza.fbx"));
-
+    /*
     auto meshResult = scene.GetComponent(ABench::Scene::ComponentType::Mesh, "box1");
     ABench::Scene::Mesh* mesh1 = dynamic_cast<ABench::Scene::Mesh*>(meshResult.first);
     if (meshResult.second)
         mesh1->Init();
 
-    meshResult = scene.GetComponent(ABench::Scene::ComponentType::Mesh, "box2");
+    auto meshResult = scene.GetComponent(ABench::Scene::ComponentType::Mesh, "box2");
     ABench::Scene::Mesh* mesh2 = dynamic_cast<ABench::Scene::Mesh*>(meshResult.first);
     if (meshResult.second)
         mesh2->Init();
@@ -177,7 +177,7 @@ int main()
     obj = scene.CreateObject();
     obj->SetComponent(mesh2);
     obj->SetPosition(2.0f, 1.0f, 0.0f);
-
+    */
     auto lightResult = scene.GetComponent(ABench::Scene::ComponentType::Light, "light");
     gLight = dynamic_cast<ABench::Scene::Light*>(lightResult.first);
     gLight->SetDiffuseIntensity(ABench::Math::Vector(1.0f, 1.0f, 1.0f, 1.0f));

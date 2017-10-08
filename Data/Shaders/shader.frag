@@ -16,7 +16,7 @@ layout (set = 3, binding = 0) uniform lightcb
     vec4 diffuse;
 } lightCBuffer;
 
-vec4 lightAmbient = vec4(0.05, 0.05, 0.05, 1.0);
+vec4 lightAmbient = vec4(0.1, 0.1, 0.1, 1.0);
 
 void main()
 {
@@ -31,11 +31,11 @@ void main()
 
     #if HAS_TEXTURE == 1
         #if HAS_NORMAL == 1
-            color *= texture(normTex, VertUV);
+            color *= texture(diffTex, VertUV);
         #else // HAS_NORMAL == 1
             color *= texture(diffTex, VertUV);
         #endif // HAS_NORMAL == 1
     #else // HAS_TEXTURE == 1
-        color *= vec4(0.3, 0.6, 0.9, 1.0);
+        color *= vec4(0.65, 0.36, 0.13, 1.0);
     #endif // HAS_TEXTURE == 1
 }

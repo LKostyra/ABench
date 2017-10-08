@@ -15,12 +15,12 @@ mkdir x86
 mkdir x64
 
 cd x86
-cmake ..\.. -DCMAKE_INSTALL_PREFIX=%cd% -DENABLE_HLSL=OFF -G "Visual Studio 15 2017"
+cmake ..\.. -DCMAKE_INSTALL_PREFIX="%cd%" -DENABLE_HLSL=OFF -G "Visual Studio 15 2017"
 msbuild /property:Configuration=Debug /maxcpucount:8 INSTALL.vcxproj
 msbuild /property:Configuration=Release /maxcpucount:8 INSTALL.vcxproj
 
 cd ..\x64
-cmake ..\.. -DCMAKE_INSTALL_PREFIX=%cd% -DENABLE_HLSL=OFF -G "Visual Studio 15 2017 Win64"
+cmake ..\.. -DCMAKE_INSTALL_PREFIX="%cd%" -DENABLE_HLSL=OFF -G "Visual Studio 15 2017 Win64"
 msbuild /property:Configuration=Debug /maxcpucount:8 INSTALL.vcxproj
 msbuild /property:Configuration=Release /maxcpucount:8 INSTALL.vcxproj
 
