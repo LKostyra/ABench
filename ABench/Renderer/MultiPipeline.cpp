@@ -147,6 +147,7 @@ bool MultiPipeline::Init(const MultiPipelineDesc& desc)
     mBasePipelineDesc.geometryShader = nullptr;
     mBasePipelineDesc.fragmentShader = nullptr;
     mBasePipelineDesc.flags = VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT;
+    mBasePipelineDesc.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
     if (!mBasePipeline.Init(mBasePipelineDesc))
     {

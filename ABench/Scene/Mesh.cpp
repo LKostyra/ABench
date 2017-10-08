@@ -11,9 +11,10 @@ namespace ABench {
 namespace Scene {
 
 Mesh::Mesh(const std::string& name)
-    : mIndexCount(0)
+    : mPointCount(0)
     , mMaterial(nullptr)
     , mName(name)
+    , mByIndices(false)
 {
 }
 
@@ -31,15 +32,21 @@ bool Mesh::InitBuffers(const std::vector<Vertex>& vertices, int* indices, int in
     if (!mVertexBuffer.Init(vbDesc))
         return false;
 
-    BufferDesc ibDesc;
-    ibDesc.data = indices;
-    ibDesc.dataSize = indexCount * sizeof(uint32_t);
-    ibDesc.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-    ibDesc.type = BufferType::Static;
-    if (!mIndexBuffer.Init(ibDesc))
-        return false;
+    mByIndices = false;
+    mPointCount = static_cast<uint32_t>(vertices.size());
 
-    mIndexCount = indexCount;
+    if (indices && indexCount > 0)
+    {
+        BufferDesc ibDesc;
+        ibDesc.data = indices;
+        ibDesc.dataSize = indexCount * sizeof(uint32_t);
+        ibDesc.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+        ibDesc.type = BufferType::Static;
+        if (!mIndexBuffer.Init(ibDesc))
+            return false;
+        mByIndices = true;
+        mPointCount = indexCount;
+    }
 
     return true;
 }
@@ -83,28 +90,26 @@ bool Mesh::InitFromFBX(FbxMesh* mesh)
     mName = mesh->GetName();
 
     std::vector<Vertex> vertices;
+    vertices.reserve(mesh->GetPolygonVertexCount());
     Vertex vert;
     ZERO_MEMORY(vert);
-    for (int p = 0; p < mesh->GetControlPointsCount(); ++p)
+    for (int i = 0; i < mesh->GetPolygonVertexCount(); ++i)
     {
+        int p = mesh->GetPolygonVertices()[i];
+        int uv = uvs->GetIndexArray()[i];
+
         vert.pos[0] = static_cast<float>(mesh->GetControlPoints()[p].Buffer()[0]);
         vert.pos[1] = static_cast<float>(mesh->GetControlPoints()[p].Buffer()[1]);
         vert.pos[2] = static_cast<float>(mesh->GetControlPoints()[p].Buffer()[2]);
         vert.norm[0] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[0]);
         vert.norm[1] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[1]);
         vert.norm[2] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[2]);
+        vert.uv[0] = static_cast<float>(uvs->GetDirectArray()[uv].Buffer()[0]);
+        vert.uv[1] = static_cast<float>(uvs->GetDirectArray()[uv].Buffer()[1]);
         vertices.push_back(vert);
     }
 
-    for (int i = 0; i < mesh->GetPolygonVertexCount(); ++i)
-    {
-        int ind = mesh->GetPolygonVertices()[i];
-        int uv = uvs->GetIndexArray()[i];
-        vertices[ind].uv[0] = static_cast<float>(uvs->GetDirectArray()[uv].Buffer()[0]);
-        vertices[ind].uv[1] = static_cast<float>(uvs->GetDirectArray()[uv].Buffer()[1]);
-    }
-
-    return InitBuffers(vertices, mesh->GetPolygonVertices(), mesh->GetPolygonVertexCount());
+    return InitBuffers(vertices, nullptr, 0);
 }
 
 bool Mesh::InitDefault()

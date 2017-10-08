@@ -19,4 +19,6 @@ def triangulate(obj):
 
 
 for obj in bpy.context.scene.objects:
-    triangulate(obj)
+    if obj.type in [ 'MESH' ]:
+        print("Triangulating " + obj.name)
+        triangulate(obj)

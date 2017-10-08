@@ -289,8 +289,16 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
                 mCommandBuffer.BindDescriptorSet(mVertexShaderSet, 0, mPipelineLayout, offset);
 
                 mCommandBuffer.BindVertexBuffer(mesh->GetVertexBuffer());
-                mCommandBuffer.BindIndexBuffer(mesh->GetIndexBuffer());
-                mCommandBuffer.DrawIndexed(mesh->GetIndexCount());
+
+                if (mesh->ByIndices())
+                {
+                    mCommandBuffer.BindIndexBuffer(mesh->GetIndexBuffer());
+                    mCommandBuffer.DrawIndexed(mesh->GetPointCount());
+                }
+                else
+                {
+                    mCommandBuffer.Draw(mesh->GetPointCount());
+                }
             }
 
             return true;
