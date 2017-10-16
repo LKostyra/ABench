@@ -118,8 +118,7 @@ const TBuiltInResource DEFAULT_LIMITS = {
 
 const int DEFAULT_VERSION = 110;
 const std::string SHADER_HEADER_START = "#version 450\n\
-#extension GL_ARB_separate_shader_objects: enable\n\
-#extension GL_ARB_shading_language_420pack: enable\n";
+#extension GL_ARB_separate_shader_objects: enable\n";
 const std::string DEFINE_STR = "#define ";
 const std::string SHADER_HEADER_TAIL = "\0";
 
@@ -307,7 +306,7 @@ bool Shader::Init(const ShaderDesc& desc)
         {
             LOGE("Failed to compile shader to SPIRV");
             return false;
-        }   
+        }
     }
     else
     {

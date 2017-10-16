@@ -41,22 +41,4 @@ cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 make -j ${CPU_COUNT}
 echo
 
-if type "glslangValidator" > /dev/null
-then
-    cd ../Data/Shaders
-
-    shopt -s nullglob
-    for i in *.vert *.frag
-    do
-        if [ ! -f $i.spv ] || [ $(stat -c %Y $i) -gt $(stat -c %Y $i.spv) ]
-        then
-            glslangValidator -V $i -o $i.spv
-        fi
-    done
-else
-    echo "glslangValidator not installed - shaders were not recompiled."
-    echo "Please install Vulkan SDK from LunarG and make glslangValidator visible from PATH"
-    exit 1
-fi
-
 popd > /dev/null

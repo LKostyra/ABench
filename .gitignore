@@ -34,3 +34,6 @@
 log.txt
 /Data/Textures
 /Temporary
+build
+/Deps/glslang/bin
+/Deps/glslang/include

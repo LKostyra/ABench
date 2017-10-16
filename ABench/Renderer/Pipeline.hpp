@@ -37,9 +37,9 @@ struct PipelineDesc
         , topology(VK_PRIMITIVE_TOPOLOGY_POINT_LIST)
         , renderPass(VK_NULL_HANDLE)
         , pipelineLayout(VK_NULL_HANDLE)
-        , enableDepth(false)
         , flags(0)
         , basePipeline(VK_NULL_HANDLE)
+        , enableDepth(false)
     {
     }
 };

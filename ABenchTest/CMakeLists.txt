@@ -9,6 +9,7 @@ FILE(GLOB ABENCHTEST_TEST_HEADERS     Tests/*.hpp)
 SET(ABENCHTEST_MODULES_SOURCES        ${ABENCH_DIRECTORY}/Common/FBXFile.cpp
                                       ${ABENCH_DIRECTORY}/Common/Linux/Logger.cpp
                                       ${ABENCH_DIRECTORY}/Common/Linux/Common.cpp
+                                      ${ABENCH_DIRECTORY}/Common/Linux/Timer.cpp
                                       ${ABENCH_DIRECTORY}/Math/Vector.cpp
                                       )
 

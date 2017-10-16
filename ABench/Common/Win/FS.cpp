@@ -35,6 +35,9 @@ std::string GetExecutablePath()
 std::string GetParentDir(const std::string& path)
 {
     size_t trailingSlash = path.rfind('/');
+    if (trailingSlash == std::string::npos)
+        return path;
+
     return path.substr(0, trailingSlash);
 }
 

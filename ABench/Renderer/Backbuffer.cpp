@@ -180,7 +180,7 @@ bool Backbuffer::AcquireSurfaceCaps()
 void Backbuffer::SelectBufferCount(const BackbufferDesc& desc)
 {
     mBufferCount = desc.bufferCount;
-    if (mBufferCount > mSurfCaps.maxImageCount)
+    if ((mSurfCaps.maxImageCount > 0) && (mBufferCount > mSurfCaps.maxImageCount))
     {
         LOGW("Requested buffer count " << desc.bufferCount << " is too much - reducing to " << mSurfCaps.maxImageCount);
         mBufferCount = mSurfCaps.maxImageCount;
