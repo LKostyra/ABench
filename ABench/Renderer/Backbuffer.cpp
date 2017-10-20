@@ -332,6 +332,8 @@ bool Backbuffer::Present()
 {
     VkResult result = VK_SUCCESS;
 
+    // FIXME Closing window with Alt+F4/Close button causes swapchain to go
+    //       out of date. Keep that in mind while supporting window resizing.
     VkPresentInfoKHR presentInfo;
     ZERO_MEMORY(presentInfo);
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;

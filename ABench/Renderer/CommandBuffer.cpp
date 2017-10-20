@@ -83,27 +83,41 @@ void CommandBuffer::BeginRenderPass(VkRenderPass rp, Framebuffer* fb, ClearTypes
 
 void CommandBuffer::BindVertexBuffer(const Buffer* buffer)
 {
+    ASSERT(buffer != nullptr, "Provided buffer is null");
+    ASSERT(buffer->mBuffer != VK_NULL_HANDLE, "Provided buffer is not initialized");
+
     VkDeviceSize offset = 0;
     vkCmdBindVertexBuffers(mCommandBuffer, 0, 1, &buffer->mBuffer, &offset);
 }
 
 void CommandBuffer::BindIndexBuffer(const Buffer* buffer)
 {
+    ASSERT(buffer != nullptr, "Provided buffer is null");
+    ASSERT(buffer->mBuffer != VK_NULL_HANDLE, "Provided buffer is not initialized");
+
     vkCmdBindIndexBuffer(mCommandBuffer, buffer->mBuffer, 0, VK_INDEX_TYPE_UINT32);
 }
 
 void CommandBuffer::BindPipeline(VkPipeline pipeline)
 {
+    ASSERT(pipeline != VK_NULL_HANDLE, "Provided pipeline is not initialized");
+
     vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 }
 
 void CommandBuffer::BindDescriptorSet(VkDescriptorSet set, uint32_t setSlot, VkPipelineLayout layout)
 {
+    ASSERT(set != VK_NULL_HANDLE, "Provided descriptor set is not initialized");
+    ASSERT(layout != VK_NULL_HANDLE, "Provided pipeline layout is not initialized");
+
     vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, setSlot, 1, &set, 0, nullptr);
 }
 
 void CommandBuffer::BindDescriptorSet(VkDescriptorSet set, uint32_t setSlot, VkPipelineLayout layout, uint32_t dynamicOffset)
 {
+    ASSERT(set != VK_NULL_HANDLE, "Provided descriptor set is not initialized");
+    ASSERT(layout != VK_NULL_HANDLE, "Provided pipeline layout is not initialized");
+
     vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, setSlot, 1, &set, 1, &dynamicOffset);
 }
 
@@ -140,6 +154,9 @@ void CommandBuffer::Clear(ClearTypes types, float clearValues[4], float depthVal
 
 void CommandBuffer::CopyBuffer(VkBuffer src, VkBuffer dst, VkDeviceSize size)
 {
+    ASSERT(src != VK_NULL_HANDLE, "Provided source buffer is not initialized");
+    ASSERT(dst != VK_NULL_HANDLE, "Provided destination buffer is not initialized");
+
     VkBufferCopy region;
     ZERO_MEMORY(region);
     region.size = size;
@@ -148,6 +165,11 @@ void CommandBuffer::CopyBuffer(VkBuffer src, VkBuffer dst, VkDeviceSize size)
 
 void CommandBuffer::CopyBufferToTexture(Buffer* src, Texture* dst)
 {
+    ASSERT(src != nullptr, "Provided source buffer is null");
+    ASSERT(src->mBuffer != VK_NULL_HANDLE, "Provided source buffer is not initialized");
+    ASSERT(dst != nullptr, "Provided destination texture is null");
+    ASSERT(!dst->mImages.empty(), "Provided destination texture is not initialized");
+
     std::vector<VkBufferImageCopy> regions;
 
     uint32_t width = dst->mWidth;

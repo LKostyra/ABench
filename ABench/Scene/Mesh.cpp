@@ -50,7 +50,7 @@ bool Mesh::InitBuffers(const std::vector<Vertex>& vertices, int* indices, int in
     return true;
 }
 
-bool Mesh::InitFromFBX(FbxMesh* mesh)
+bool Mesh::InitFromFBX(FbxMesh* mesh, int materialIndex)
 {
     // find UV layer
     FbxLayerElementUV* uvs = nullptr;
@@ -86,24 +86,63 @@ bool Mesh::InitFromFBX(FbxMesh* mesh)
         return false;
     }
 
+    // TODO there's an assumption that meshes have only one element material, avoid it if needed
+    FbxGeometryElementMaterial* matElement = mesh->GetElementMaterial(0);
+    if (!matElement)
+    {
+        LOGW("Mesh " << mesh->GetName() << " has no material element - cannot extract control points per material.");
+    }
+
+    FbxLayerElement::EMappingMode matMapping = matElement->GetMappingMode();
+
     std::vector<Vertex> vertices;
-    vertices.reserve(mesh->GetPolygonVertexCount());
     Vertex vert;
     ZERO_MEMORY(vert);
-    for (int i = 0; i < mesh->GetPolygonVertexCount(); ++i)
-    {
-        int p = mesh->GetPolygonVertices()[i];
-        int uv = uvs->GetIndexArray()[i];
 
-        vert.pos[0] = static_cast<float>(mesh->GetControlPoints()[p].Buffer()[0]);
-        vert.pos[1] = static_cast<float>(mesh->GetControlPoints()[p].Buffer()[1]);
-        vert.pos[2] = static_cast<float>(mesh->GetControlPoints()[p].Buffer()[2]);
-        vert.norm[0] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[0]);
-        vert.norm[1] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[1]);
-        vert.norm[2] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[2]);
-        vert.uv[0] = static_cast<float>(uvs->GetDirectArray()[uv].Buffer()[0]);
-        vert.uv[1] = static_cast<float>(uvs->GetDirectArray()[uv].Buffer()[1]);
-        vertices.push_back(vert);
+    if (matMapping == FbxLayerElement::EMappingMode::eAllSame)
+    {
+        for (int i = 0; i < mesh->GetPolygonCount(); ++i)
+        {
+            for (int j = 0; j < mesh->GetPolygonSize(i); ++j)
+            {
+                int p = mesh->GetPolygonVertex(i, j);
+                int uv = mesh->GetTextureUVIndex(i, j);
+
+                vert.pos[0] = static_cast<float>(mesh->GetControlPoints()[p].Buffer()[0]);
+                vert.pos[1] = static_cast<float>(mesh->GetControlPoints()[p].Buffer()[1]);
+                vert.pos[2] = static_cast<float>(mesh->GetControlPoints()[p].Buffer()[2]);
+                vert.norm[0] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[0]);
+                vert.norm[1] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[1]);
+                vert.norm[2] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[2]);
+                vert.uv[0] = static_cast<float>(uvs->GetDirectArray()[uv].Buffer()[0]);
+                vert.uv[1] = static_cast<float>(uvs->GetDirectArray()[uv].Buffer()[1]);
+                vertices.push_back(vert);
+            }
+        }
+    }
+    else if (matMapping == FbxLayerElement::EMappingMode::eByPolygon)
+    {
+        for (int i = 0; i < mesh->GetPolygonCount(); ++i)
+        {
+            if (matElement->GetIndexArray()[i] == materialIndex)
+            {
+                for (int j = 0; j < mesh->GetPolygonSize(i); ++j)
+                {
+                    int p = mesh->GetPolygonVertex(i, j);
+                    int uv = mesh->GetTextureUVIndex(i, j);
+
+                    vert.pos[0] = static_cast<float>(mesh->GetControlPoints()[p].Buffer()[0]);
+                    vert.pos[1] = static_cast<float>(mesh->GetControlPoints()[p].Buffer()[1]);
+                    vert.pos[2] = static_cast<float>(mesh->GetControlPoints()[p].Buffer()[2]);
+                    vert.norm[0] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[0]);
+                    vert.norm[1] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[1]);
+                    vert.norm[2] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[2]);
+                    vert.uv[0] = static_cast<float>(uvs->GetDirectArray()[uv].Buffer()[0]);
+                    vert.uv[1] = static_cast<float>(uvs->GetDirectArray()[uv].Buffer()[1]);
+                    vertices.push_back(vert);
+                }
+            }
+        }
     }
 
     return InitBuffers(vertices, nullptr, 0);
@@ -160,10 +199,10 @@ bool Mesh::InitDefault()
     return InitBuffers(vertices, indices.data(), static_cast<int>(indices.size()));
 }
 
-bool Mesh::Init(FbxMesh* mesh)
+bool Mesh::Init(FbxMesh* mesh, uint32_t materialIndex)
 {
     if (mesh)
-        return InitFromFBX(mesh);
+        return InitFromFBX(mesh, materialIndex);
     else
         return InitDefault();
 }

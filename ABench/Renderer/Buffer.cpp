@@ -82,7 +82,7 @@ bool Buffer::Init(const BufferDesc& desc)
         // allocate memory for staging buffer
         memInfo.allocationSize = stagingMemReqs.size;
         memInfo.memoryTypeIndex = gDevice->GetMemoryTypeIndex(stagingMemReqs.memoryTypeBits,
-                                                                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+                                                              VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
         result = vkAllocateMemory(gDevice->GetDevice(), &memInfo, nullptr, &stagingMemory);
         RETURN_FALSE_IF_FAILED(result, "Failed to allocate memory for staging buffer");
 

@@ -15,12 +15,18 @@
 #error "Target platform not supported"
 #endif
 
-#define ASSERT(exp, msg) \
+#ifdef _DEBUG
+#define ASSERT(exp, msg) do \
+{ \
     if (!(exp)) \
     { \
         LOGE("Assertion " << #exp << " failed: " << msg); \
         assert(exp); \
-    }
+    } \
+} while(0)
+#else // _DEBUG
+#define ASSERT(exp, msg) do { } while(0)
+#endif // _DEBUG
 
 namespace ABench {
 namespace Common {

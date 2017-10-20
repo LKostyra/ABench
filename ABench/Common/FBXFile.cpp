@@ -153,9 +153,6 @@ bool FBXFile::Open(const std::string& path)
 
     mFbxImporter->Import(mFbxScene);
 
-    if (!mFbxConverter->SplitMeshesPerMaterial(mFbxScene, true))
-        LOGW("Failed to split meshes according to material");
-
     // print some details about our FBX file (debugging info only)
     FbxNode* root = mFbxScene->GetRootNode();
     if (root)
@@ -171,7 +168,7 @@ bool FBXFile::Open(const std::string& path)
 
     LOGD(path.substr(filenameStart + 1, filenameLength));
     mFbxScene->SetName(path.substr(filenameStart + 1, filenameLength).c_str());
-
+    
     // scale to meter units
     if(mFbxScene->GetGlobalSettings().GetSystemUnit() == FbxSystemUnit::cm)
     {

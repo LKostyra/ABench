@@ -40,6 +40,7 @@ bool Scene::Init(const std::string& fbxFile)
             return false;
         }
 
+        uint32_t counter = 0;
         mFBXFile.Traverse([&](FbxNode* node) {
             uint32_t attributeCount = node->GetNodeAttributeCount();
 
@@ -49,24 +50,20 @@ bool Scene::Init(const std::string& fbxFile)
 
                 if (attr->GetAttributeType() == FbxNodeAttribute::eMesh)
                 {
-                    if (!node->GetMesh()->IsTriangleMesh())
+                    FbxMesh* mesh = reinterpret_cast<FbxMesh*>(attr);
+                    if (!mesh->IsTriangleMesh())
                     {
                         LOGD("Mesh " << node->GetName() << " requires triangulation - converting, this might take some time.");
                         mFBXFile.GetConverter()->Triangulate(attr, true);
                     }
 
+                    ModelDesc modelDesc;
+                    modelDesc.mesh = mesh;
                     // Material loading
                     int32_t matCount = node->GetSrcObjectCount<FbxSurfaceMaterial>();
                     Material* mat = nullptr;
                     if (matCount > 0)
                     {
-                        if (matCount > 1)
-                        {
-                            LOGD("matCount = " << matCount << " for mesh " << node->GetName() << ":");
-                            for (int32_t m = 0; m < matCount; ++m)
-                                LOGD("  " << node->GetSrcObject<FbxSurfaceMaterial>(m)->GetName());
-                        }
-
                         for (int32_t m = 0; m < matCount; ++m)
                         {
                             FbxSurfaceMaterial* material = node->GetSrcObject<FbxSurfaceMaterial>(m);
@@ -87,17 +84,17 @@ bool Scene::Init(const std::string& fbxFile)
                                     mat = nullptr;
                                 }
                             }
+
+                            modelDesc.materials.push_back(mat);
                         }
                     }
 
                     Object* o = CreateObject();
                     auto mResult = GetComponent(ComponentType::Model, node->GetName());
                     Model* m = dynamic_cast<Model*>(mResult.first);
-
                     if (mResult.second)
-                        m->Init(node->GetMesh());
+                        m->Init(modelDesc);
 
-                    m->SetMaterial(mat);
                     o->SetComponent(m);
                     o->SetScale(static_cast<float>(node->LclScaling.Get()[0]),
                                 static_cast<float>(node->LclScaling.Get()[1]),
@@ -105,9 +102,12 @@ bool Scene::Init(const std::string& fbxFile)
                     o->SetPosition(static_cast<float>(node->LclTranslation.Get()[0]),
                                    static_cast<float>(node->LclTranslation.Get()[1]),
                                    static_cast<float>(node->LclTranslation.Get()[2]));
+                    counter += matCount;
                 }
             }
         });
+
+        LOGD("Counted " << counter << " objects in scene " << fbxFile);
     }
     else
         LOGI("Initialized empty scene");

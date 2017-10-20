@@ -9,6 +9,20 @@
 namespace ABench {
 namespace Scene {
 
+using MeshTraverseCallback = std::function<void(Mesh*)>;
+
+struct ModelDesc
+{
+    FbxMesh* mesh;
+    std::vector<Material*> materials;
+
+    ModelDesc::ModelDesc()
+        : mesh(nullptr)
+        , materials()
+    {
+    }
+};
+
 class Model final: public Component
 {
     std::string mName;
@@ -18,16 +32,12 @@ public:
     Model(const std::string& name);
     ~Model();
 
-    bool Init(FbxMesh* mesh = nullptr);
+    bool Init(const ModelDesc& modelDesc);
+    void ForEachMesh(MeshTraverseCallback callback);
 
     ABENCH_INLINE Mesh* GetMesh(size_t i)
     {
         return &mMeshes[i];
-    }
-
-    ABENCH_INLINE void SetMaterial(Material* mat)
-    {
-        mMeshes[0].SetMaterial(mat);
     }
 
     ABENCH_INLINE std::string GetName() const

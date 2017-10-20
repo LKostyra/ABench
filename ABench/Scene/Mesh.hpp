@@ -26,14 +26,14 @@ class Mesh final
     bool mByIndices;
 
     bool InitBuffers(const std::vector<Vertex>& vertices, int* indices, int indexCount);
-    bool InitFromFBX(FbxMesh* mesh);
+    bool InitFromFBX(FbxMesh* mesh, int materialIndex);
     bool InitDefault();
 
 public:
     Mesh();
     ~Mesh();
 
-    bool Init(FbxMesh* mesh = nullptr);
+    bool Init(FbxMesh* mesh, uint32_t materialIndex);
 
     ABENCH_INLINE void SetMaterial(Material* mat)
     {

@@ -264,42 +264,43 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
         scene.ForEachObject([&](const Scene::Object* o) -> bool {
             if (o->GetComponent()->GetType() == Scene::ComponentType::Model)
             {
-                Scene::Model* model = dynamic_cast<Scene::Model*>(o->GetComponent());
-                Scene::Mesh* mesh = model->GetMesh(0);
-                if (mesh->GetMaterial() != nullptr)
-                {
-                    macros.fragmentShader[0].value = 1;
-
-                    if (mesh->GetMaterial()->GetDiffuseDescriptor() != VK_NULL_HANDLE)
-                    {
-                        mCommandBuffer.BindDescriptorSet(mesh->GetMaterial()->GetDiffuseDescriptor(), 1, mPipelineLayout);
-                    }
-
-                    if (mesh->GetMaterial()->GetNormalDescriptor() != VK_NULL_HANDLE)
-                    {
-                        macros.fragmentShader[1].value = 1;
-                        mCommandBuffer.BindDescriptorSet(mesh->GetMaterial()->GetNormalDescriptor(), 2, mPipelineLayout);
-                    }
-                }
-                else
-                    macros.fragmentShader[0].value = 0;
-
-                mCommandBuffer.BindPipeline(mPipeline.GetPipelineWithShaders(macros));
-
                 uint32_t offset = mRingBuffer.Write(&o->GetTransform(), sizeof(ABench::Math::Matrix));
                 mCommandBuffer.BindDescriptorSet(mVertexShaderSet, 0, mPipelineLayout, offset);
 
-                mCommandBuffer.BindVertexBuffer(mesh->GetVertexBuffer());
+                Scene::Model* model = dynamic_cast<Scene::Model*>(o->GetComponent());
+                model->ForEachMesh([&](Scene::Mesh* mesh) {
+                    if (mesh->GetMaterial() != nullptr)
+                    {
+                        macros.fragmentShader[0].value = 1;
+                        macros.fragmentShader[1].value = 0;
 
-                if (mesh->ByIndices())
-                {
-                    mCommandBuffer.BindIndexBuffer(mesh->GetIndexBuffer());
-                    mCommandBuffer.DrawIndexed(mesh->GetPointCount());
-                }
-                else
-                {
-                    mCommandBuffer.Draw(mesh->GetPointCount());
-                }
+                        if (mesh->GetMaterial()->GetDiffuseDescriptor() != VK_NULL_HANDLE)
+                        {
+                            mCommandBuffer.BindDescriptorSet(mesh->GetMaterial()->GetDiffuseDescriptor(), 1, mPipelineLayout);
+                        }
+
+                        if (mesh->GetMaterial()->GetNormalDescriptor() != VK_NULL_HANDLE)
+                        {
+                            macros.fragmentShader[1].value = 1;
+                            mCommandBuffer.BindDescriptorSet(mesh->GetMaterial()->GetNormalDescriptor(), 2, mPipelineLayout);
+                        }
+                    }
+                    else
+                        macros.fragmentShader[0].value = 0;
+
+                    mCommandBuffer.BindPipeline(mPipeline.GetPipelineWithShaders(macros));
+                    mCommandBuffer.BindVertexBuffer(mesh->GetVertexBuffer());
+
+                    if (mesh->ByIndices())
+                    {
+                        mCommandBuffer.BindIndexBuffer(mesh->GetIndexBuffer());
+                        mCommandBuffer.DrawIndexed(mesh->GetPointCount());
+                    }
+                    else
+                    {
+                        mCommandBuffer.Draw(mesh->GetPointCount());
+                    }
+                });
             }
 
             return true;
@@ -316,12 +317,12 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
 
     mDevice.Execute(&mCommandBuffer, mRenderFence);
 
-    if (!mBackbuffer.Present())
-        LOGE("Error during image presentation");
-
     // TODO waiting is performed inside Ring Buffer on mRenderFence
     //      Escape from this limitation in the future
     mRingBuffer.MarkFinishedFrame(mRenderFence);
+
+    if (!mBackbuffer.Present())
+        LOGE("Error during image presentation");
 }
 
 } // namespace Renderer

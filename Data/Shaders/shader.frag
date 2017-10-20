@@ -16,7 +16,7 @@ layout (set = 3, binding = 0) uniform lightcb
     vec4 diffuse;
 } lightCBuffer;
 
-vec4 lightAmbient = vec4(0.1, 0.1, 0.1, 1.0);
+vec4 lightAmbient = vec4(0.3, 0.3, 0.3, 1.0);
 
 void main()
 {
