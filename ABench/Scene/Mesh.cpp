@@ -21,6 +21,17 @@ Mesh::~Mesh()
 {
 }
 
+bool Mesh::HasNormalMap(FbxMesh* mesh, int materialIndex)
+{
+    FbxNode* node = mesh->GetNode();
+    FbxSurfaceMaterial* material = node->GetSrcObject<FbxSurfaceMaterial>(materialIndex);
+    FbxProperty prop = material->FindProperty(material->sNormalMap);
+    if (!prop.IsValid())
+        return false;
+
+    return (prop.GetSrcObjectCount<FbxTexture>() > 0);
+}
+
 bool Mesh::InitBuffers(const std::vector<Vertex>& vertices, int* indices, int indexCount)
 {
     BufferDesc vbDesc;
@@ -54,9 +65,10 @@ bool Mesh::InitFromFBX(FbxMesh* mesh, int materialIndex)
 {
     // find UV layer
     FbxLayerElementUV* uvs = nullptr;
-    for (int l = 0; l < mesh->GetLayerCount(); ++l)
+    int uvLayer = 0;
+    for (uvLayer = 0; uvLayer < mesh->GetLayerCount(); ++uvLayer)
     {
-        uvs = mesh->GetLayer(l)->GetUVs();
+        uvs = mesh->GetLayer(uvLayer)->GetUVs();
         if (uvs)
             break;
     }
@@ -71,7 +83,6 @@ bool Mesh::InitFromFBX(FbxMesh* mesh, int materialIndex)
         LOGW("UVs are not generated on per-vertex basis.");
 
     // find normal layer
-    mesh->GenerateNormals(true, true);
     FbxLayerElementNormal* normals = nullptr;
     for (int l = 0; l < mesh->GetLayerCount(); ++l)
     {
@@ -86,7 +97,15 @@ bool Mesh::InitFromFBX(FbxMesh* mesh, int materialIndex)
         return false;
     }
 
-    // TODO there's an assumption that meshes have only one element material, avoid it if needed
+    // generate tangent data if mesh has normal map
+    FbxLayerElementTangent* tangents = nullptr;
+    if (HasNormalMap(mesh, materialIndex))
+    {
+        mesh->GenerateTangentsData(uvLayer, false);
+        tangents = mesh->GetElementTangent(0);
+    }
+
+    // TODO there's an assumption that meshes have only one element material, fix it if needed
     FbxGeometryElementMaterial* matElement = mesh->GetElementMaterial(0);
     if (!matElement)
     {
@@ -95,52 +114,48 @@ bool Mesh::InitFromFBX(FbxMesh* mesh, int materialIndex)
 
     FbxLayerElement::EMappingMode matMapping = matElement->GetMappingMode();
 
+    // left for debugging purposes, just in case
+    // const char* lMappingTypes[] = { "None", "By Control Point", "By Polygon Vertex", "By Polygon", "By Edge", "All Same" };
+    // const char* lReferenceMode[] = { "Direct", "Index", "Index to Direct"};
+
     std::vector<Vertex> vertices;
     Vertex vert;
     ZERO_MEMORY(vert);
 
-    if (matMapping == FbxLayerElement::EMappingMode::eAllSame)
+    FbxVector4 normalVec;
+    for (int i = 0; i < mesh->GetPolygonCount(); ++i)
     {
-        for (int i = 0; i < mesh->GetPolygonCount(); ++i)
+        if (matMapping == FbxLayerElement::EMappingMode::eAllSame ||
+            (matMapping == FbxLayerElement::EMappingMode::eByPolygon && matElement->GetIndexArray()[i] == materialIndex))
         {
             for (int j = 0; j < mesh->GetPolygonSize(i); ++j)
             {
                 int p = mesh->GetPolygonVertex(i, j);
                 int uv = mesh->GetTextureUVIndex(i, j);
+                mesh->GetPolygonVertexNormal(i, j, normalVec);
 
                 vert.pos[0] = static_cast<float>(mesh->GetControlPoints()[p].Buffer()[0]);
                 vert.pos[1] = static_cast<float>(mesh->GetControlPoints()[p].Buffer()[1]);
                 vert.pos[2] = static_cast<float>(mesh->GetControlPoints()[p].Buffer()[2]);
-                vert.norm[0] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[0]);
-                vert.norm[1] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[1]);
-                vert.norm[2] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[2]);
+                vert.norm[0] = static_cast<float>(normalVec[0]);
+                vert.norm[1] = static_cast<float>(normalVec[1]);
+                vert.norm[2] = static_cast<float>(normalVec[2]);
                 vert.uv[0] = static_cast<float>(uvs->GetDirectArray()[uv].Buffer()[0]);
                 vert.uv[1] = static_cast<float>(uvs->GetDirectArray()[uv].Buffer()[1]);
-                vertices.push_back(vert);
-            }
-        }
-    }
-    else if (matMapping == FbxLayerElement::EMappingMode::eByPolygon)
-    {
-        for (int i = 0; i < mesh->GetPolygonCount(); ++i)
-        {
-            if (matElement->GetIndexArray()[i] == materialIndex)
-            {
-                for (int j = 0; j < mesh->GetPolygonSize(i); ++j)
-                {
-                    int p = mesh->GetPolygonVertex(i, j);
-                    int uv = mesh->GetTextureUVIndex(i, j);
 
-                    vert.pos[0] = static_cast<float>(mesh->GetControlPoints()[p].Buffer()[0]);
-                    vert.pos[1] = static_cast<float>(mesh->GetControlPoints()[p].Buffer()[1]);
-                    vert.pos[2] = static_cast<float>(mesh->GetControlPoints()[p].Buffer()[2]);
-                    vert.norm[0] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[0]);
-                    vert.norm[1] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[1]);
-                    vert.norm[2] = static_cast<float>(normals->GetDirectArray()[p].Buffer()[2]);
-                    vert.uv[0] = static_cast<float>(uvs->GetDirectArray()[uv].Buffer()[0]);
-                    vert.uv[1] = static_cast<float>(uvs->GetDirectArray()[uv].Buffer()[1]);
-                    vertices.push_back(vert);
+                if (tangents)
+                {
+                    vert.tang[0] = static_cast<float>(tangents->GetDirectArray().GetAt((i*mesh->GetPolygonSize(i))+j).Buffer()[0]);
+                    vert.tang[1] = static_cast<float>(tangents->GetDirectArray().GetAt((i*mesh->GetPolygonSize(i))+j).Buffer()[1]);
+                    vert.tang[2] = static_cast<float>(tangents->GetDirectArray().GetAt((i*mesh->GetPolygonSize(i))+j).Buffer()[2]);
                 }
+                else
+                {
+                    vert.tang[0] = 0.0f;
+                    vert.tang[1] = 0.0f;
+                    vert.tang[2] = 0.0f;
+                }
+                vertices.push_back(vert);
             }
         }
     }

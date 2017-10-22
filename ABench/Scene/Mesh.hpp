@@ -15,6 +15,7 @@ struct Vertex
     float pos[3];
     float norm[3];
     float uv[2];
+    float tang[3];
 };
 
 class Mesh final
@@ -25,6 +26,7 @@ class Mesh final
     Material* mMaterial;
     bool mByIndices;
 
+    bool HasNormalMap(FbxMesh* mesh, int materialIndex);
     bool InitBuffers(const std::vector<Vertex>& vertices, int* indices, int indexCount);
     bool InitFromFBX(FbxMesh* mesh, int materialIndex);
     bool InitDefault();

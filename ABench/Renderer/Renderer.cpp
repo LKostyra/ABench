@@ -131,9 +131,10 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     VertexLayoutDesc vlDesc;
 
     std::vector<VertexLayoutEntry> vlEntries;
-    vlEntries.push_back({VK_FORMAT_R32G32B32_SFLOAT, 0, 0, 32, false}); // vertex position
-    vlEntries.push_back({VK_FORMAT_R32G32B32_SFLOAT, 12, 0, 32, false}); // vertex normal
-    vlEntries.push_back({VK_FORMAT_R32G32_SFLOAT, 24, 0, 32, false}); // vertex uv
+    vlEntries.emplace_back(VK_FORMAT_R32G32B32_SFLOAT, 0, 0, 44, false); // vertex position
+    vlEntries.emplace_back(VK_FORMAT_R32G32B32_SFLOAT, 12, 0, 44, false); // vertex normal
+    vlEntries.emplace_back(VK_FORMAT_R32G32_SFLOAT, 24, 0, 44, false); // vertex uv
+    vlEntries.emplace_back(VK_FORMAT_R32G32B32_SFLOAT, 32, 0, 44, false); // vertex tangent
 
     vlDesc.entryCount = static_cast<uint32_t>(vlEntries.size());
     vlDesc.entries = vlEntries.data();
@@ -172,6 +173,9 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
 
     MultiPipelineDesc mpDesc;
     mpDesc.vertexShader.path = "shader.vert";
+    mpDesc.vertexShader.macros = {
+        { ShaderMacro::HAS_NORMAL, 1 },
+    };
     mpDesc.fragmentShader.path = "shader.frag";
     mpDesc.fragmentShader.macros = {
         { ShaderMacro::HAS_TEXTURE, 1 },
@@ -258,6 +262,9 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
         mCommandBuffer.BindDescriptorSet(mFragmentShaderSet, 1, mPipelineLayout);
 
         MultiPipelineShaderMacros macros;
+        macros.vertexShader = {
+            { ShaderMacro::HAS_NORMAL, 0 },
+        };
         macros.fragmentShader = {
             { ShaderMacro::HAS_TEXTURE, 0 },
             { ShaderMacro::HAS_NORMAL, 0 },
@@ -272,19 +279,22 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
 
                 Scene::Model* model = dynamic_cast<Scene::Model*>(o->GetComponent());
                 model->ForEachMesh([&](Scene::Mesh* mesh) {
+                    macros.vertexShader[0].value = 0;
+                    macros.fragmentShader[0].value = 0;
+                    macros.fragmentShader[1].value = 0;
+                    macros.fragmentShader[2].value = 0;
+
                     if (mesh->GetMaterial() != nullptr)
                     {
-                        macros.fragmentShader[0].value = 1;
-                        macros.fragmentShader[1].value = 0;
-                        macros.fragmentShader[2].value = 0;
-
                         if (mesh->GetMaterial()->GetDiffuseDescriptor() != VK_NULL_HANDLE)
                         {
+                            macros.fragmentShader[0].value = 1;
                             mCommandBuffer.BindDescriptorSet(mesh->GetMaterial()->GetDiffuseDescriptor(), 2, mPipelineLayout);
                         }
 
                         if (mesh->GetMaterial()->GetNormalDescriptor() != VK_NULL_HANDLE)
                         {
+                            macros.vertexShader[0].value = 1;
                             macros.fragmentShader[1].value = 1;
                             mCommandBuffer.BindDescriptorSet(mesh->GetMaterial()->GetNormalDescriptor(), 3, mPipelineLayout);
                         }
@@ -295,8 +305,6 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
                             mCommandBuffer.BindDescriptorSet(mesh->GetMaterial()->GetMaskDescriptor(), 4, mPipelineLayout);
                         }
                     }
-                    else
-                        macros.fragmentShader[0].value = 0;
 
                     mCommandBuffer.BindPipeline(mPipeline.GetPipelineWithShaders(macros));
                     mCommandBuffer.BindVertexBuffer(mesh->GetVertexBuffer());
