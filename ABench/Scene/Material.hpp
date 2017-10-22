@@ -12,6 +12,7 @@ struct MaterialDesc
     std::string materialName;
     std::string diffusePath;
     std::string normalPath;
+    std::string maskPath;
     // TODO place for any other needed textures
 };
 
@@ -23,6 +24,7 @@ class Material
 
     Renderer::Texture mDiffuseTexture;
     Renderer::Texture mNormalTexture;
+    Renderer::Texture mMaskTexture;
 
     bool CreateRendererTexture(const std::string& image, VkImageUsageFlags usage, Renderer::Texture& texture);
 
@@ -40,6 +42,11 @@ public:
     ABENCH_INLINE const VkDescriptorSet GetNormalDescriptor() const
     {
         return mNormalTexture.GetDescriptorSet();
+    }
+
+    ABENCH_INLINE const VkDescriptorSet GetMaskDescriptor() const
+    {
+        return mMaskTexture.GetDescriptorSet();
     }
 };
 

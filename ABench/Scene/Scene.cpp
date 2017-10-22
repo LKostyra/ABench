@@ -69,6 +69,7 @@ bool Scene::Init(const std::string& fbxFile)
                             FbxSurfaceMaterial* material = node->GetSrcObject<FbxSurfaceMaterial>(m);
                             FbxFileTexture* diffTex = FileTextureFromMaterial(material, material->sDiffuse);
                             FbxFileTexture* normTex = FileTextureFromMaterial(material, material->sNormalMap);
+                            FbxFileTexture* maskTex = FileTextureFromMaterial(material, material->sTransparencyFactor);
 
                             auto matResult = GetMaterial(material->GetName());
                             mat = matResult.first;
@@ -78,6 +79,7 @@ bool Scene::Init(const std::string& fbxFile)
                                 MaterialDesc matDesc;
                                 if (diffTex) matDesc.diffusePath = diffTex->GetFileName();
                                 if (normTex) matDesc.normalPath = normTex->GetFileName();
+                                if (maskTex) matDesc.maskPath = maskTex->GetFileName();
                                 if (!mat->Init(matDesc))
                                 {
                                     LOGE("Failed to initialize material for mesh " << node->GetName());

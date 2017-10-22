@@ -60,12 +60,21 @@ bool Material::Init(const MaterialDesc& desc)
         return false;
     }
 
-    // normal texture is optional - create it only when provided
+    // below textures are optional - create it only when provided
     if (!desc.normalPath.empty())
     {
         if (!CreateRendererTexture(desc.normalPath, VK_IMAGE_USAGE_SAMPLED_BIT, mNormalTexture))
         {
             LOGE("Failed to create normal texture for material " << mMaterialName);
+            return false;
+        }
+    }
+
+    if (!desc.maskPath.empty())
+    {
+        if (!CreateRendererTexture(desc.maskPath, VK_IMAGE_USAGE_SAMPLED_BIT, mMaskTexture))
+        {
+            LOGE("Failed to create color mask texture for material " << mMaterialName);
             return false;
         }
     }

@@ -186,6 +186,12 @@ bool Pipeline::Init(const PipelineDesc& desc)
     ZERO_MEMORY(attachment);
     attachment.colorWriteMask = 0xF;
     attachment.blendEnable = VK_FALSE;
+    attachment.colorBlendOp = VK_BLEND_OP_ADD;
+    attachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+    attachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    attachment.alphaBlendOp = VK_BLEND_OP_ADD;
+    attachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+    attachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 
     colorBlendState.pAttachments = &attachment;
 

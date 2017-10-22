@@ -35,6 +35,7 @@ class DescriptorLayoutManager
     VkDescriptorSetLayout mVertexShaderLayout;
     VkDescriptorSetLayout mFragmentShaderDiffuseTextureLayout;
     VkDescriptorSetLayout mFragmentShaderNormalTextureLayout;
+    VkDescriptorSetLayout mFragmentShaderMaskTextureLayout;
     VkDescriptorSetLayout mFragmentShaderLayout;
 
     DescriptorLayoutManager();
@@ -67,6 +68,11 @@ public:
     ABENCH_INLINE const VkDescriptorSetLayout GetFragmentShaderNormalTextureLayout() const
     {
         return mFragmentShaderNormalTextureLayout;
+    }
+
+    ABENCH_INLINE const VkDescriptorSetLayout GetFragmentShaderMaskTextureLayout() const
+    {
+        return mFragmentShaderMaskTextureLayout;
     }
 
     ABENCH_INLINE const VkDescriptorSetLayout GetFragmentShaderLayout() const

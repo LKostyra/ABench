@@ -6,20 +6,26 @@ layout (location = 2) in vec3 VertPosNoProj;
 
 layout (location = 0) out vec4 color;
 
-
-layout (set = 1, binding = 0) uniform sampler2D diffTex;
-layout (set = 2, binding = 0) uniform sampler2D normTex;
-
-layout (set = 3, binding = 0) uniform lightcb
+layout (set = 1, binding = 0) uniform lightcb
 {
     vec4 pos;
     vec4 diffuse;
 } lightCBuffer;
 
+layout (set = 2, binding = 0) uniform sampler2D diffTex;
+layout (set = 3, binding = 0) uniform sampler2D normTex;
+layout (set = 4, binding = 0) uniform sampler2D maskTex;
+
 vec4 lightAmbient = vec4(0.3, 0.3, 0.3, 1.0);
 
 void main()
 {
+    #if HAS_COLOR_MASK == 1
+        float mask = texture(maskTex, VertUV).r;
+        if (mask.r < 0.5)
+            discard;
+    #endif // HAS_COLOR_MASK == 1
+
     color = lightAmbient;
 
     vec3 lightDir = lightCBuffer.pos.xyz - VertPosNoProj;
@@ -31,7 +37,7 @@ void main()
 
     #if HAS_TEXTURE == 1
         #if HAS_NORMAL == 1
-            color *= texture(normTex, VertUV);
+            color *= texture(diffTex, VertUV);
         #else // HAS_NORMAL == 1
             color *= texture(diffTex, VertUV);
         #endif // HAS_NORMAL == 1

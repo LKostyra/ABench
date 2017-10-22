@@ -145,9 +145,10 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
 
     std::vector<VkDescriptorSetLayout> layouts;
     layouts.push_back(DescriptorLayoutManager::Instance().GetVertexShaderLayout());
+    layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderLayout());
     layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderDiffuseTextureLayout());
     layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderNormalTextureLayout());
-    layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderLayout());
+    layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderMaskTextureLayout());
     mPipelineLayout = Tools::CreatePipelineLayout(layouts.data(), static_cast<uint32_t>(layouts.size()));
     if (mPipelineLayout == VK_NULL_HANDLE)
         return false;
@@ -175,6 +176,7 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     mpDesc.fragmentShader.macros = {
         { ShaderMacro::HAS_TEXTURE, 1 },
         { ShaderMacro::HAS_NORMAL, 1 },
+        { ShaderMacro::HAS_COLOR_MASK, 1 },
     };
     mpDesc.pipelineDesc = pipeDesc;
 
@@ -253,12 +255,13 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
         float clearValue[] = {0.1f, 0.1f, 0.1f, 0.0f};
         mCommandBuffer.BeginRenderPass(mRenderPass, &mFramebuffer,
                                        static_cast<ClearTypes>(ABENCH_CLEAR_COLOR | ABENCH_CLEAR_DEPTH), clearValue, 1.0f);
-        mCommandBuffer.BindDescriptorSet(mFragmentShaderSet, 3, mPipelineLayout);
+        mCommandBuffer.BindDescriptorSet(mFragmentShaderSet, 1, mPipelineLayout);
 
         MultiPipelineShaderMacros macros;
         macros.fragmentShader = {
             { ShaderMacro::HAS_TEXTURE, 0 },
-            { ShaderMacro::HAS_NORMAL, 0 }
+            { ShaderMacro::HAS_NORMAL, 0 },
+            { ShaderMacro::HAS_COLOR_MASK, 0 },
         };
 
         scene.ForEachObject([&](const Scene::Object* o) -> bool {
@@ -273,16 +276,23 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
                     {
                         macros.fragmentShader[0].value = 1;
                         macros.fragmentShader[1].value = 0;
+                        macros.fragmentShader[2].value = 0;
 
                         if (mesh->GetMaterial()->GetDiffuseDescriptor() != VK_NULL_HANDLE)
                         {
-                            mCommandBuffer.BindDescriptorSet(mesh->GetMaterial()->GetDiffuseDescriptor(), 1, mPipelineLayout);
+                            mCommandBuffer.BindDescriptorSet(mesh->GetMaterial()->GetDiffuseDescriptor(), 2, mPipelineLayout);
                         }
 
                         if (mesh->GetMaterial()->GetNormalDescriptor() != VK_NULL_HANDLE)
                         {
                             macros.fragmentShader[1].value = 1;
-                            mCommandBuffer.BindDescriptorSet(mesh->GetMaterial()->GetNormalDescriptor(), 2, mPipelineLayout);
+                            mCommandBuffer.BindDescriptorSet(mesh->GetMaterial()->GetNormalDescriptor(), 3, mPipelineLayout);
+                        }
+
+                        if (mesh->GetMaterial()->GetMaskDescriptor() != VK_NULL_HANDLE)
+                        {
+                            macros.fragmentShader[2].value = 1;
+                            mCommandBuffer.BindDescriptorSet(mesh->GetMaterial()->GetMaskDescriptor(), 4, mPipelineLayout);
                         }
                     }
                     else
