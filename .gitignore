@@ -5,11 +5,10 @@
 # Visual Studio precompiled headers
 /ipch
 
-# Visual Studio intermediate projects' directories
-/Obj
-
-# Output dir and files
+# Output/cache dirs and files
 /Bin
+/Obj
+/Data/ShaderCache
 
 # Common name for build directory
 /build-*
@@ -37,3 +36,5 @@ log.txt
 build
 /Deps/glslang/bin
 /Deps/glslang/include
+/Visual Studio 2017
+/Visual Studio 2017Templates

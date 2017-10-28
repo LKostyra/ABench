@@ -8,6 +8,14 @@ namespace ABench {
 namespace Common {
 namespace FS {
 
+bool CreateDir(const std::string& path)
+{
+    std::wstring pathWStr;
+    UTF8ToUTF16(path, pathWStr);
+
+    return CreateDirectory(pathWStr.c_str(), NULL);
+}
+
 bool Exists(const std::string& path)
 {
     std::wstring pathWStr;

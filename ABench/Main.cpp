@@ -121,6 +121,9 @@ int main()
     if (!ABench::Common::FS::SetCWD(path + "/../../.."))
         return -1;
 
+    if (!ABench::Common::FS::Exists(ABench::ResourceDir::SHADER_CACHE))
+        ABench::Common::FS::CreateDir(ABench::ResourceDir::SHADER_CACHE);
+
     ABenchWindow window;
     window.Init();
     if (!window.Open(200, 200, windowWidth, windowHeight, "ABench"))

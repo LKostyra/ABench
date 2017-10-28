@@ -269,7 +269,7 @@ bool Shader::Init(const ShaderDesc& desc)
     std::vector<uint32_t> code;
 
     std::string shaderPath(Common::FS::JoinPaths(ResourceDir::SHADERS, desc.filename));
-    std::string spvShaderPath = shaderPath;
+    std::string spvShaderPath(Common::FS::JoinPaths(ResourceDir::SHADER_CACHE, desc.filename));
     if (!desc.macros.empty())
     {
         spvShaderPath += ".";

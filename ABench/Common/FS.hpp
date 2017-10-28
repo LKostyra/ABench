@@ -4,6 +4,8 @@ namespace ABench {
 namespace Common {
 namespace FS {
 
+bool CreateDir(const std::string& path);
+
 /**
  * Checks if a given file/directory exists.
  */
