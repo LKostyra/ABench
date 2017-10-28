@@ -40,7 +40,7 @@ Renderer::Renderer()
     , mPipelineLayout(VK_NULL_HANDLE)
     , mRenderFence(VK_NULL_HANDLE)
     , mVertexShaderSet(VK_NULL_HANDLE)
-    , mFragmentShaderSet(VK_NULL_HANDLE)
+    , mAllShaderSet(VK_NULL_HANDLE)
 {
 }
 
@@ -146,7 +146,7 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
 
     std::vector<VkDescriptorSetLayout> layouts;
     layouts.push_back(DescriptorLayoutManager::Instance().GetVertexShaderLayout());
-    layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderLayout());
+    layouts.push_back(DescriptorLayoutManager::Instance().GetAllShaderLayout());
     layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderDiffuseTextureLayout());
     layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderNormalTextureLayout());
     layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderMaskTextureLayout());
@@ -159,8 +159,8 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (mVertexShaderSet == VK_NULL_HANDLE)
         return false;
 
-    mFragmentShaderSet = mDevice.GetDescriptorAllocator().AllocateDescriptorSet(DescriptorLayoutManager::Instance().GetFragmentShaderLayout());
-    if (mFragmentShaderSet == VK_NULL_HANDLE)
+    mAllShaderSet = mDevice.GetDescriptorAllocator().AllocateDescriptorSet(DescriptorLayoutManager::Instance().GetAllShaderLayout());
+    if (mAllShaderSet == VK_NULL_HANDLE)
         return false;
 
 
@@ -205,7 +205,7 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     fsBufferDesc.dataSize = sizeof(FragmentShaderLightCBuffer);
     fsBufferDesc.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
     fsBufferDesc.type = BufferType::Dynamic;
-    if (!mFragmentShaderLightCBuffer.Init(vsBufferDesc))
+    if (!mAllShaderLightCBuffer.Init(vsBufferDesc))
         return false;
 
     // Point vertex shader set bindings to our dynamic buffer
@@ -213,8 +213,8 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
                                      mRingBuffer.GetVkBuffer(), sizeof(VertexShaderDynamicCBuffer));
     Tools::UpdateBufferDescriptorSet(mVertexShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
                                      mVertexShaderCBuffer.GetVkBuffer(), sizeof(VertexShaderCBuffer));
-    Tools::UpdateBufferDescriptorSet(mFragmentShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0,
-                                     mFragmentShaderLightCBuffer.GetVkBuffer(), sizeof(FragmentShaderLightCBuffer));
+    Tools::UpdateBufferDescriptorSet(mAllShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0,
+                                     mAllShaderLightCBuffer.GetVkBuffer(), sizeof(FragmentShaderLightCBuffer));
 
 
     mRenderFence = Tools::CreateFence();
@@ -243,7 +243,7 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
         lightBuf.diffuse = l->GetDiffuseIntensity();
         return false;
     });
-    mFragmentShaderLightCBuffer.Write(&lightBuf, sizeof(FragmentShaderLightCBuffer));
+    mAllShaderLightCBuffer.Write(&lightBuf, sizeof(FragmentShaderLightCBuffer));
 
 
     // Rendering
@@ -259,7 +259,7 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
         float clearValue[] = {0.1f, 0.1f, 0.1f, 0.0f};
         mCommandBuffer.BeginRenderPass(mRenderPass, &mFramebuffer,
                                        static_cast<ClearTypes>(ABENCH_CLEAR_COLOR | ABENCH_CLEAR_DEPTH), clearValue, 1.0f);
-        mCommandBuffer.BindDescriptorSet(mFragmentShaderSet, 1, mPipelineLayout);
+        mCommandBuffer.BindDescriptorSet(mAllShaderSet, 1, mPipelineLayout);
 
         MultiPipelineShaderMacros macros;
         macros.vertexShader = {

@@ -8,12 +8,7 @@ layout (location = 3) in vec3 InTangent;
 // temporarily changed from block because glslang has a bug
 layout (location = 0) out vec3 VertNorm;
 layout (location = 1) out vec2 VertUV;
-layout (location = 2) out vec3 VertPosView;
-
-#if HAS_NORMAL == 1
-layout (location = 3) out vec3 VertTangentView;
-layout (location = 4) out vec3 VertBinormView;
-#endif // HAS_NORMAL == 1
+layout (location = 2) out vec3 VertLightDir;
 
 
 
@@ -34,18 +29,29 @@ out gl_PerVertex
     vec4 gl_Position;
 };
 
+layout (set = 1, binding = 0) uniform lightcb
+{
+    vec4 pos;
+    vec4 diffuse;
+} lightCBuffer;
+
 void main()
 {
     mat4 worldView = CBuffer.viewMatrix * dynamicCBuffer.worldMatrix;
     mat4 worldViewProj = CBuffer.projMatrix * worldView;
 
-    VertNorm = InNorm;
+    VertNorm = normalize(mat3(dynamicCBuffer.worldMatrix) * InNorm);
     VertUV = InUV;
-    VertPosView = mat3(dynamicCBuffer.worldMatrix) * InPos;
     gl_Position = worldViewProj * vec4(InPos, 1.0);
 
+    vec3 vertPos = mat3(dynamicCBuffer.worldMatrix) * InPos;
+    VertLightDir = lightCBuffer.pos.xyz - vertPos;
+
 #if HAS_NORMAL == 1
-    VertTangentView = normalize(mat3(dynamicCBuffer.worldMatrix) * InTangent);
-    VertBinormView = normalize(mat3(dynamicCBuffer.worldMatrix) * cross(InTangent, InNorm));
+    vec3 tangent = normalize(mat3(dynamicCBuffer.worldMatrix) * InTangent);
+    vec3 bitangent = normalize(mat3(dynamicCBuffer.worldMatrix) * cross(tangent, VertNorm));
+
+    mat3 TBN = transpose(mat3(tangent, bitangent, VertNorm));
+    VertLightDir = TBN * VertLightDir;
 #endif // HAS_NORMAL == 1
 }

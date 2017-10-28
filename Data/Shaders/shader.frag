@@ -1,12 +1,8 @@
 // temporarily changed from block because glslang has a bug
 layout (location = 0) in vec3 VertNorm;
 layout (location = 1) in vec2 VertUV;
-layout (location = 2) in vec3 VertPosView;
+layout (location = 2) in vec3 VertLightDir;
 
-#if HAS_NORMAL == 1
-layout (location = 3) in vec3 VertTangentView;
-layout (location = 4) in vec3 VertBinormView;
-#endif // HAS_NORMAL == 1
 
 
 layout (location = 0) out vec4 color;
@@ -32,14 +28,13 @@ void main()
 #endif // HAS_COLOR_MASK == 1
 
     color = lightAmbient;
-    vec3 lightDir = lightCBuffer.pos.xyz - VertPosView;
-    float distance = length(lightDir);
-    lightDir = normalize(lightDir);
+    float distance = length(VertLightDir);
+    vec3 lightDir = normalize(VertLightDir);
 
 #if HAS_NORMAL == 1
-    mat3 TBN = transpose(mat3(VertTangentView, VertBinormView, VertNorm));
-    lightDir = TBN * lightDir;
-    float coeff = dot(lightDir, normalize((texture(normTex, VertUV).rgb * 2.0) - 1.0));
+    vec3 texNorm = normalize(texture(normTex, VertUV).rgb * 2.0 - 1.0);
+    texNorm.y = -texNorm.y;
+    float coeff = dot(lightDir, texNorm);
 #else // HAS_NORMAL == 1
     float coeff = dot(lightDir, VertNorm);
 #endif // HAS_NORMAL == 1
