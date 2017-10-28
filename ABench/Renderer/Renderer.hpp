@@ -39,6 +39,7 @@ class Renderer final
     VkFence mRenderFence;
 
     VkDescriptorSet mVertexShaderSet;
+    VkDescriptorSet mFragmentShaderSet;
     VkDescriptorSet mAllShaderSet;
     Buffer mVertexShaderCBuffer;
     Buffer mAllShaderLightCBuffer;

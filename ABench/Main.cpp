@@ -72,7 +72,7 @@ class ABenchWindow: public ABench::Common::Window
         // Light
         ABench::Math::Vector lightNewPos;
         float lightSpeed = 2.0f;
-        
+
         if (mLightFollowsCamera)
         {
             lightNewPos = mCamera.GetPosition();
@@ -149,40 +149,56 @@ int main()
     scene.Init(ABench::Common::FS::JoinPaths(ABench::ResourceDir::SCENES, "sponza.fbx"));
 
     auto matResult = scene.GetMaterial("boxMaterial");
-    ABench::Scene::Material* mat = matResult.first;
+    ABench::Scene::Material* boxMat = matResult.first;
     if (matResult.second)
     {
         ABench::Scene::MaterialDesc matDesc;
         matDesc.diffusePath = ABench::Common::FS::JoinPaths(ABench::ResourceDir::TEXTURES, "Wood_Box_Diffuse.jpg");
-        if (!mat->Init(matDesc))
+        if (!boxMat->Init(matDesc))
         {
             LOGE("Failed to initialize material");
             return -1;
         }
     }
 
-    ABench::Scene::ModelDesc modelDesc;
+    matResult = scene.GetMaterial("boxMaterial2");
+    ABench::Scene::Material* boxMatNoTex = matResult.first;
+    if (matResult.second)
+    {
+        ABench::Scene::MaterialDesc matDesc;
+        matDesc.color = ABench::Math::Vector(0.2f, 0.4f, 0.9f, 1.0f);
+        if (!boxMatNoTex->Init(matDesc))
+        {
+            LOGE("Failed to initialize no tex material");
+            return -1;
+        }
+    }
 
-    // untextured cube
-   /* auto modelResult = scene.GetComponent(ABench::Scene::ComponentType::Model, "box1");
+    ABench::Scene::ModelDesc modelDesc;
+    modelDesc.materials.push_back(boxMat);
+
+    // textured cube
+    auto modelResult = scene.GetComponent(ABench::Scene::ComponentType::Model, "box1");
     ABench::Scene::Model* model1 = dynamic_cast<ABench::Scene::Model*>(modelResult.first);
     if (modelResult.second)
         model1->Init(modelDesc);
-        */
-    // textured cube
-    modelDesc.materials.push_back(mat);
-    auto modelResult = scene.GetComponent(ABench::Scene::ComponentType::Model, "box2");
+
+    modelDesc.materials.clear();
+    modelDesc.materials.push_back(boxMatNoTex);
+
+    // untextured cube
+    modelResult = scene.GetComponent(ABench::Scene::ComponentType::Model, "box2");
     ABench::Scene::Model* model2 = dynamic_cast<ABench::Scene::Model*>(modelResult.first);
     if (modelResult.second)
         model2->Init(modelDesc);
 
     ABench::Scene::Object* obj = scene.CreateObject();
-    obj->SetComponent(model2);
+    obj->SetComponent(model1);
     obj->SetPosition(0.0f, 1.0f, 0.0f);
-    /*
+
     obj = scene.CreateObject();
     obj->SetComponent(model2);
-    obj->SetPosition(2.0f, 1.0f, 0.0f);*/
+    obj->SetPosition(2.0f, 1.0f, 0.0f);
 
     auto lightResult = scene.GetComponent(ABench::Scene::ComponentType::Light, "light");
     gLight = dynamic_cast<ABench::Scene::Light*>(lightResult.first);

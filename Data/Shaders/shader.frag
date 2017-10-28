@@ -4,8 +4,8 @@ layout (location = 1) in vec2 VertUV;
 layout (location = 2) in vec3 VertLightDir;
 
 
-
 layout (location = 0) out vec4 color;
+
 
 layout (set = 1, binding = 0) uniform lightcb
 {
@@ -17,7 +17,14 @@ layout (set = 2, binding = 0) uniform sampler2D diffTex;
 layout (set = 3, binding = 0) uniform sampler2D normTex;
 layout (set = 4, binding = 0) uniform sampler2D maskTex;
 
-vec4 lightAmbient = vec4(0.3, 0.3, 0.3, 1.0);
+layout (set = 5, binding = 0) uniform materialcb
+{
+    vec4 color;
+} materialCBuffer;
+
+
+vec4 lightAmbient = vec4(0.2, 0.2, 0.2, 1.0);
+
 
 void main()
 {
@@ -40,10 +47,9 @@ void main()
 #endif // HAS_NORMAL == 1
 
     color += coeff * lightCBuffer.diffuse * (5.0 / (distance * distance));
+    color *= materialCBuffer.color;
 
 #if HAS_TEXTURE == 1
     color *= texture(diffTex, VertUV);
-#else // HAS_TEXTURE == 1
-    color *= vec4(0.65, 0.36, 0.13, 1.0);
 #endif // HAS_TEXTURE == 1
 }

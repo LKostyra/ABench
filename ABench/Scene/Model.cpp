@@ -20,14 +20,20 @@ Model::~Model()
 
 bool Model::Init(const ModelDesc& modelDesc)
 {
+    if (modelDesc.materials.size() == 0)
+    {
+        LOGE("A material is required to create a model");
+        return false;
+    }
+
     // avoid reallocation - it could free our buffers
     mMeshes.reserve(modelDesc.materials.size());
 
-    for (int i = 0; i < modelDesc.materials.size(); ++i)
+    for (size_t i = 0; i < modelDesc.materials.size(); ++i)
     {
         mMeshes.emplace_back();
         Mesh& m = mMeshes.back();
-        if (!m.Init(modelDesc.mesh, i))
+        if (!m.Init(modelDesc.mesh, static_cast<uint32_t>(i)))
         {
             LOGE("Failed to create mesh " << i << " for model " << mName);
             return false;

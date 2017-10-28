@@ -166,7 +166,7 @@ bool Device::Init(const Instance& inst)
     DescriptorAllocatorDesc daDesc;
     ZERO_MEMORY(daDesc);
     daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER] = 2;
-    daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC] = 1;
+    daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC] = 2;
     daDesc.limits[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] = 1000;
     if (!mDescriptorAllocator.Init(mDevice, daDesc))
         return false;

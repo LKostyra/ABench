@@ -2,6 +2,7 @@
 
 #include "Common/Image.hpp"
 #include "Renderer/Texture.hpp"
+#include "Math/Vector.hpp"
 
 
 namespace ABench {
@@ -10,10 +11,20 @@ namespace Scene {
 struct MaterialDesc
 {
     std::string materialName;
+
+    Math::Vector color;
     std::string diffusePath;
     std::string normalPath;
     std::string maskPath;
-    // TODO place for any other needed textures
+
+    MaterialDesc()
+        : materialName()
+        , color(1.0f)
+        , diffusePath()
+        , normalPath()
+        , maskPath()
+    {
+    }
 };
 
 class Material
@@ -22,6 +33,7 @@ class Material
 
     std::string mMaterialName;
 
+    Math::Vector mColor;
     Renderer::Texture mDiffuseTexture;
     Renderer::Texture mNormalTexture;
     Renderer::Texture mMaskTexture;
@@ -33,6 +45,11 @@ public:
     ~Material();
 
     bool Init(const MaterialDesc& desc);
+
+    ABENCH_INLINE const Math::Vector& GetColor() const
+    {
+        return mColor;
+    }
 
     ABENCH_INLINE const VkDescriptorSet GetDiffuseDescriptor() const
     {

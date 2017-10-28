@@ -48,16 +48,15 @@ bool Material::CreateRendererTexture(const std::string& imagePath, VkImageUsageF
 
 bool Material::Init(const MaterialDesc& desc)
 {
-    if (desc.diffusePath.empty())
-    {
-        LOGE("Diffuse texture is required");
-        return false;
-    }
+    mColor = desc.color;
 
-    if (!CreateRendererTexture(desc.diffusePath, VK_IMAGE_USAGE_SAMPLED_BIT, mDiffuseTexture))
+    if (!desc.diffusePath.empty())
     {
-        LOGE("Failed to create diffuse texture for material " << mMaterialName);
-        return false;
+        if (!CreateRendererTexture(desc.diffusePath, VK_IMAGE_USAGE_SAMPLED_BIT, mDiffuseTexture))
+        {
+            LOGE("Failed to create diffuse texture for material " << mMaterialName);
+            return false;
+        }
     }
 
     // below textures are optional - create it only when provided

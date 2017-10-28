@@ -32,6 +32,11 @@ struct FragmentShaderLightCBuffer
     Math::Vector diffuse;
 };
 
+struct MaterialCBuffer
+{
+    Math::Vector color;
+};
+
 Device* gDevice = nullptr;
 
 
@@ -150,6 +155,7 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderDiffuseTextureLayout());
     layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderNormalTextureLayout());
     layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderMaskTextureLayout());
+    layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderLayout());
     mPipelineLayout = Tools::CreatePipelineLayout(layouts.data(), static_cast<uint32_t>(layouts.size()));
     if (mPipelineLayout == VK_NULL_HANDLE)
         return false;
@@ -157,6 +163,10 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     // buffer-related set allocation
     mVertexShaderSet = mDevice.GetDescriptorAllocator().AllocateDescriptorSet(DescriptorLayoutManager::Instance().GetVertexShaderLayout());
     if (mVertexShaderSet == VK_NULL_HANDLE)
+        return false;
+
+    mFragmentShaderSet = mDevice.GetDescriptorAllocator().AllocateDescriptorSet(DescriptorLayoutManager::Instance().GetFragmentShaderLayout());
+    if (mFragmentShaderSet == VK_NULL_HANDLE)
         return false;
 
     mAllShaderSet = mDevice.GetDescriptorAllocator().AllocateDescriptorSet(DescriptorLayoutManager::Instance().GetAllShaderLayout());
@@ -171,20 +181,20 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     pipeDesc.pipelineLayout = mPipelineLayout;
     pipeDesc.enableDepth = true;
 
-    MultiGraphicsPipelineDesc mpDesc;
-    mpDesc.vertexShader.path = "shader.vert";
-    mpDesc.vertexShader.macros = {
+    MultiGraphicsPipelineDesc mgpDesc;
+    mgpDesc.vertexShader.path = "shader.vert";
+    mgpDesc.vertexShader.macros = {
         { ShaderMacro::HAS_NORMAL, 1 },
     };
-    mpDesc.fragmentShader.path = "shader.frag";
-    mpDesc.fragmentShader.macros = {
+    mgpDesc.fragmentShader.path = "shader.frag";
+    mgpDesc.fragmentShader.macros = {
         { ShaderMacro::HAS_TEXTURE, 1 },
         { ShaderMacro::HAS_NORMAL, 1 },
         { ShaderMacro::HAS_COLOR_MASK, 1 },
     };
-    mpDesc.pipelineDesc = pipeDesc;
+    mgpDesc.pipelineDesc = pipeDesc;
 
-    if (!mPipeline.Init(mpDesc))
+    if (!mPipeline.Init(mgpDesc))
         return false;
 
 
@@ -213,6 +223,8 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
                                      mRingBuffer.GetVkBuffer(), sizeof(VertexShaderDynamicCBuffer));
     Tools::UpdateBufferDescriptorSet(mVertexShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
                                      mVertexShaderCBuffer.GetVkBuffer(), sizeof(VertexShaderCBuffer));
+    Tools::UpdateBufferDescriptorSet(mFragmentShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 0,
+                                     mRingBuffer.GetVkBuffer(), sizeof(MaterialCBuffer));
     Tools::UpdateBufferDescriptorSet(mAllShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0,
                                      mAllShaderLightCBuffer.GetVkBuffer(), sizeof(FragmentShaderLightCBuffer));
 
@@ -234,6 +246,7 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
     mVertexShaderCBuffer.Write(&buf, sizeof(VertexShaderCBuffer));
 
     FragmentShaderLightCBuffer lightBuf;
+    MaterialCBuffer materialBuf;
 
     scene.ForEachLight([&lightBuf](const Scene::Object* o) -> bool {
         // gather only first light's position for now
@@ -274,6 +287,7 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
         scene.ForEachObject([&](const Scene::Object* o) -> bool {
             if (o->GetComponent()->GetType() == Scene::ComponentType::Model)
             {
+                // world matrix update
                 uint32_t offset = mRingBuffer.Write(&o->GetTransform(), sizeof(ABench::Math::Matrix));
                 mCommandBuffer.BindDescriptorSet(mVertexShaderSet, 0, mPipelineLayout, offset);
 
@@ -284,25 +298,31 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
                     macros.fragmentShader[1].value = 0;
                     macros.fragmentShader[2].value = 0;
 
-                    if (mesh->GetMaterial() != nullptr)
+                    const Scene::Material* material = mesh->GetMaterial();
+                    if (material != nullptr)
                     {
-                        if (mesh->GetMaterial()->GetDiffuseDescriptor() != VK_NULL_HANDLE)
+                        // material data update
+                        materialBuf.color = material->GetColor();
+                        offset = mRingBuffer.Write(&materialBuf, sizeof(materialBuf));
+                        mCommandBuffer.BindDescriptorSet(mFragmentShaderSet, 5, mPipelineLayout, offset);
+
+                        if (material->GetDiffuseDescriptor() != VK_NULL_HANDLE)
                         {
                             macros.fragmentShader[0].value = 1;
-                            mCommandBuffer.BindDescriptorSet(mesh->GetMaterial()->GetDiffuseDescriptor(), 2, mPipelineLayout);
+                            mCommandBuffer.BindDescriptorSet(material->GetDiffuseDescriptor(), 2, mPipelineLayout);
                         }
 
-                        if (mesh->GetMaterial()->GetNormalDescriptor() != VK_NULL_HANDLE)
+                        if (material->GetNormalDescriptor() != VK_NULL_HANDLE)
                         {
                             macros.vertexShader[0].value = 1;
                             macros.fragmentShader[1].value = 1;
-                            mCommandBuffer.BindDescriptorSet(mesh->GetMaterial()->GetNormalDescriptor(), 3, mPipelineLayout);
+                            mCommandBuffer.BindDescriptorSet(material->GetNormalDescriptor(), 3, mPipelineLayout);
                         }
 
-                        if (mesh->GetMaterial()->GetMaskDescriptor() != VK_NULL_HANDLE)
+                        if (material->GetMaskDescriptor() != VK_NULL_HANDLE)
                         {
                             macros.fragmentShader[2].value = 1;
-                            mCommandBuffer.BindDescriptorSet(mesh->GetMaterial()->GetMaskDescriptor(), 4, mPipelineLayout);
+                            mCommandBuffer.BindDescriptorSet(material->GetMaskDescriptor(), 4, mPipelineLayout);
                         }
                     }
 

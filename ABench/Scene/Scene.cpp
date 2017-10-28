@@ -28,6 +28,17 @@ FbxFileTexture* Scene::FileTextureFromMaterial(FbxSurfaceMaterial* material, con
     return texFile; // can return nullptr here if requested property does not exist
 }
 
+Math::Vector Scene::ColorVectorFromMaterial(FbxSurfaceMaterial* material)
+{
+    if (material->GetClassId().Is(FbxSurfacePhong::ClassId))
+    {
+        FbxPropertyT<FbxDouble3> color = reinterpret_cast<FbxSurfacePhong*>(material)->Diffuse;
+        return Math::Vector(static_cast<float>(color.Get()[0]), static_cast<float>(color.Get()[1]), static_cast<float>(color.Get()[2]), 1.0f);
+    }
+
+    return Math::Vector(1.0f);
+}
+
 bool Scene::Init(const std::string& fbxFile)
 {
     if (!fbxFile.empty())
@@ -77,6 +88,7 @@ bool Scene::Init(const std::string& fbxFile)
                             {
                                 // new material, initialize
                                 MaterialDesc matDesc;
+                                matDesc.color = ColorVectorFromMaterial(material);
                                 if (diffTex) matDesc.diffusePath = diffTex->GetFileName();
                                 if (normTex) matDesc.normalPath = normTex->GetFileName();
                                 if (maskTex) matDesc.maskPath = maskTex->GetFileName();
