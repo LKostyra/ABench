@@ -71,27 +71,38 @@ bool MultiPipeline::GenerateShaderModules(const MultiPipelineShaderDesc& desc, S
     return true;
 }
 
-PipelinePtr MultiPipeline::GenerateNewPipeline(const MultiPipelineShaderMacros& comb)
+PipelinePtr MultiPipeline::GenerateNewPipeline(const MultiGraphicsPipelineShaderMacros& comb)
 {
     PipelinePtr p = std::make_shared<Pipeline>();
 
-    mBasePipelineDesc.vertexShader = mVertexShaders[comb.vertexShader].get();
-    mBasePipelineDesc.tessControlShader = mTessControlShaders[comb.tessControlShader].get();
-    mBasePipelineDesc.tessEvalShader = mTessEvalShaders[comb.tessEvalShader].get();
-    mBasePipelineDesc.geometryShader = mGeometryShaders[comb.geometryShader].get();
-    mBasePipelineDesc.fragmentShader = mFragmentShaders[comb.fragmentShader].get();
-    p->Init(mBasePipelineDesc);
+    mBaseGraphicsPipeline.desc.vertexShader = mVertexShaders[comb.vertexShader].get();
+    mBaseGraphicsPipeline.desc.tessControlShader = mTessControlShaders[comb.tessControlShader].get();
+    mBaseGraphicsPipeline.desc.tessEvalShader = mTessEvalShaders[comb.tessEvalShader].get();
+    mBaseGraphicsPipeline.desc.geometryShader = mGeometryShaders[comb.geometryShader].get();
+    mBaseGraphicsPipeline.desc.fragmentShader = mFragmentShaders[comb.fragmentShader].get();
+    p->Init(mBaseGraphicsPipeline.desc);
 
     return p;
 }
 
-bool MultiPipeline::Init(const MultiPipelineDesc& desc)
+PipelinePtr MultiPipeline::GenerateNewPipeline(const ShaderMacros& comb)
 {
-    mPipelines.clear();
+    PipelinePtr p = std::make_shared<Pipeline>();
+
+    mBaseComputePipeline.desc.computeShader = mComputeShaders[comb].get();
+
+    p->Init(mBaseComputePipeline.desc);
+
+    return p;
+}
+
+bool MultiPipeline::Init(const MultiGraphicsPipelineDesc& desc)
+{
+    mGraphicsPipelines.clear();
 
     if (desc.vertexShader.path.empty() || desc.fragmentShader.path.empty())
     {
-        LOGE("To construct a Pipeline at least Vertex and Fragment shaders are required.");
+        LOGE("At least Vertex and Fragment shaders are required to construct a Pipeline");
         return false;
     }
 
@@ -135,33 +146,71 @@ bool MultiPipeline::Init(const MultiPipelineDesc& desc)
     }
 
     ShaderMacros macros;
-    mBasePipelineDesc = desc.pipelineDesc;
-    
+    mBaseGraphicsPipeline.desc = desc.pipelineDesc;
+
     if (!desc.vertexShader.macros.empty())
         for (auto& m: desc.vertexShader.macros)
             macros.emplace_back(m.name, 0);
-    
-    mBasePipelineDesc.vertexShader = mVertexShaders[macros].get();
-    mBasePipelineDesc.tessControlShader = nullptr;
-    mBasePipelineDesc.tessEvalShader = nullptr;
-    mBasePipelineDesc.geometryShader = nullptr;
-    mBasePipelineDesc.fragmentShader = nullptr;
-    mBasePipelineDesc.flags = VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT;
-    mBasePipelineDesc.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
-    if (!mBasePipeline.Init(mBasePipelineDesc))
+    mBaseGraphicsPipeline.desc.vertexShader = mVertexShaders[macros].get();
+    mBaseGraphicsPipeline.desc.tessControlShader = nullptr;
+    mBaseGraphicsPipeline.desc.tessEvalShader = nullptr;
+    mBaseGraphicsPipeline.desc.geometryShader = nullptr;
+    mBaseGraphicsPipeline.desc.fragmentShader = nullptr;
+    mBaseGraphicsPipeline.desc.flags = VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT;
+    mBaseGraphicsPipeline.desc.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+    if (!mBaseGraphicsPipeline.pipeline.Init(mBaseGraphicsPipeline.desc))
     {
-        LOGE("Failed to create a base pipeline");
+        LOGE("Failed to create a base Graphics Pipeline");
         return false;
     }
 
-    mBasePipelineDesc.flags = VK_PIPELINE_CREATE_DERIVATIVE_BIT;
-    mBasePipelineDesc.basePipeline = mBasePipeline.GetPipeline();
+    mBaseGraphicsPipeline.desc.flags = VK_PIPELINE_CREATE_DERIVATIVE_BIT;
+    mBaseGraphicsPipeline.desc.basePipeline = mBaseGraphicsPipeline.pipeline.GetPipeline();
 
     return true;
 }
 
-VkPipeline MultiPipeline::GetPipelineWithShaders(const MultiPipelineShaderMacros& combs)
+bool MultiPipeline::Init(const MultiComputePipelineDesc& desc)
+{
+    mComputePipelines.clear();
+
+    if (desc.computeShader.path.empty())
+    {
+        LOGE("Compute Shader is required to create a Compute Pipeline");
+        return false;
+    }
+
+    if (!GenerateShaderModules(desc.computeShader, ShaderType::COMPUTE, &mComputeShaders))
+    {
+        LOGE("Failed to generate vertex shader modules for multipipeline");
+        return false;
+    }
+
+    ShaderMacros macros;
+    mBaseComputePipeline.desc = desc.pipelineDesc;
+
+    if (!desc.computeShader.macros.empty())
+        for (auto& m: desc.computeShader.macros)
+            macros.emplace_back(m.name, 0);
+
+    mBaseComputePipeline.desc.computeShader = mVertexShaders[macros].get();
+    mBaseComputePipeline.desc.flags = VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT;
+
+    if (!mBaseComputePipeline.pipeline.Init(mBaseComputePipeline.desc))
+    {
+        LOGE("Failed to create a base Compute Pipeline");
+        return false;
+    }
+
+    mBaseComputePipeline.desc.flags = VK_PIPELINE_CREATE_DERIVATIVE_BIT;
+    mBaseComputePipeline.desc.basePipeline = mBaseComputePipeline.pipeline.GetPipeline();
+
+    return true;
+}
+
+VkPipeline MultiPipeline::GetGraphicsPipeline(const MultiGraphicsPipelineShaderMacros& combs)
 {
     // TODO this needs some rethinking. It might turn out that mixing shaders like this is a bad idea,
     // and will lead to conflicts (will it? we are using one set of shaders with MultiPipeline anyway...)
@@ -172,14 +221,33 @@ VkPipeline MultiPipeline::GetPipelineWithShaders(const MultiPipelineShaderMacros
     macros.insert(macros.end(), combs.geometryShader.begin(), combs.geometryShader.end());
     macros.insert(macros.end(), combs.fragmentShader.begin(), combs.fragmentShader.end());
 
-    auto pipeline = mPipelines.find(macros);
-    if (pipeline == mPipelines.end())
+    auto pipeline = mGraphicsPipelines.find(macros);
+    if (pipeline == mGraphicsPipelines.end())
     {
         PipelinePtr p = GenerateNewPipeline(combs);
-        auto result = mPipelines.insert(std::make_pair(macros, p));
+        auto result = mGraphicsPipelines.insert(std::make_pair(macros, p));
         if (!result.second)
         {
-            LOGE("Failed to create new pipeline");
+            LOGE("Failed to create new Graphics Pipeline");
+            return VK_NULL_HANDLE;
+        }
+
+        pipeline = result.first;
+    }
+
+    return pipeline->second->GetPipeline();
+}
+
+VkPipeline MultiPipeline::GetComputePipeline(const ShaderMacros& comb)
+{
+    auto pipeline = mComputePipelines.find(comb);
+    if (pipeline == mComputePipelines.end())
+    {
+        PipelinePtr p = GenerateNewPipeline(comb);
+        auto result = mComputePipelines.insert(std::make_pair(comb, p));
+        if (!result.second)
+        {
+            LOGE("Failed to create new Graphics Pipeline");
             return VK_NULL_HANDLE;
         }
 

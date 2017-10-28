@@ -10,7 +10,7 @@
 namespace ABench {
 namespace Renderer {
 
-struct PipelineDesc
+struct GraphicsPipelineDesc
 {
     Shader* vertexShader;
     Shader* tessControlShader;
@@ -27,7 +27,7 @@ struct PipelineDesc
 
     bool enableDepth;
 
-    PipelineDesc()
+    GraphicsPipelineDesc()
         : vertexShader(nullptr)
         , tessControlShader(nullptr)
         , tessEvalShader(nullptr)
@@ -44,26 +44,44 @@ struct PipelineDesc
     }
 };
 
+struct ComputePipelineDesc
+{
+    Shader* computeShader;
+
+    VkPipelineLayout pipelineLayout;
+    VkPipelineCreateFlags flags;
+    VkPipeline basePipeline;
+
+    ComputePipelineDesc()
+        : computeShader(nullptr)
+        , pipelineLayout(VK_NULL_HANDLE)
+        , flags(0)
+        , basePipeline(VK_NULL_HANDLE)
+    {
+    }
+};
+
 class Pipeline
 {
     friend class CommandBuffer;
 
     VkPipeline mPipeline;
 
-    void BuildShaderStageInfo(const PipelineDesc& desc, std::vector<VkPipelineShaderStageCreateInfo>& stages);
-    VkPipelineVertexInputStateCreateInfo BuildVertexInputStateInfo(const PipelineDesc& desc);
-    VkPipelineInputAssemblyStateCreateInfo BuildInputAssemblyStateInfo(const PipelineDesc& desc);
+    void BuildShaderStageInfo(const GraphicsPipelineDesc& desc, std::vector<VkPipelineShaderStageCreateInfo>& stages);
+    VkPipelineVertexInputStateCreateInfo BuildVertexInputStateInfo(const GraphicsPipelineDesc& desc);
+    VkPipelineInputAssemblyStateCreateInfo BuildInputAssemblyStateInfo(const GraphicsPipelineDesc& desc);
     VkPipelineTessellationStateCreateInfo BuildTessellationStateInfo();
     VkPipelineViewportStateCreateInfo BuildViewportStateInfo();
     VkPipelineRasterizationStateCreateInfo BuildRasterizationStateInfo();
     VkPipelineMultisampleStateCreateInfo BuildMultisampleStateInfo();
-    VkPipelineDepthStencilStateCreateInfo BuildDepthStencilStateInfo(const PipelineDesc& desc);
+    VkPipelineDepthStencilStateCreateInfo BuildDepthStencilStateInfo(const GraphicsPipelineDesc& desc);
 
 public:
     Pipeline();
     ~Pipeline();
 
-    bool Init(const PipelineDesc& desc);
+    bool Init(const GraphicsPipelineDesc& desc);
+    bool Init(const ComputePipelineDesc& desc);
 
     ABENCH_INLINE VkPipeline GetPipeline() const
     {

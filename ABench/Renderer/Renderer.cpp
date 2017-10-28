@@ -164,14 +164,14 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
         return false;
 
 
-    PipelineDesc pipeDesc;
+    GraphicsPipelineDesc pipeDesc;
     pipeDesc.vertexLayout = &mVertexLayout;
     pipeDesc.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     pipeDesc.renderPass = mRenderPass;
     pipeDesc.pipelineLayout = mPipelineLayout;
     pipeDesc.enableDepth = true;
 
-    MultiPipelineDesc mpDesc;
+    MultiGraphicsPipelineDesc mpDesc;
     mpDesc.vertexShader.path = "shader.vert";
     mpDesc.vertexShader.macros = {
         { ShaderMacro::HAS_NORMAL, 1 },
@@ -261,7 +261,7 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
                                        static_cast<ClearTypes>(ABENCH_CLEAR_COLOR | ABENCH_CLEAR_DEPTH), clearValue, 1.0f);
         mCommandBuffer.BindDescriptorSet(mAllShaderSet, 1, mPipelineLayout);
 
-        MultiPipelineShaderMacros macros;
+        MultiGraphicsPipelineShaderMacros macros;
         macros.vertexShader = {
             { ShaderMacro::HAS_NORMAL, 0 },
         };
@@ -306,7 +306,7 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
                         }
                     }
 
-                    mCommandBuffer.BindPipeline(mPipeline.GetPipelineWithShaders(macros));
+                    mCommandBuffer.BindPipeline(mPipeline.GetGraphicsPipeline(macros), VK_PIPELINE_BIND_POINT_GRAPHICS);
                     mCommandBuffer.BindVertexBuffer(mesh->GetVertexBuffer());
 
                     if (mesh->ByIndices())

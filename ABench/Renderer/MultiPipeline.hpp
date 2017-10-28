@@ -5,6 +5,13 @@
 namespace ABench {
 namespace Renderer {
 
+template <typename PipelineDescType>
+struct BasePipeline
+{
+    Pipeline pipeline;
+    PipelineDescType desc;
+};
+
 struct MultiPipelineShaderMacroDesc
 {
     std::string name;
@@ -21,7 +28,7 @@ struct MultiPipelineShaderDesc
     MultiPipelineShaderMacroLimits macros;
 };
 
-struct MultiPipelineShaderMacros
+struct MultiGraphicsPipelineShaderMacros
 {
     ShaderMacros vertexShader;
     ShaderMacros tessControlShader;
@@ -30,7 +37,7 @@ struct MultiPipelineShaderMacros
     ShaderMacros fragmentShader;
 };
 
-struct MultiPipelineDesc
+struct MultiGraphicsPipelineDesc
 {
     MultiPipelineShaderDesc vertexShader;
     MultiPipelineShaderDesc tessControlShader;
@@ -38,42 +45,54 @@ struct MultiPipelineDesc
     MultiPipelineShaderDesc geometryShader;
     MultiPipelineShaderDesc fragmentShader;
 
-    PipelineDesc pipelineDesc; // shaders from this desc are ignored
+    GraphicsPipelineDesc pipelineDesc; // shaders from this desc are ignored
+};
+
+struct MultiComputePipelineDesc
+{
+    MultiPipelineShaderDesc computeShader;
+
+    ComputePipelineDesc pipelineDesc; // shader from this desc is ignored
 };
 
 class MultiPipeline
 {
-    // TODO cache Pipelines
-    Pipeline mBasePipeline;
-    PipelineDesc mBasePipelineDesc;
-
-    PipelineMap mPipelines;
-
+    // Graphics Pipeline related stuff
+    BasePipeline<GraphicsPipelineDesc> mBaseGraphicsPipeline;
+    PipelineMap mGraphicsPipelines;
     std::string mVertexShaderPath;
     std::string mTessControlShaderPath;
     std::string mTessEvalShaderPath;
     std::string mGeometryShaderPath;
     std::string mFragmentShaderPath;
-
     ShaderMap mVertexShaders;
     ShaderMap mTessControlShaders;
     ShaderMap mTessEvalShaders;
     ShaderMap mGeometryShaders;
     ShaderMap mFragmentShaders;
 
+    // Compute Pipeline related stuff
+    BasePipeline<ComputePipelineDesc> mBaseComputePipeline;
+    PipelineMap mComputePipelines;
+    std::string mComputeShaderPath;
+    ShaderMap mComputeShaders;
+
     uint32_t CalculateAllCombinations(const MultiPipelineShaderMacroLimits& macros);
     void AdvanceCombinations(ShaderMacros& comb, const MultiPipelineShaderMacroLimits& macros);
     ShaderPtr GenerateShader(const std::string& path, const ShaderMacros& comb, ShaderType type);
     bool GenerateShaderModules(const MultiPipelineShaderDesc& desc, ShaderType type, ShaderMap* targetMap);
 
-    PipelinePtr GenerateNewPipeline(const MultiPipelineShaderMacros& comb);
+    PipelinePtr GenerateNewPipeline(const MultiGraphicsPipelineShaderMacros& comb); // for graphics
+    PipelinePtr GenerateNewPipeline(const ShaderMacros& comb); // for compute
 
 public:
     MultiPipeline();
     ~MultiPipeline();
 
-    bool Init(const MultiPipelineDesc& desc);
-    VkPipeline GetPipelineWithShaders(const MultiPipelineShaderMacros& combs);
+    bool Init(const MultiGraphicsPipelineDesc& desc);
+    bool Init(const MultiComputePipelineDesc& desc);
+    VkPipeline GetGraphicsPipeline(const MultiGraphicsPipelineShaderMacros& combs);
+    VkPipeline GetComputePipeline(const ShaderMacros& comb);
 };
 
 } // namespace Renderer

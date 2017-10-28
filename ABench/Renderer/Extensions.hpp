@@ -94,6 +94,7 @@ extern PFN_vkDestroyFramebuffer vkDestroyFramebuffer;
 extern PFN_vkDestroyRenderPass vkDestroyRenderPass;
 
 // Pipeline management
+extern PFN_vkCreateComputePipelines vkCreateComputePipelines;
 extern PFN_vkCreateGraphicsPipelines vkCreateGraphicsPipelines;
 extern PFN_vkCreatePipelineCache vkCreatePipelineCache;
 extern PFN_vkCreatePipelineLayout vkCreatePipelineLayout;
@@ -123,6 +124,7 @@ extern PFN_vkCmdBindVertexBuffers vkCmdBindVertexBuffers;
 extern PFN_vkCmdClearAttachments vkCmdClearAttachments;
 extern PFN_vkCmdCopyBuffer vkCmdCopyBuffer;
 extern PFN_vkCmdCopyBufferToImage vkCmdCopyBufferToImage;
+extern PFN_vkCmdDispatch vkCmdDispatch;
 extern PFN_vkCmdDraw vkCmdDraw;
 extern PFN_vkCmdDrawIndexed vkCmdDrawIndexed;
 extern PFN_vkCmdEndRenderPass vkCmdEndRenderPass;

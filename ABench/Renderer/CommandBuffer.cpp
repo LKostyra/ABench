@@ -98,11 +98,11 @@ void CommandBuffer::BindIndexBuffer(const Buffer* buffer)
     vkCmdBindIndexBuffer(mCommandBuffer, buffer->mBuffer, 0, VK_INDEX_TYPE_UINT32);
 }
 
-void CommandBuffer::BindPipeline(VkPipeline pipeline)
+void CommandBuffer::BindPipeline(VkPipeline pipeline, VkPipelineBindPoint point)
 {
     ASSERT(pipeline != VK_NULL_HANDLE, "Provided pipeline is not initialized");
 
-    vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+    vkCmdBindPipeline(mCommandBuffer, point, pipeline);
 }
 
 void CommandBuffer::BindDescriptorSet(VkDescriptorSet set, uint32_t setSlot, VkPipelineLayout layout)
@@ -198,6 +198,11 @@ void CommandBuffer::CopyBufferToTexture(Buffer* src, Texture* dst)
 
     vkCmdCopyBufferToImage(mCommandBuffer, src->GetVkBuffer(), dst->GetVkImage(0), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                            static_cast<uint32_t>(regions.size()), regions.data());
+}
+
+void CommandBuffer::Dispatch(uint32_t x, uint32_t y, uint32_t z)
+{
+    vkCmdDispatch(mCommandBuffer, x, y, z);
 }
 
 void CommandBuffer::Draw(uint32_t vertCount)

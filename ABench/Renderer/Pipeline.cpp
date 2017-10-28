@@ -21,7 +21,7 @@ Pipeline::~Pipeline()
         vkDestroyPipeline(gDevice->GetDevice(), mPipeline, nullptr);
 }
 
-void Pipeline::BuildShaderStageInfo(const PipelineDesc& desc, std::vector<VkPipelineShaderStageCreateInfo>& stages)
+void Pipeline::BuildShaderStageInfo(const GraphicsPipelineDesc& desc, std::vector<VkPipelineShaderStageCreateInfo>& stages)
 {
     VkPipelineShaderStageCreateInfo stage;
     ZERO_MEMORY(stage);
@@ -64,7 +64,7 @@ void Pipeline::BuildShaderStageInfo(const PipelineDesc& desc, std::vector<VkPipe
     }
 }
 
-VkPipelineVertexInputStateCreateInfo Pipeline::BuildVertexInputStateInfo(const PipelineDesc& desc)
+VkPipelineVertexInputStateCreateInfo Pipeline::BuildVertexInputStateInfo(const GraphicsPipelineDesc& desc)
 {
     VkPipelineVertexInputStateCreateInfo info;
     ZERO_MEMORY(info);
@@ -81,7 +81,7 @@ VkPipelineVertexInputStateCreateInfo Pipeline::BuildVertexInputStateInfo(const P
     return info;
 }
 
-VkPipelineInputAssemblyStateCreateInfo Pipeline::BuildInputAssemblyStateInfo(const PipelineDesc& desc)
+VkPipelineInputAssemblyStateCreateInfo Pipeline::BuildInputAssemblyStateInfo(const GraphicsPipelineDesc& desc)
 {
     VkPipelineInputAssemblyStateCreateInfo info;
     ZERO_MEMORY(info);
@@ -138,7 +138,7 @@ VkPipelineMultisampleStateCreateInfo Pipeline::BuildMultisampleStateInfo()
     return info;
 }
 
-VkPipelineDepthStencilStateCreateInfo Pipeline::BuildDepthStencilStateInfo(const PipelineDesc& desc)
+VkPipelineDepthStencilStateCreateInfo Pipeline::BuildDepthStencilStateInfo(const GraphicsPipelineDesc& desc)
 {
     VkPipelineDepthStencilStateCreateInfo info;
     ZERO_MEMORY(info);
@@ -163,8 +163,14 @@ VkPipelineDepthStencilStateCreateInfo Pipeline::BuildDepthStencilStateInfo(const
     return info;
 }
 
-bool Pipeline::Init(const PipelineDesc& desc)
+bool Pipeline::Init(const GraphicsPipelineDesc& desc)
 {
+    if (mPipeline != VK_NULL_HANDLE)
+    {
+        LOGE("Cannot initialize already initialized pipeline");
+        return false;
+    }
+
     std::vector<VkPipelineShaderStageCreateInfo> stages;
     BuildShaderStageInfo(desc, stages);
     VkPipelineVertexInputStateCreateInfo vertexInputState = BuildVertexInputStateInfo(desc);
@@ -235,9 +241,50 @@ bool Pipeline::Init(const PipelineDesc& desc)
 
     VkResult result = vkCreateGraphicsPipelines(gDevice->GetDevice(), VK_NULL_HANDLE, 1,
                                                 &pipeInfo, nullptr, &mPipeline);
-    RETURN_FALSE_IF_FAILED(result, "Failed to create a Graphics Pipeline");
+    RETURN_FALSE_IF_FAILED(result, "Failed to create Graphics Pipeline");
 
     LOGI("Graphics Pipeline created successfully");
+    return true;
+}
+
+bool Pipeline::Init(const ComputePipelineDesc& desc)
+{
+    if (mPipeline != VK_NULL_HANDLE)
+    {
+        LOGE("Cannot initialize already initialized Pipeline");
+        return false;
+    }
+
+    if (desc.computeShader == nullptr)
+    {
+        LOGE("Compute shader is required to create Compute Pipeline");
+        return false;
+    }
+
+    VkPipelineShaderStageCreateInfo stage;
+    ZERO_MEMORY(stage);
+    stage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    stage.pName = "main";
+    stage.module = desc.computeShader->mShaderModule;
+    stage.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+
+    VkComputePipelineCreateInfo pipeInfo;
+    ZERO_MEMORY(pipeInfo);
+    pipeInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+    pipeInfo.stage = stage;
+    pipeInfo.layout = desc.pipelineLayout;
+    pipeInfo.flags = desc.flags;
+    if (desc.flags & VK_PIPELINE_CREATE_DERIVATIVE_BIT)
+    {
+        pipeInfo.basePipelineHandle = desc.basePipeline;
+        pipeInfo.basePipelineIndex = -1;
+    }
+
+    VkResult result = vkCreateComputePipelines(gDevice->GetDevice(), VK_NULL_HANDLE, 1,
+                                               &pipeInfo, nullptr, &mPipeline);
+    RETURN_FALSE_IF_FAILED(result, "Failed to create Compute Pipeline");
+
+    LOGI("Compute Pipeline created successfully");
     return true;
 }
 
