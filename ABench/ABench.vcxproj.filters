@@ -141,6 +141,9 @@
     <ClCompile Include="Scene\Model.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer\QueueManager.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\Window.hpp">
@@ -274,6 +277,9 @@
     </ClInclude>
     <ClInclude Include="Scene\Model.hpp">
       <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\QueueManager.hpp">
+      <Filter>Renderer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -106,7 +106,8 @@ bool Buffer::Init(const BufferDesc& desc)
         copyCmdBuffer.CopyBuffer(staging, mBuffer, deviceMemReqs.size);
         copyCmdBuffer.End();
 
-        gDevice->Execute(&copyCmdBuffer);
+        // TODO call on Transfer queue
+        gDevice->ExecuteGraphics(&copyCmdBuffer);
         gDevice->WaitForGPU(); // TODO this should be removed
 
         // cleanup

@@ -353,7 +353,7 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
         }
     }
 
-    mDevice.Execute(&mCommandBuffer, mRenderFence);
+    mDevice.ExecuteGraphics(&mCommandBuffer, mRenderFence);
 
     // TODO waiting is performed inside Ring Buffer on mRenderFence
     //      Escape from this limitation in the future

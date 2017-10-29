@@ -20,7 +20,7 @@ CommandBuffer::CommandBuffer()
 CommandBuffer::~CommandBuffer()
 {
     if (mCommandBuffer)
-        vkFreeCommandBuffers(gDevice->GetDevice(), gDevice->GetCommandPool(), 1, &mCommandBuffer);
+        vkFreeCommandBuffers(gDevice->GetDevice(), gDevice->GetGraphicsCommandPool(), 1, &mCommandBuffer);
 }
 
 bool CommandBuffer::Init()
@@ -30,7 +30,7 @@ bool CommandBuffer::Init()
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = 1;
-    allocInfo.commandPool = gDevice->GetCommandPool();
+    allocInfo.commandPool = gDevice->GetGraphicsCommandPool();
     VkResult result = vkAllocateCommandBuffers(gDevice->GetDevice(), &allocInfo, &mCommandBuffer);
     RETURN_FALSE_IF_FAILED(result, "Failed to allocate Command Buffer");
 

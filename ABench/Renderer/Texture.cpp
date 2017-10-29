@@ -142,7 +142,8 @@ bool Texture::Init(const TextureDesc& desc)
     Transition(transitionCmdBuffer.mCommandBuffer);
     transitionCmdBuffer.End();
 
-    gDevice->Execute(&transitionCmdBuffer);
+    // TODO this should happen on Transfer Queue (might involve copying which takes time)
+    gDevice->ExecuteGraphics(&transitionCmdBuffer);
     gDevice->WaitForGPU(); // TODO this should be removed
 
 

@@ -16,8 +16,11 @@ Device::Device()
     : mDevice(VK_NULL_HANDLE)
     , mPhysicalDevice(VK_NULL_HANDLE)
     , mMemoryProperties()
-    , mGraphicsQueueIndex(UINT32_MAX)
-    , mCommandPool(VK_NULL_HANDLE)
+    , mGraphicsQueue(VK_NULL_HANDLE)
+    , mGraphicsCommandPool(VK_NULL_HANDLE)
+    , mComputeCommandPool(VK_NULL_HANDLE)
+    , mDescriptorAllocator()
+    , mQueueManager()
 {
 }
 
@@ -25,8 +28,8 @@ Device::~Device()
 {
     mDescriptorAllocator.Release();
 
-    if (mCommandPool != VK_NULL_HANDLE)
-        vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
+    if (mGraphicsCommandPool != VK_NULL_HANDLE)
+        vkDestroyCommandPool(mDevice, mGraphicsCommandPool, nullptr);
     if (mDevice != VK_NULL_HANDLE)
         vkDestroyDevice(mDevice, nullptr);
 }
@@ -77,45 +80,11 @@ bool Device::Init(const Instance& inst)
     // Memory properties (for further use)
     vkGetPhysicalDeviceMemoryProperties(mPhysicalDevice, &mMemoryProperties);
 
-    // Queue properties gathering and printing
-    // TODO should be replaced by Queue Manager
-    uint32_t queueCount = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(mPhysicalDevice, &queueCount, nullptr);
-    if (queueCount == 0)
+    if (!mQueueManager.Init(mPhysicalDevice))
     {
-        LOGE("Physical device does not have any queue family properties.");
+        LOGE("Failed to initialize Queue Manager");
         return false;
     }
-    std::vector<VkQueueFamilyProperties> queueProps(queueCount);
-    vkGetPhysicalDeviceQueueFamilyProperties(mPhysicalDevice, &queueCount, queueProps.data());
-
-    for (uint32_t i = 0; i < queueCount; ++i)
-    {
-        LOGD("Queue #" << i << ":");
-        LOGD("  Flags: " << std::hex << queueProps[i].queueFlags << " ("
-                         << TranslateVkQueueFlagsToString(queueProps[i].queueFlags) << ")");
-    }
-
-    // go through all the queues and find one, which supports Graphics operations
-    // TODO it probably should be managed outside Device
-    for (mGraphicsQueueIndex = 0; mGraphicsQueueIndex < queueCount; mGraphicsQueueIndex++)
-        if (queueProps[mGraphicsQueueIndex].queueFlags & VK_QUEUE_GRAPHICS_BIT)
-            break;
-
-    if (mGraphicsQueueIndex == queueCount)
-    {
-        LOGE("Unable to find graphics-capable queue.");
-        return false;
-    }
-
-    // use these queue informations in a device-create structure
-    float queuePriorities[] = { 0.0f };
-    VkDeviceQueueCreateInfo queueInfo;
-    ZERO_MEMORY(queueInfo);
-    queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueInfo.queueFamilyIndex = mGraphicsQueueIndex;
-    queueInfo.queueCount = 1;
-    queueInfo.pQueuePriorities = queuePriorities;
 
     // device extensions
     const char* enabledExtensions[] = {
@@ -129,8 +98,8 @@ bool Device::Init(const Instance& inst)
     VkDeviceCreateInfo devInfo;
     ZERO_MEMORY(devInfo);
     devInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    devInfo.queueCreateInfoCount = 1;
-    devInfo.pQueueCreateInfos = &queueInfo;
+    devInfo.queueCreateInfoCount = static_cast<uint32_t>(mQueueManager.GetQueueCreateInfos().size());
+    devInfo.pQueueCreateInfos = mQueueManager.GetQueueCreateInfos().data();
     devInfo.enabledExtensionCount = 1;
     devInfo.ppEnabledExtensionNames = enabledExtensions;
     if (inst.IsDebuggingEnabled())
@@ -149,16 +118,16 @@ bool Device::Init(const Instance& inst)
     }
 
     // extract queue (might be useful later on when ex. submitting commands)
-    vkGetDeviceQueue(mDevice, mGraphicsQueueIndex, 0, &mGraphicsQueue);
+    vkGetDeviceQueue(mDevice, mQueueManager.GetGraphicsQueueIndex(), 0, &mGraphicsQueue);
 
 
     // Command Pool for Command Buffers
     VkCommandPoolCreateInfo poolInfo;
     ZERO_MEMORY(poolInfo);
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    poolInfo.queueFamilyIndex = mGraphicsQueueIndex;
+    poolInfo.queueFamilyIndex = mQueueManager.GetGraphicsQueueIndex();
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-    result = vkCreateCommandPool(mDevice, &poolInfo, nullptr, &mCommandPool);
+    result = vkCreateCommandPool(mDevice, &poolInfo, nullptr, &mGraphicsCommandPool);
     RETURN_FALSE_IF_FAILED(result, "Failed to create main Command Pool");
 
 
@@ -192,7 +161,7 @@ void Device::WaitForGPU() const
     vkQueueWaitIdle(mGraphicsQueue);
 }
 
-bool Device::Execute(CommandBuffer* cmd, VkFence waitFence) const
+bool Device::ExecuteGraphics(CommandBuffer* cmd, VkFence waitFence) const
 {
     VkSubmitInfo submitInfo;
     ZERO_MEMORY(submitInfo);
