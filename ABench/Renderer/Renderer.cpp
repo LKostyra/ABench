@@ -198,7 +198,7 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
         return false;
 
 
-    if (!mCommandBuffer.Init())
+    if (!mCommandBuffer.Init(mDevice.GetCommandPool(DeviceQueueType::GRAPHICS)))
         return false;
 
 
@@ -353,7 +353,7 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
         }
     }
 
-    mDevice.ExecuteGraphics(&mCommandBuffer, mRenderFence);
+    mDevice.Execute(DeviceQueueType::GRAPHICS, &mCommandBuffer, mRenderFence);
 
     // TODO waiting is performed inside Ring Buffer on mRenderFence
     //      Escape from this limitation in the future

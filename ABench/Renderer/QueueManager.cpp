@@ -3,25 +3,20 @@
 
 #include "Translations.hpp"
 #include "Extensions.hpp"
+#include "Util.hpp"
 #include "Common/Logger.hpp"
 
-
-
-namespace {
-
-const uint32_t INVALID_QUEUE_INDEX = 0xFFFFFFFF;
-
-} // namespace
 
 
 namespace ABench {
 namespace Renderer {
 
+const uint32_t QueueManager::INVALID_QUEUE_INDEX = 0xFFFFFFFF;
+
 QueueManager::QueueManager()
     : mQueueProperties()
     , mQueueCreateInfos()
-    , mGraphicsQueueIndex(INVALID_QUEUE_INDEX)
-    , mComputeQueueIndex(INVALID_QUEUE_INDEX)
+    , mQueues()
 {
 }
 
@@ -85,14 +80,23 @@ bool QueueManager::Init(VkPhysicalDevice physicalDevice)
                          << TranslateVkQueueFlagsToString(mQueueProperties[i].queueFlags) << ")");
     }
 
-    mGraphicsQueueIndex = GetQueueIndex(VK_QUEUE_GRAPHICS_BIT);
-    mComputeQueueIndex = GetQueueIndex(VK_QUEUE_COMPUTE_BIT);
+    mQueues[DeviceQueueType::GRAPHICS].index = GetQueueIndex(VK_QUEUE_GRAPHICS_BIT);
+    mQueues[DeviceQueueType::TRANSFER].index = GetQueueIndex(VK_QUEUE_TRANSFER_BIT);
+    mQueues[DeviceQueueType::COMPUTE].index = GetQueueIndex(VK_QUEUE_COMPUTE_BIT);
 
-    if (mGraphicsQueueIndex == INVALID_QUEUE_INDEX || mComputeQueueIndex == INVALID_QUEUE_INDEX)
+    if (mQueues[DeviceQueueType::GRAPHICS].index == INVALID_QUEUE_INDEX ||
+        mQueues[DeviceQueueType::TRANSFER].index == INVALID_QUEUE_INDEX ||
+        mQueues[DeviceQueueType::COMPUTE].index == INVALID_QUEUE_INDEX)
     {
-        LOGE("Failed to acquire Graphics and Compute queue family indices");
+        LOGE("Failed to acquire queue family indices");
         return false;
     }
+
+    if (mQueues[DeviceQueueType::TRANSFER].index != mQueues[DeviceQueueType::GRAPHICS].index)
+        mSeparateTransferQueue = true;
+
+    if (mQueues[DeviceQueueType::COMPUTE].index != mQueues[DeviceQueueType::GRAPHICS].index)
+        mSeparateComputeQueue = true;
 
     // gather queue creation information for further use
     float queuePriorities[] = { 1.0f };
@@ -101,13 +105,66 @@ bool QueueManager::Init(VkPhysicalDevice physicalDevice)
     queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     queueInfo.queueCount = 1;
     queueInfo.pQueuePriorities = queuePriorities;
-    queueInfo.queueFamilyIndex = mGraphicsQueueIndex;
+    queueInfo.queueFamilyIndex = mQueues[DeviceQueueType::GRAPHICS].index;
     mQueueCreateInfos.push_back(queueInfo);
 
-    if (mComputeQueueIndex != mGraphicsQueueIndex)
+    if (mSeparateTransferQueue)
     {
-        queueInfo.queueFamilyIndex = mComputeQueueIndex;
+        queueInfo.queueFamilyIndex = mQueues[DeviceQueueType::TRANSFER].index;
         mQueueCreateInfos.push_back(queueInfo);
+    }
+
+    if (mSeparateComputeQueue)
+    {
+        queueInfo.queueFamilyIndex = mQueues[DeviceQueueType::COMPUTE].index;
+        mQueueCreateInfos.push_back(queueInfo);
+    }
+
+    return true;
+}
+
+bool QueueManager::CreateQueues(VkDevice device)
+{
+    mDevice = device;
+
+    // Acquire Queues from device
+    vkGetDeviceQueue(mDevice, mQueues[DeviceQueueType::GRAPHICS].index, 0, &mQueues[DeviceQueueType::GRAPHICS].queue);
+    vkGetDeviceQueue(mDevice, mQueues[DeviceQueueType::TRANSFER].index, 0, &mQueues[DeviceQueueType::TRANSFER].queue);
+    vkGetDeviceQueue(mDevice, mQueues[DeviceQueueType::COMPUTE].index, 0, &mQueues[DeviceQueueType::COMPUTE].queue);
+
+    // Create Command Pools
+    VkCommandPoolCreateInfo poolInfo;
+    ZERO_MEMORY(poolInfo);
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+
+    // Graphics Queue (obligatory)
+    poolInfo.queueFamilyIndex = mQueues[DeviceQueueType::GRAPHICS].index;
+    VkResult result = vkCreateCommandPool(device, &poolInfo, nullptr, &mQueues[DeviceQueueType::GRAPHICS].commandPool);
+    RETURN_FALSE_IF_FAILED(result, "Failed to create Graphics Command Pool");
+
+    // Transfer Queue (optional)
+    if (mSeparateTransferQueue)
+    {
+        poolInfo.queueFamilyIndex = mQueues[DeviceQueueType::TRANSFER].index;
+        result = vkCreateCommandPool(device, &poolInfo, nullptr, &mQueues[DeviceQueueType::TRANSFER].commandPool);
+        RETURN_FALSE_IF_FAILED(result, "Failed to create Transfer Command Pool");
+    }
+    else
+    {
+        mQueues[DeviceQueueType::TRANSFER].commandPool = mQueues[DeviceQueueType::GRAPHICS].commandPool;
+    }
+
+    // Compute Queue (optional)
+    if (mSeparateComputeQueue)
+    {
+        poolInfo.queueFamilyIndex = mQueues[DeviceQueueType::COMPUTE].index;
+        result = vkCreateCommandPool(device, &poolInfo, nullptr, &mQueues[DeviceQueueType::COMPUTE].commandPool);
+        RETURN_FALSE_IF_FAILED(result, "Failed to create Compute Command Pool");
+    }
+    else
+    {
+        mQueues[DeviceQueueType::COMPUTE].commandPool = mQueues[DeviceQueueType::GRAPHICS].commandPool;
     }
 
     return true;
@@ -117,8 +174,17 @@ void QueueManager::Release()
 {
     mQueueProperties.clear();
     mQueueCreateInfos.clear();
-    mGraphicsQueueIndex = INVALID_QUEUE_INDEX;
-    mComputeQueueIndex = INVALID_QUEUE_INDEX;
+
+    for (size_t i = 0; i < mQueues.size(); ++i)
+    {
+        if (mQueues[i].commandPool != VK_NULL_HANDLE)
+            if ((i == DeviceQueueType::GRAPHICS) || (mQueues[DeviceQueueType::GRAPHICS].index != mQueues[i].index))
+                vkDestroyCommandPool(mDevice, mQueues[i].commandPool, nullptr);
+
+        mQueues[i].commandPool = VK_NULL_HANDLE;
+        mQueues[i].queue = VK_NULL_HANDLE;
+        mQueues[i].index = INVALID_QUEUE_INDEX;
+    }
 }
 
 } // namespace ABench

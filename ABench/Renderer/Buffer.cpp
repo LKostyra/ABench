@@ -99,7 +99,7 @@ bool Buffer::Init(const BufferDesc& desc)
         // copy data from staging buffer to device
         // TODO OPTIMIZE this uses graphics queue and waits; after implementing queue manager, switch to Transfer queue
         CommandBuffer copyCmdBuffer;
-        if (!copyCmdBuffer.Init())
+        if (!copyCmdBuffer.Init(gDevice->GetCommandPool(DeviceQueueType::GRAPHICS)))
             return false;
 
         copyCmdBuffer.Begin();
@@ -107,8 +107,8 @@ bool Buffer::Init(const BufferDesc& desc)
         copyCmdBuffer.End();
 
         // TODO call on Transfer queue
-        gDevice->ExecuteGraphics(&copyCmdBuffer);
-        gDevice->WaitForGPU(); // TODO this should be removed
+        gDevice->Execute(DeviceQueueType::GRAPHICS, &copyCmdBuffer);
+        gDevice->Wait(DeviceQueueType::GRAPHICS); // TODO this should be removed
 
         // cleanup
         vkFreeMemory(gDevice->GetDevice(), stagingMemory, nullptr);

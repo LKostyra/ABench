@@ -16,9 +16,6 @@ Device::Device()
     : mDevice(VK_NULL_HANDLE)
     , mPhysicalDevice(VK_NULL_HANDLE)
     , mMemoryProperties()
-    , mGraphicsQueue(VK_NULL_HANDLE)
-    , mGraphicsCommandPool(VK_NULL_HANDLE)
-    , mComputeCommandPool(VK_NULL_HANDLE)
     , mDescriptorAllocator()
     , mQueueManager()
 {
@@ -26,10 +23,11 @@ Device::Device()
 
 Device::~Device()
 {
+    // all Device-exclusive objects must be freed here, before VkDevice
+    // otherwise we'll face resource leaks
     mDescriptorAllocator.Release();
+    mQueueManager.Release();
 
-    if (mGraphicsCommandPool != VK_NULL_HANDLE)
-        vkDestroyCommandPool(mDevice, mGraphicsCommandPool, nullptr);
     if (mDevice != VK_NULL_HANDLE)
         vkDestroyDevice(mDevice, nullptr);
 }
@@ -95,11 +93,12 @@ bool Device::Init(const Instance& inst)
         "VK_LAYER_LUNARG_standard_validation" // for debugging
     };
 
+    const QueueManager::QueueCreateInfos& queueInfos = mQueueManager.GetQueueCreateInfos();
     VkDeviceCreateInfo devInfo;
     ZERO_MEMORY(devInfo);
     devInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    devInfo.queueCreateInfoCount = static_cast<uint32_t>(mQueueManager.GetQueueCreateInfos().size());
-    devInfo.pQueueCreateInfos = mQueueManager.GetQueueCreateInfos().data();
+    devInfo.queueCreateInfoCount = static_cast<uint32_t>(queueInfos.size());
+    devInfo.pQueueCreateInfos = queueInfos.data();
     devInfo.enabledExtensionCount = 1;
     devInfo.ppEnabledExtensionNames = enabledExtensions;
     if (inst.IsDebuggingEnabled())
@@ -111,27 +110,21 @@ bool Device::Init(const Instance& inst)
     VkResult result = vkCreateDevice(mPhysicalDevice, &devInfo, nullptr, &mDevice);
     RETURN_FALSE_IF_FAILED(result, "Failed to create Vulkan Device");
 
+    // acquire per-device extensions
     if (!InitDeviceExtensions(mDevice))
     {
         LOGE("Failed to initailize needed device extensions");
         return false;
     }
 
-    // extract queue (might be useful later on when ex. submitting commands)
-    vkGetDeviceQueue(mDevice, mQueueManager.GetGraphicsQueueIndex(), 0, &mGraphicsQueue);
+    // finish initialization of Queue Manager
+    if (!mQueueManager.CreateQueues(mDevice))
+    {
+        LOGE("Failed to acquire needed queues from Device");
+        return false;
+    }
 
-
-    // Command Pool for Command Buffers
-    VkCommandPoolCreateInfo poolInfo;
-    ZERO_MEMORY(poolInfo);
-    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    poolInfo.queueFamilyIndex = mQueueManager.GetGraphicsQueueIndex();
-    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-    result = vkCreateCommandPool(mDevice, &poolInfo, nullptr, &mGraphicsCommandPool);
-    RETURN_FALSE_IF_FAILED(result, "Failed to create main Command Pool");
-
-
-    // Descriptor Allocator
+    // initialize Descriptor Allocator
     DescriptorAllocatorDesc daDesc;
     ZERO_MEMORY(daDesc);
     daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER] = 2;
@@ -156,19 +149,19 @@ uint32_t Device::GetMemoryTypeIndex(uint32_t typeBits, VkFlags properties) const
     return UINT32_MAX;
 }
 
-void Device::WaitForGPU() const
+void Device::Wait(DeviceQueueType queueType) const
 {
-    vkQueueWaitIdle(mGraphicsQueue);
+    vkQueueWaitIdle(mQueueManager.GetQueue(queueType));
 }
 
-bool Device::ExecuteGraphics(CommandBuffer* cmd, VkFence waitFence) const
+bool Device::Execute(DeviceQueueType queueType, CommandBuffer* cmd, VkFence waitFence) const
 {
     VkSubmitInfo submitInfo;
     ZERO_MEMORY(submitInfo);
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &cmd->mCommandBuffer;
-    VkResult result = vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, waitFence);
+    VkResult result = vkQueueSubmit(mQueueManager.GetQueue(queueType), 1, &submitInfo, waitFence);
     RETURN_FALSE_IF_FAILED(result, "Failed to submit graphics operation");
 
     return true;

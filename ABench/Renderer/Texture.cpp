@@ -128,7 +128,7 @@ bool Texture::Init(const TextureDesc& desc)
     // transition Image to desired layout and eventually copy data to buffer
     // TODO OPTIMIZE this uses graphics queue and waits; after implementing queue manager, switch to Transfer queue
     CommandBuffer transitionCmdBuffer;
-    if (!transitionCmdBuffer.Init())
+    if (!transitionCmdBuffer.Init(gDevice->GetCommandPool(DeviceQueueType::GRAPHICS)))
         return false;
 
     transitionCmdBuffer.Begin();
@@ -143,8 +143,8 @@ bool Texture::Init(const TextureDesc& desc)
     transitionCmdBuffer.End();
 
     // TODO this should happen on Transfer Queue (might involve copying which takes time)
-    gDevice->ExecuteGraphics(&transitionCmdBuffer);
-    gDevice->WaitForGPU(); // TODO this should be removed
+    gDevice->Execute(DeviceQueueType::GRAPHICS, &transitionCmdBuffer);
+    gDevice->Wait(DeviceQueueType::GRAPHICS); // TODO this should be removed
 
 
     VkImageViewCreateInfo ivInfo;

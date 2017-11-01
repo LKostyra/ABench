@@ -28,7 +28,7 @@ public:
     CommandBuffer();
     ~CommandBuffer();
 
-    bool Init();
+    bool Init(VkCommandPool commandPool);
 
     void Begin();
     void BeginRenderPass(VkRenderPass rp, Framebuffer* fb, ClearTypes types, float clearValues[4], float depthValue = 0.0f);

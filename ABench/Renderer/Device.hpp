@@ -21,9 +21,6 @@ class Device
     VkDevice mDevice;
     VkPhysicalDevice mPhysicalDevice;
     VkPhysicalDeviceMemoryProperties mMemoryProperties;
-    VkQueue mGraphicsQueue;
-    VkCommandPool mGraphicsCommandPool;
-    VkCommandPool mComputeCommandPool;
     DescriptorAllocator mDescriptorAllocator;
     QueueManager mQueueManager;
 
@@ -36,23 +33,18 @@ public:
     bool Init(const Instance& inst);
 
     uint32_t GetMemoryTypeIndex(uint32_t typeBits, VkFlags properties) const;
-    void WaitForGPU() const;
 
-    bool ExecuteGraphics(CommandBuffer* cmd, VkFence waitFence = VK_NULL_HANDLE) const;
+    void Wait(DeviceQueueType queueType) const;
+    bool Execute(DeviceQueueType queueType, CommandBuffer* cmd, VkFence waitFence = VK_NULL_HANDLE) const;
 
     ABENCH_INLINE VkDevice GetDevice() const
     {
         return mDevice;
     }
 
-    ABENCH_INLINE VkCommandPool GetGraphicsCommandPool() const
+    ABENCH_INLINE VkCommandPool GetCommandPool(DeviceQueueType queueType) const
     {
-        return mGraphicsCommandPool;
-    }
-
-    ABENCH_INLINE VkCommandPool GetComputeCommandPool() const
-    {
-        return mComputeCommandPool;
+        return mQueueManager.GetCommandPool(queueType);
     }
 
     ABENCH_INLINE DescriptorAllocator& GetDescriptorAllocator()
