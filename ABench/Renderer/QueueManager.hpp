@@ -46,6 +46,7 @@ private:
     QueueFamilyProperties mQueueProperties;
     QueueCreateInfos mQueueCreateInfos;
     DeviceQueues mQueues;
+    std::array<float, 1> mQueuePriorities;
     bool mSeparateTransferQueue;
     bool mSeparateComputeQueue;
 

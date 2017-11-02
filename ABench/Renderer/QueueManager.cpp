@@ -17,6 +17,9 @@ QueueManager::QueueManager()
     : mQueueProperties()
     , mQueueCreateInfos()
     , mQueues()
+    , mQueuePriorities{ 1.0 }
+    , mSeparateTransferQueue(false)
+    , mSeparateComputeQueue(false)
 {
 }
 
@@ -92,19 +95,15 @@ bool QueueManager::Init(VkPhysicalDevice physicalDevice)
         return false;
     }
 
-    if (mQueues[DeviceQueueType::TRANSFER].index != mQueues[DeviceQueueType::GRAPHICS].index)
-        mSeparateTransferQueue = true;
-
-    if (mQueues[DeviceQueueType::COMPUTE].index != mQueues[DeviceQueueType::GRAPHICS].index)
-        mSeparateComputeQueue = true;
+    mSeparateTransferQueue = (mQueues[DeviceQueueType::TRANSFER].index != mQueues[DeviceQueueType::GRAPHICS].index);
+    mSeparateTransferQueue = (mQueues[DeviceQueueType::COMPUTE].index != mQueues[DeviceQueueType::GRAPHICS].index);
 
     // gather queue creation information for further use
-    float queuePriorities[] = { 1.0f };
     VkDeviceQueueCreateInfo queueInfo;
     ZERO_MEMORY(queueInfo);
     queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueInfo.queueCount = 1;
-    queueInfo.pQueuePriorities = queuePriorities;
+    queueInfo.queueCount = static_cast<uint32_t>(mQueuePriorities.size());
+    queueInfo.pQueuePriorities = mQueuePriorities.data();
     queueInfo.queueFamilyIndex = mQueues[DeviceQueueType::GRAPHICS].index;
     mQueueCreateInfos.push_back(queueInfo);
 
@@ -175,15 +174,21 @@ void QueueManager::Release()
     mQueueProperties.clear();
     mQueueCreateInfos.clear();
 
+    // first free the pools
     for (size_t i = 0; i < mQueues.size(); ++i)
     {
         if (mQueues[i].commandPool != VK_NULL_HANDLE)
-            if ((i == DeviceQueueType::GRAPHICS) || (mQueues[DeviceQueueType::GRAPHICS].index != mQueues[i].index))
+            // only destroy a pool if it is of GRAPHICS type or if it is separate
+            if ((i == DeviceQueueType::GRAPHICS) ||
+                (mQueues[DeviceQueueType::GRAPHICS].index != mQueues[i].index))
                 vkDestroyCommandPool(mDevice, mQueues[i].commandPool, nullptr);
+    }
 
-        mQueues[i].commandPool = VK_NULL_HANDLE;
-        mQueues[i].queue = VK_NULL_HANDLE;
-        mQueues[i].index = INVALID_QUEUE_INDEX;
+    for (auto& q: mQueues)
+    {
+        q.commandPool = VK_NULL_HANDLE;
+        q.queue = VK_NULL_HANDLE;
+        q.index = INVALID_QUEUE_INDEX;
     }
 }
 

@@ -16,6 +16,11 @@ const uint32_t CHAR_BUFFER_SIZE = 512;
 
 } // namespace
 
+bool CreateDir(const std::string& path)
+{
+    return (mkdir(path.c_str(), 0777) >= 0);
+}
+
 bool Exists(const std::string& path)
 {
     return (access(path.c_str(), F_OK) >= 0);

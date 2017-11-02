@@ -16,7 +16,7 @@ struct ModelDesc
     FbxMesh* mesh;
     std::vector<Material*> materials;
 
-    ModelDesc::ModelDesc()
+    ModelDesc()
         : mesh(nullptr)
         , materials()
     {
