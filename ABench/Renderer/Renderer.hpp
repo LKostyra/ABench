@@ -44,6 +44,8 @@ class Renderer final
     Buffer mVertexShaderCBuffer;
     Buffer mAllShaderLightCBuffer;
 
+    void PrepareGridFrustums();
+
 public:
     Renderer();
     ~Renderer();

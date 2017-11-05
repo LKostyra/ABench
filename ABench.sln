@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.6
+VisualStudioVersion = 15.0.27004.2006
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ABench", "ABench\ABench.vcxproj", "{C8A489CA-E63A-45F4-AE34-8D87D54D9B1A}"
 EndProject
@@ -15,8 +15,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Data", "Data", "{10964C43-D
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shaders", "Shaders", "{F41931CC-35C5-4C74-A4EC-606A4BA87036}"
 	ProjectSection(SolutionItems) = preProject
-		Data\Shaders\shader.frag = Data\Shaders\shader.frag
-		Data\Shaders\shader.vert = Data\Shaders\shader.vert
+		Data\Shaders\ForwardRenderer.frag = Data\Shaders\ForwardRenderer.frag
+		Data\Shaders\ForwardRenderer.vert = Data\Shaders\ForwardRenderer.vert
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deps", "Deps", "{2E116AA0-1F5E-4B04-B0CE-6AD600D95192}"
@@ -67,5 +67,8 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{F41931CC-35C5-4C74-A4EC-606A4BA87036} = {10964C43-D579-4F04-8594-368411156E41}
 		{B5346744-FB8E-4AF6-807E-65540BF32395} = {2E116AA0-1F5E-4B04-B0CE-6AD600D95192}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {69B5EC1E-F1FB-4E5C-9E05-2A9EECB50D46}
 	EndGlobalSection
 EndGlobal

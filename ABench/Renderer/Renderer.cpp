@@ -63,6 +63,10 @@ Renderer::~Renderer()
     glslang::FinalizeProcess();
 }
 
+void Renderer::PrepareGridFrustums()
+{
+}
+
 bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVerbose)
 {
     if (!glslang::InitializeProcess())
@@ -182,11 +186,11 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     pipeDesc.enableDepth = true;
 
     MultiGraphicsPipelineDesc mgpDesc;
-    mgpDesc.vertexShader.path = "shader.vert";
+    mgpDesc.vertexShader.path = "ForwardRenderer.vert";
     mgpDesc.vertexShader.macros = {
         { ShaderMacro::HAS_NORMAL, 1 },
     };
-    mgpDesc.fragmentShader.path = "shader.frag";
+    mgpDesc.fragmentShader.path = "ForwardRenderer.frag";
     mgpDesc.fragmentShader.macros = {
         { ShaderMacro::HAS_TEXTURE, 1 },
         { ShaderMacro::HAS_NORMAL, 1 },
