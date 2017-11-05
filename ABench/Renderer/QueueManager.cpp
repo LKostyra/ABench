@@ -17,7 +17,7 @@ QueueManager::QueueManager()
     : mQueueProperties()
     , mQueueCreateInfos()
     , mQueues()
-    , mQueuePriorities{ 1.0 }
+    , mQueuePriorities{1.0f}
     , mSeparateTransferQueue(false)
     , mSeparateComputeQueue(false)
 {
@@ -96,7 +96,7 @@ bool QueueManager::Init(VkPhysicalDevice physicalDevice)
     }
 
     mSeparateTransferQueue = (mQueues[DeviceQueueType::TRANSFER].index != mQueues[DeviceQueueType::GRAPHICS].index);
-    mSeparateTransferQueue = (mQueues[DeviceQueueType::COMPUTE].index != mQueues[DeviceQueueType::GRAPHICS].index);
+    mSeparateComputeQueue = (mQueues[DeviceQueueType::COMPUTE].index != mQueues[DeviceQueueType::GRAPHICS].index);
 
     // gather queue creation information for further use
     VkDeviceQueueCreateInfo queueInfo;

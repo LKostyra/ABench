@@ -32,7 +32,7 @@ bool Framebuffer::Init(const FramebufferDesc& desc)
         return false;
     }
 
-    if ((desc.depthTex) && 
+    if ((desc.depthTex) &&
         ((desc.colorTex->mWidth != desc.depthTex->mWidth) ||
          (desc.colorTex->mHeight != desc.depthTex->mHeight)))
     {

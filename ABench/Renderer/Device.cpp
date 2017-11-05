@@ -67,8 +67,24 @@ VkPhysicalDevice Device::SelectPhysicalDevice(const Instance& inst)
                               << VK_VERSION_PATCH(devProps.driverVersion));
     }
 
-    // Select first one available (might be a subject to change later on)
-    return devices[0];
+    // select first available discrete GPU
+    for (size_t i = 0; i < devices.size(); ++i)
+    {
+        vkGetPhysicalDeviceProperties(devices[i], &devProps);
+        if (devProps.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+            return devices[i];
+    }
+
+    // if not available, select integrated GPU
+    for (size_t i = 0; i < devices.size(); ++i)
+    {
+        vkGetPhysicalDeviceProperties(devices[i], &devProps);
+        if (devProps.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU)
+            return devices[i];
+    }
+
+    // no suitable physical device available
+    return VK_NULL_HANDLE;
 }
 
 bool Device::Init(const Instance& inst)
