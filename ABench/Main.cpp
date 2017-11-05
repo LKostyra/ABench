@@ -28,9 +28,9 @@ class ABenchWindow: public ABench::Common::Window
     void OnOpen() override
     {
         ABench::Scene::CameraDesc desc;
-        desc.view.pos = ABench::Math::Vector(0.0f, 0.0f, 2.0f, 1.0f);
-        desc.view.at = ABench::Math::Vector(0.0f, 0.0f, 1.0f, 1.0f);
-        desc.view.up = ABench::Math::Vector(0.0f,-1.0f, 0.0f, 0.0f); // to comply with Vulkan's coord system
+        desc.view.pos = ABench::Math::Vector4(0.0f, 0.0f, 2.0f, 1.0f);
+        desc.view.at = ABench::Math::Vector4(0.0f, 0.0f, 1.0f, 1.0f);
+        desc.view.up = ABench::Math::Vector4(0.0f,-1.0f, 0.0f, 0.0f); // to comply with Vulkan's coord system
         desc.fov = 60.0f;
         desc.aspect = static_cast<float>(GetWidth()) / static_cast<float>(GetHeight());
         desc.nearZ = 0.1f;
@@ -40,12 +40,12 @@ class ABenchWindow: public ABench::Common::Window
 
     void OnUpdate(float deltaTime) override
     {
-        ABench::Math::Vector newPos;
+        ABench::Math::Vector4 newPos;
 
-        ABench::Math::Vector cameraFrontDir = mCamera.GetAtPosition() - mCamera.GetPosition();
+        ABench::Math::Vector4 cameraFrontDir = mCamera.GetAtPosition() - mCamera.GetPosition();
         cameraFrontDir.Normalize();
-        ABench::Math::Vector cameraRightDir = cameraFrontDir.Cross(mCamera.GetUpVector());
-        ABench::Math::Vector cameraUpDir = cameraRightDir.Cross(cameraFrontDir);
+        ABench::Math::Vector4 cameraRightDir = cameraFrontDir.Cross(mCamera.GetUpVector());
+        ABench::Math::Vector4 cameraUpDir = cameraRightDir.Cross(cameraFrontDir);
 
         if (IsKeyPressed(ABench::Common::KeyCode::W)) newPos += cameraFrontDir;
         if (IsKeyPressed(ABench::Common::KeyCode::S)) newPos -= cameraFrontDir;
@@ -55,8 +55,8 @@ class ABenchWindow: public ABench::Common::Window
         if (IsKeyPressed(ABench::Common::KeyCode::F)) newPos += cameraUpDir;
 
         // new direction
-        ABench::Math::Vector updateDir;
-        updateDir = ABench::Math::CreateRotationMatrixX(mAngleY) * ABench::Math::Vector(0.0f, 0.0f, 1.0f, 0.0f);
+        ABench::Math::Vector4 updateDir;
+        updateDir = ABench::Math::CreateRotationMatrixX(mAngleY) * ABench::Math::Vector4(0.0f, 0.0f, 1.0f, 0.0f);
         updateDir = ABench::Math::CreateRotationMatrixY(mAngleX) * updateDir;
         updateDir.Normalize();
 
@@ -70,7 +70,7 @@ class ABenchWindow: public ABench::Common::Window
         mCamera.Update(desc);
 
         // Light
-        ABench::Math::Vector lightNewPos;
+        ABench::Math::Vector4 lightNewPos;
         float lightSpeed = 2.0f;
 
         if (mLightFollowsCamera)
@@ -166,7 +166,7 @@ int main()
     if (matResult.second)
     {
         ABench::Scene::MaterialDesc matDesc;
-        matDesc.color = ABench::Math::Vector(0.2f, 0.4f, 0.9f, 1.0f);
+        matDesc.color = ABench::Math::Vector4(0.2f, 0.4f, 0.9f, 1.0f);
         if (!boxMatNoTex->Init(matDesc))
         {
             LOGE("Failed to initialize no tex material");
@@ -202,7 +202,7 @@ int main()
 
     auto lightResult = scene.GetComponent(ABench::Scene::ComponentType::Light, "light");
     gLight = dynamic_cast<ABench::Scene::Light*>(lightResult.first);
-    gLight->SetDiffuseIntensity(ABench::Math::Vector(1.0f, 1.0f, 1.0f, 1.0f));
+    gLight->SetDiffuseIntensity(ABench::Math::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 
     gLightObj = scene.CreateObject();
     gLightObj->SetComponent(gLight);

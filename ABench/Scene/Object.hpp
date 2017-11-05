@@ -12,8 +12,8 @@ namespace Scene {
 class Object final
 {
     Math::Matrix mTransform;
-    Math::Vector mPosition;
-    Math::Vector mScale;
+    Math::Vector4 mPosition;
+    Math::Vector4 mScale;
     Component* mComponent;
 
     ABENCH_INLINE void UpdateTransform()
@@ -32,10 +32,10 @@ public:
 
     ABENCH_INLINE void SetPosition(float x, float y, float z)
     {
-        SetPosition(Math::Vector(x, y, z, 1.0f));
+        SetPosition(Math::Vector4(x, y, z, 1.0f));
     }
 
-    ABENCH_INLINE void SetPosition(const Math::Vector& position)
+    ABENCH_INLINE void SetPosition(const Math::Vector4& position)
     {
         mPosition = position;
         UpdateTransform();
@@ -43,10 +43,10 @@ public:
 
     ABENCH_INLINE void SetScale(float scaleX, float scaleY, float scaleZ)
     {
-        SetScale(Math::Vector(scaleX, scaleY, scaleZ, 1.0f));
+        SetScale(Math::Vector4(scaleX, scaleY, scaleZ, 1.0f));
     }
 
-    ABENCH_INLINE void SetScale(const Math::Vector& scale)
+    ABENCH_INLINE void SetScale(const Math::Vector4& scale)
     {
         mScale = scale;
         UpdateTransform();
@@ -57,7 +57,7 @@ public:
         return mComponent;
     }
 
-    ABENCH_INLINE const Math::Vector& GetPosition() const
+    ABENCH_INLINE const Math::Vector4& GetPosition() const
     {
         return mPosition;
     }

@@ -28,13 +28,13 @@ struct VertexShaderCBuffer
 
 struct FragmentShaderLightCBuffer
 {
-    Math::Vector pos;
-    Math::Vector diffuse;
+    Math::Vector4 pos;
+    Math::Vector4 diffuse;
 };
 
 struct MaterialCBuffer
 {
-    Math::Vector color;
+    Math::Vector4 color;
 };
 
 Device* gDevice = nullptr;
@@ -61,10 +61,6 @@ Renderer::~Renderer()
         vkDestroyPipelineLayout(mDevice.GetDevice(), mPipelineLayout, nullptr);
 
     glslang::FinalizeProcess();
-}
-
-void Renderer::PrepareGridFrustums()
-{
 }
 
 bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVerbose)

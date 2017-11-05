@@ -28,15 +28,15 @@ FbxFileTexture* Scene::FileTextureFromMaterial(FbxSurfaceMaterial* material, con
     return texFile; // can return nullptr here if requested property does not exist
 }
 
-Math::Vector Scene::ColorVectorFromMaterial(FbxSurfaceMaterial* material)
+Math::Vector4 Scene::ColorVector4FromMaterial(FbxSurfaceMaterial* material)
 {
     if (material->GetClassId().Is(FbxSurfacePhong::ClassId))
     {
         FbxPropertyT<FbxDouble3> color = reinterpret_cast<FbxSurfacePhong*>(material)->Diffuse;
-        return Math::Vector(static_cast<float>(color.Get()[0]), static_cast<float>(color.Get()[1]), static_cast<float>(color.Get()[2]), 1.0f);
+        return Math::Vector4(static_cast<float>(color.Get()[0]), static_cast<float>(color.Get()[1]), static_cast<float>(color.Get()[2]), 1.0f);
     }
 
-    return Math::Vector(1.0f);
+    return Math::Vector4(1.0f);
 }
 
 bool Scene::Init(const std::string& fbxFile)
@@ -52,7 +52,8 @@ bool Scene::Init(const std::string& fbxFile)
         }
 
         uint32_t counter = 0;
-        mFBXFile.Traverse([&](FbxNode* node) {
+        mFBXFile.Traverse([&](FbxNode* node)
+        {
             uint32_t attributeCount = node->GetNodeAttributeCount();
 
             for (uint32_t i = 0; i < attributeCount; ++i)
@@ -88,7 +89,7 @@ bool Scene::Init(const std::string& fbxFile)
                             {
                                 // new material, initialize
                                 MaterialDesc matDesc;
-                                matDesc.color = ColorVectorFromMaterial(material);
+                                matDesc.color = ColorVector4FromMaterial(material);
                                 if (diffTex) matDesc.diffusePath = diffTex->GetFileName();
                                 if (normTex) matDesc.normalPath = normTex->GetFileName();
                                 if (maskTex) matDesc.maskPath = maskTex->GetFileName();

@@ -38,9 +38,6 @@
     <ClCompile Include="Math\Matrix.cpp">
       <Filter>Math</Filter>
     </ClCompile>
-    <ClCompile Include="Math\Vector.cpp">
-      <Filter>Math</Filter>
-    </ClCompile>
     <ClCompile Include="Renderer\Translations.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
@@ -143,6 +140,9 @@
     </ClCompile>
     <ClCompile Include="Renderer\QueueManager.cpp">
       <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Vector.cpp">
+      <Filter>Math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -12,7 +12,7 @@ struct MaterialDesc
 {
     std::string materialName;
 
-    Math::Vector color;
+    Math::Vector4 color;
     std::string diffusePath;
     std::string normalPath;
     std::string maskPath;
@@ -33,7 +33,7 @@ class Material
 
     std::string mMaterialName;
 
-    Math::Vector mColor;
+    Math::Vector4 mColor;
     Renderer::Texture mDiffuseTexture;
     Renderer::Texture mNormalTexture;
     Renderer::Texture mMaskTexture;
@@ -46,7 +46,7 @@ public:
 
     bool Init(const MaterialDesc& desc);
 
-    ABENCH_INLINE const Math::Vector& GetColor() const
+    ABENCH_INLINE const Math::Vector4& GetColor() const
     {
         return mColor;
     }

@@ -13,7 +13,8 @@ class Window;
 
 namespace Math {
 
-class Vector;
+class Vector3;
+class Vector4;
 class Matrix;
 
 } // namespace Math

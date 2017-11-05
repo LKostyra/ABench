@@ -36,7 +36,7 @@ Matrix::Matrix(float a1, float a2, float a3, float a4,
 {
 }
 
-Matrix::Matrix(Vector& a, Vector& b, Vector& c, Vector& d)
+Matrix::Matrix(Vector4& a, Vector4& b, Vector4& c, Vector4& d)
 {
     for (int i = 0; i < 4; ++i)
     {
@@ -45,11 +45,6 @@ Matrix::Matrix(Vector& a, Vector& b, Vector& c, Vector& d)
         f[i + 4 * 2] = c[i];
         f[i + 4 * 3] = d[i];
     }
-}
-
-Matrix::Matrix(Vector4* a)
-    : Matrix(a->v[0], a->v[1], a->v[2], a->v[3])
-{
 }
 
 Matrix::~Matrix()
@@ -269,7 +264,7 @@ bool Matrix::operator>=(const Matrix& other) const
 
 
 // External operators (cross-type)
-Vector operator*(const Matrix& a, const Vector& b)
+Vector4 operator*(const Matrix& a, const Vector4& b)
 {
     float result[] = {0, 0, 0, 0};
 
@@ -277,20 +272,20 @@ Vector operator*(const Matrix& a, const Vector& b)
         for (int j = 0; j < 4; ++j)
             result[i] += a[i * 4 + j] * b[j];
 
-    return Vector(result[0], result[1], result[2], result[3]);
+    return Vector4(result[0], result[1], result[2], result[3]);
 }
 
 
-Matrix CreateRHLookAtMatrix(const Vector& pos, const Vector& dir, const Vector& up)
+Matrix CreateRHLookAtMatrix(const Vector4& pos, const Vector4& dir, const Vector4& up)
 {
-    Vector zAxis = pos - dir;
+    Vector4 zAxis = pos - dir;
     zAxis.Normalize();
 
-    Vector xAxis = up.Cross(zAxis);
+    Vector4 xAxis = up.Cross(zAxis);
     xAxis.Normalize();
 
-    Vector yAxis = zAxis.Cross(xAxis);
-    // No normalization needed here, since we cross two already normalized vectors.
+    Vector4 yAxis = zAxis.Cross(xAxis);
+    // No normalization needed here, since we cross two already normalized Vector4s.
 
     return Matrix(         xAxis[0],          yAxis[0],          zAxis[0], 0.0f,
                            xAxis[1],          yAxis[1],          zAxis[1], 0.0f,
@@ -348,7 +343,7 @@ Matrix CreateRotationMatrixZ(const float angle)
                   0.0f, 0.0f, 0.0f, 1.0f);
 }
 
-Matrix CreateTranslationMatrix(const Vector& translation)
+Matrix CreateTranslationMatrix(const Vector4& translation)
 {
     Matrix result(MATRIX_IDENTITY);
 
@@ -381,7 +376,7 @@ Matrix CreateScaleMatrix(const float scaleX, const float scaleY, const float sca
     return result;
 }
 
-Matrix CreateScaleMatrix(const Vector& scale)
+Matrix CreateScaleMatrix(const Vector4& scale)
 {
     Matrix result(MATRIX_IDENTITY);
 

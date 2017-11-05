@@ -7,6 +7,8 @@ namespace Math {
 
 class Matrix
 {
+    float f[4 * 4];
+
 public:
     float* Data();
 
@@ -17,8 +19,7 @@ public:
            float b1, float b2, float b3, float b4,
            float c1, float c2, float c3, float c4,
            float d1, float d2, float d3, float d4);
-    Matrix(Vector& a, Vector& b, Vector& c, Vector& d);
-    Matrix(Vector4* a);
+    Matrix(Vector4& a, Vector4& b, Vector4& c, Vector4& d);
     ~Matrix();
 
     Matrix(const Matrix& other);
@@ -65,32 +66,29 @@ public:
     bool operator>=(const Matrix& other) const;
 
     // Friendship
-    friend Vector operator*(const Matrix& a, const Vector& b);
-    friend Matrix CreateTranslationMatrix(const Vector& translation);
+    friend Vector4 operator*(const Matrix& a, const Vector4& b);
+    friend Matrix CreateTranslationMatrix(const Vector4& translation);
     friend Matrix CreateScaleMatrix(const float scale);
     friend Matrix CreateScaleMatrix(const float scaleX, const float scaleY, const float scaleZ);
-    friend Matrix CreateScaleMatrix(const Vector& scale);
-
-private:
-    float f[4 * 4];
+    friend Matrix CreateScaleMatrix(const Vector4& scale);
 };
 
 
 // External operators (cross-type)
-Vector operator*(const Matrix& a, const Vector& b);
+Vector4 operator*(const Matrix& a, const Vector4& b);
 
 // Matrix creators
 // TODO create LH versions
-Matrix CreateRHLookAtMatrix(const Vector& pos, const Vector& dir, const Vector& up);
+Matrix CreateRHLookAtMatrix(const Vector4& pos, const Vector4& dir, const Vector4& up);
 Matrix CreateRHProjectionMatrix(const float fov, const float aspectRatio,
                                 const float nearDist, const float farDist);
 Matrix CreateRotationMatrixX(const float angle);
 Matrix CreateRotationMatrixY(const float angle);
 Matrix CreateRotationMatrixZ(const float angle);
-Matrix CreateTranslationMatrix(const Vector& translation);
+Matrix CreateTranslationMatrix(const Vector4& translation);
 Matrix CreateScaleMatrix(const float scale);
 Matrix CreateScaleMatrix(const float scaleX, const float scaleY, const float scaleZ);
-Matrix CreateScaleMatrix(const Vector& scale);
+Matrix CreateScaleMatrix(const Vector4& scale);
 
 // Matrix constants
 const Matrix MATRIX_IDENTITY(1.0f, 0.0f, 0.0f, 0.0f,

@@ -35,7 +35,7 @@ class Scene
 
     // helpers
     FbxFileTexture* FileTextureFromMaterial(FbxSurfaceMaterial* material, const std::string& propertyName);
-    Math::Vector ColorVectorFromMaterial(FbxSurfaceMaterial* material);
+    Math::Vector4 ColorVector4FromMaterial(FbxSurfaceMaterial* material);
 
 public:
     Scene();

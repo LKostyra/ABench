@@ -10,19 +10,19 @@ namespace Scene {
 
 class Light: public Component
 {
-    Math::Vector mDiffuseIntensity;
+    Math::Vector4 mDiffuseIntensity;
     std::string mName; // TODO this should be in base class
 
 public:
     Light(const std::string& name);
     ~Light();
 
-    ABENCH_INLINE const Math::Vector& GetDiffuseIntensity() const
+    ABENCH_INLINE const Math::Vector4& GetDiffuseIntensity() const
     {
         return mDiffuseIntensity;
     }
 
-    ABENCH_INLINE void SetDiffuseIntensity(const Math::Vector& intensity)
+    ABENCH_INLINE void SetDiffuseIntensity(const Math::Vector4& intensity)
     {
         mDiffuseIntensity = intensity;
     }

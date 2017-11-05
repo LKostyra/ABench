@@ -16,9 +16,9 @@ enum class CameraMode: unsigned char
 
 struct CameraUpdateDesc
 {
-    Math::Vector pos;
-    Math::Vector at;
-    Math::Vector up;
+    Math::Vector4 pos;
+    Math::Vector4 at;
+    Math::Vector4 up;
 };
 
 struct CameraDesc
@@ -33,9 +33,9 @@ struct CameraDesc
 
 class Camera final
 {
-    Math::Vector mPosition;
-    Math::Vector mAtPosition;
-    Math::Vector mUpVector;
+    Math::Vector4 mPosition;
+    Math::Vector4 mAtPosition;
+    Math::Vector4 mUpVector;
 
     Math::Matrix mView;
     Math::Matrix mProjection;
@@ -47,17 +47,17 @@ public:
     bool Init(const CameraDesc& desc);
     void Update(const CameraUpdateDesc& desc);
 
-    ABENCH_INLINE const Math::Vector& GetPosition() const
+    ABENCH_INLINE const Math::Vector4& GetPosition() const
     {
         return mPosition;
     }
 
-    ABENCH_INLINE const Math::Vector& GetAtPosition() const
+    ABENCH_INLINE const Math::Vector4& GetAtPosition() const
     {
         return mAtPosition;
     }
 
-    ABENCH_INLINE const Math::Vector& GetUpVector() const
+    ABENCH_INLINE const Math::Vector4& GetUpVector() const
     {
         return mUpVector;
     }

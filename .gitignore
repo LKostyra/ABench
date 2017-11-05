@@ -17,6 +17,7 @@
 *.vsp
 *.psess
 /.vs
+~AutoRecover*
 
 # Junction links to dependencies
 /Deps/fbxsdk

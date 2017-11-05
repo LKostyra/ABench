@@ -8,50 +8,56 @@
 namespace ABench {
 namespace Math {
 
-Vector::Vector()
-    : Vector(0.0f)
+// VECTOR 3 //
+
+Vector3::Vector3()
+    : Vector3(0.0f)
 {
 }
 
-Vector::Vector(float a)
-{
-    for (int i = 0; i < 4; ++i)
-        f[i] = a;
-}
-
-Vector::Vector(float a, float b, float c, float d)
-    : f{a,b,c,d}
+Vector3::Vector3(float a)
+    : f{a, a, a}
 {
 }
 
-Vector::~Vector()
+Vector3::Vector3(float a, float b, float c)
+    : f{a, b, c}
 {
 }
 
-Vector::Vector(const Vector& other)
+Vector3::Vector3(const Vector4& v)
+    : f{v.f[0], v.f[1], v.f[2]}
 {
-    memcpy(f, other.f, sizeof(float) * 4);
 }
 
-Vector::Vector(Vector&& other)
-    : Vector()
+Vector3::~Vector3()
+{
+}
+
+Vector3::Vector3(const Vector3& other)
+{
+    memcpy(f, other.f, sizeof(float) * 3);
+}
+
+Vector3::Vector3(Vector3&& other)
+    : Vector3()
 {
     std::swap(f, other.f);
 }
 
-float* Vector::Data()
+float* Vector3::Data()
 {
     return f;
 }
 
-float Vector::Length() const
+float Vector3::Length() const
 {
-    Vector temp(*this);
+    Vector3 temp(*this);
 
     return sqrtf(temp.Dot(temp));
 }
 
-void Vector::Normalize()
+void Vector3::Normalize()
 {
     float len = Length();
 
@@ -59,15 +65,15 @@ void Vector::Normalize()
         *this = *this / len;
 }
 
-Vector& Vector::operator= (const Vector& other)
+Vector3& Vector3::operator= (const Vector3& other)
 {
-    Vector tmp(other);
+    Vector3 tmp(other);
     *this = std::move(tmp);
 
     return *this;
 }
 
-Vector& Vector::operator= (Vector&& other)
+Vector3& Vector3::operator= (Vector3&& other)
 {
     std::swap(f, other.f);
 
@@ -75,21 +81,21 @@ Vector& Vector::operator= (Vector&& other)
 }
 
 // Access operator
-float Vector::operator[](int index) const
+float Vector3::operator[](int index) const
 {
     return f[index];
 }
 
 // Addition
-Vector& Vector::operator+=(const Vector& other)
+Vector3& Vector3::operator+=(const Vector3& other)
 {
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < 3; ++i)
         f[i] += other.f[i];
 
     return *this;
 }
 
-Vector& Vector::operator+=(float value)
+Vector3& Vector3::operator+=(float value)
 {
     for (auto& i : f)
         i += value;
@@ -97,26 +103,26 @@ Vector& Vector::operator+=(float value)
     return *this;
 }
 
-const Vector Vector::operator+(const Vector& other) const
+const Vector3 Vector3::operator+(const Vector3& other) const
 {
-    return Vector(*this) += other;
+    return Vector3(*this) += other;
 }
 
-const Vector Vector::operator+(float value) const
+const Vector3 Vector3::operator+(float value) const
 {
-    return Vector(*this) += value;
+    return Vector3(*this) += value;
 }
 
 // Subtraction
-Vector& Vector::operator-=(const Vector& other)
+Vector3& Vector3::operator-=(const Vector3& other)
 {
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < 3; ++i)
         f[i] -= other.f[i];
 
     return *this;
 }
 
-Vector& Vector::operator-=(float value)
+Vector3& Vector3::operator-=(float value)
 {
     for (auto& i : f)
         i -= value;
@@ -124,26 +130,26 @@ Vector& Vector::operator-=(float value)
     return *this;
 }
 
-const Vector Vector::operator-(const Vector& other) const
+const Vector3 Vector3::operator-(const Vector3& other) const
 {
-    return Vector(*this) -= other;
+    return Vector3(*this) -= other;
 }
 
-const Vector Vector::operator-(float value) const
+const Vector3 Vector3::operator-(float value) const
 {
-    return Vector(*this) -= value;
+    return Vector3(*this) -= value;
 }
 
 // Multiplication
-Vector& Vector::operator*=(const Vector& other)
+Vector3& Vector3::operator*=(const Vector3& other)
 {
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < 3; ++i)
         f[i] *= other.f[i];
 
     return *this;
 }
 
-Vector& Vector::operator*=(float value)
+Vector3& Vector3::operator*=(float value)
 {
     for (auto& i : f)
         i *= value;
@@ -151,26 +157,26 @@ Vector& Vector::operator*=(float value)
     return *this;
 }
 
-const Vector Vector::operator*(const Vector& other) const
+const Vector3 Vector3::operator*(const Vector3& other) const
 {
-    return Vector(*this) *= other;
+    return Vector3(*this) *= other;
 }
 
-const Vector Vector::operator*(float value) const
+const Vector3 Vector3::operator*(float value) const
 {
-    return Vector(*this) *= value;
+    return Vector3(*this) *= value;
 }
 
 // Division
-Vector& Vector::operator/=(const Vector& other)
+Vector3& Vector3::operator/=(const Vector3& other)
 {
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < 3; ++i)
         f[i] /= other.f[i];
 
     return *this;
 }
 
-Vector& Vector::operator/=(float value)
+Vector3& Vector3::operator/=(float value)
 {
     for (auto& i : f)
         i /= value;
@@ -178,18 +184,18 @@ Vector& Vector::operator/=(float value)
     return *this;
 }
 
-const Vector Vector::operator/(const Vector& other) const
+const Vector3 Vector3::operator/(const Vector3& other) const
 {
-    return Vector(*this) /= other;
+    return Vector3(*this) /= other;
 }
 
-const Vector Vector::operator/(float value) const
+const Vector3 Vector3::operator/(float value) const
 {
-    return Vector(*this) /= value;
+    return Vector3(*this) /= value;
 }
 
 // Power
-Vector& Vector::operator^(float value)
+Vector3& Vector3::operator^(float value)
 {
     for (auto& i : f)
         i = pow(i, value);
@@ -198,9 +204,9 @@ Vector& Vector::operator^(float value)
 }
 
 // Products
-float Vector::Dot(const Vector& other)
+float Vector3::Dot(const Vector3& other)
 {
-    Vector tmp(*this);
+    Vector3 tmp(*this);
     tmp = tmp * other;
 
     float result = 0;
@@ -210,11 +216,279 @@ float Vector::Dot(const Vector& other)
     return result;
 }
 
-Vector Vector::Cross(const Vector& other) const
+Vector3 Vector3::Cross(const Vector3& other) const
 {
-    Vector result(*this);
+    Vector3 result(*this);
 
-    // assume this is a 3D vector and calculate cross according to xyzzy mnemonic
+    // calculate cross according to xyzzy mnemonic
+    result.f[0] = this->f[1] * other.f[2] - this->f[2] * other.f[1];
+    result.f[1] = this->f[2] * other.f[0] - this->f[0] * other.f[2];
+    result.f[2] = this->f[0] * other.f[1] - this->f[1] * other.f[0];
+
+    return result;
+}
+
+// Comparison
+bool Vector3::operator==(const Vector3& other) const
+{
+    for (int i = 0; i < 3; ++i)
+        if (f[i] != other.f[i])
+            return false;
+
+    return true;
+}
+
+bool Vector3::operator<(const Vector3& other) const
+{
+    for (int i = 0; i < 3; ++i)
+        if (f[i] >= other.f[i])
+            return false;
+
+    return true;
+}
+
+bool Vector3::operator>(const Vector3& other) const
+{
+    for (int i = 0; i < 3; ++i)
+        if (f[i] <= other.f[i])
+            return false;
+
+    return true;
+}
+
+bool Vector3::operator<=(const Vector3& other) const
+{
+    for (int i = 0; i < 3; ++i)
+        if (f[i] > other.f[i])
+            return false;
+
+    return true;
+}
+
+bool Vector3::operator>=(const Vector3& other) const
+{
+    for (int i = 0; i < 3; ++i)
+        if (f[i] < other.f[i])
+            return false;
+
+    return true;
+}
+
+
+
+// VECTOR 4 //
+
+Vector4::Vector4()
+    : Vector4(0.0f)
+{
+}
+
+Vector4::Vector4(float a)
+    : f{a, a, a, a}
+{
+}
+
+Vector4::Vector4(float a, float b, float c, float d)
+    : f{a, b, c, d}
+{
+}
+
+Vector4::Vector4(const Vector3& v, float w)
+    : f{v.f[0], v.f[1], v.f[2], w}
+{
+}
+
+Vector4::~Vector4()
+{
+}
+
+Vector4::Vector4(const Vector4& other)
+{
+    memcpy(f, other.f, sizeof(float) * 4);
+}
+
+Vector4::Vector4(Vector4&& other)
+    : Vector4()
+{
+    std::swap(f, other.f);
+}
+
+float* Vector4::Data()
+{
+    return f;
+}
+
+float Vector4::Length() const
+{
+    Vector4 temp(*this);
+
+    return sqrtf(temp.Dot(temp));
+}
+
+void Vector4::Normalize()
+{
+    float len = Length();
+
+    if (len)
+        *this = *this / len;
+}
+
+Vector4& Vector4::operator= (const Vector4& other)
+{
+    Vector4 tmp(other);
+    *this = std::move(tmp);
+
+    return *this;
+}
+
+Vector4& Vector4::operator= (Vector4&& other)
+{
+    std::swap(f, other.f);
+
+    return *this;
+}
+
+// Access operator
+float Vector4::operator[](int index) const
+{
+    return f[index];
+}
+
+// Addition
+Vector4& Vector4::operator+=(const Vector4& other)
+{
+    for (int i = 0; i < 4; ++i)
+        f[i] += other.f[i];
+
+    return *this;
+}
+
+Vector4& Vector4::operator+=(float value)
+{
+    for (auto& i : f)
+        i += value;
+
+    return *this;
+}
+
+const Vector4 Vector4::operator+(const Vector4& other) const
+{
+    return Vector4(*this) += other;
+}
+
+const Vector4 Vector4::operator+(float value) const
+{
+    return Vector4(*this) += value;
+}
+
+// Subtraction
+Vector4& Vector4::operator-=(const Vector4& other)
+{
+    for (int i = 0; i < 4; ++i)
+        f[i] -= other.f[i];
+
+    return *this;
+}
+
+Vector4& Vector4::operator-=(float value)
+{
+    for (auto& i : f)
+        i -= value;
+
+    return *this;
+}
+
+const Vector4 Vector4::operator-(const Vector4& other) const
+{
+    return Vector4(*this) -= other;
+}
+
+const Vector4 Vector4::operator-(float value) const
+{
+    return Vector4(*this) -= value;
+}
+
+// Multiplication
+Vector4& Vector4::operator*=(const Vector4& other)
+{
+    for (int i = 0; i < 4; ++i)
+        f[i] *= other.f[i];
+
+    return *this;
+}
+
+Vector4& Vector4::operator*=(float value)
+{
+    for (auto& i : f)
+        i *= value;
+
+    return *this;
+}
+
+const Vector4 Vector4::operator*(const Vector4& other) const
+{
+    return Vector4(*this) *= other;
+}
+
+const Vector4 Vector4::operator*(float value) const
+{
+    return Vector4(*this) *= value;
+}
+
+// Division
+Vector4& Vector4::operator/=(const Vector4& other)
+{
+    for (int i = 0; i < 4; ++i)
+        f[i] /= other.f[i];
+
+    return *this;
+}
+
+Vector4& Vector4::operator/=(float value)
+{
+    for (auto& i : f)
+        i /= value;
+
+    return *this;
+}
+
+const Vector4 Vector4::operator/(const Vector4& other) const
+{
+    return Vector4(*this) /= other;
+}
+
+const Vector4 Vector4::operator/(float value) const
+{
+    return Vector4(*this) /= value;
+}
+
+// Power
+Vector4& Vector4::operator^(float value)
+{
+    for (auto& i : f)
+        i = pow(i, value);
+
+    return *this;
+}
+
+// Products
+float Vector4::Dot(const Vector4& other)
+{
+    Vector4 tmp(*this);
+    tmp = tmp * other;
+
+    float result = 0;
+    for (auto i : tmp.f)
+        result += i;
+
+    return result;
+}
+
+Vector4 Vector4::Cross(const Vector4& other) const
+{
+    Vector4 result(*this);
+
+    // assume this is a 3D Vector4 and calculate cross according to xyzzy mnemonic
     result.f[0] = this->f[1] * other.f[2] - this->f[2] * other.f[1];
     result.f[1] = this->f[2] * other.f[0] - this->f[0] * other.f[2];
     result.f[2] = this->f[0] * other.f[1] - this->f[1] * other.f[0];
@@ -224,7 +498,7 @@ Vector Vector::Cross(const Vector& other) const
 }
 
 // Comparison
-bool Vector::operator==(const Vector& other) const
+bool Vector4::operator==(const Vector4& other) const
 {
     for (int i = 0; i < 4; ++i)
         if (f[i] != other.f[i])
@@ -233,7 +507,7 @@ bool Vector::operator==(const Vector& other) const
     return true;
 }
 
-bool Vector::operator<(const Vector& other) const
+bool Vector4::operator<(const Vector4& other) const
 {
     for (int i = 0; i < 4; ++i)
         if (f[i] >= other.f[i])
@@ -242,7 +516,7 @@ bool Vector::operator<(const Vector& other) const
     return true;
 }
 
-bool Vector::operator>(const Vector& other) const
+bool Vector4::operator>(const Vector4& other) const
 {
     for (int i = 0; i < 4; ++i)
         if (f[i] <= other.f[i])
@@ -251,7 +525,7 @@ bool Vector::operator>(const Vector& other) const
     return true;
 }
 
-bool Vector::operator<=(const Vector& other) const
+bool Vector4::operator<=(const Vector4& other) const
 {
     for (int i = 0; i < 4; ++i)
         if (f[i] > other.f[i])
@@ -260,7 +534,7 @@ bool Vector::operator<=(const Vector& other) const
     return true;
 }
 
-bool Vector::operator>=(const Vector& other) const
+bool Vector4::operator>=(const Vector4& other) const
 {
     for (int i = 0; i < 4; ++i)
         if (f[i] < other.f[i])
@@ -270,7 +544,13 @@ bool Vector::operator>=(const Vector& other) const
 }
 
 // Friendships
-std::ostream& operator<<(std::ostream& os, const Vector& v)
+std::ostream& operator<<(std::ostream& os, const Vector3& v)
+{
+    os << "[" << v.f[0] << ", " << v.f[1] << ", " << v.f[2] << "]";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const Vector4& v)
 {
     os << "[" << v.f[0] << ", " << v.f[1] << ", " << v.f[2] << ", " << v.f[3] << "]";
     return os;

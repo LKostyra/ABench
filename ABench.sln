@@ -17,6 +17,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shaders", "Shaders", "{F419
 	ProjectSection(SolutionItems) = preProject
 		Data\Shaders\ForwardRenderer.frag = Data\Shaders\ForwardRenderer.frag
 		Data\Shaders\ForwardRenderer.vert = Data\Shaders\ForwardRenderer.vert
+		Data\Shaders\GridFrustumGenerator.comp = Data\Shaders\GridFrustumGenerator.comp
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deps", "Deps", "{2E116AA0-1F5E-4B04-B0CE-6AD600D95192}"
