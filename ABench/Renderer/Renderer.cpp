@@ -8,8 +8,10 @@
 
 #include "Common/Logger.hpp"
 #include "Math/Matrix.hpp"
+#include "Math/Plane.hpp"
 
 #include <glslang/Public/ShaderLang.h>
+
 
 namespace ABench {
 namespace Renderer {

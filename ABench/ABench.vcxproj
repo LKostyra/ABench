@@ -192,7 +192,9 @@ copy /B "$(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll" "$(T
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
     </ClCompile>
+    <ClInclude Include="Math\Plane.hpp" />
     <ClInclude Include="Math\SortImpl.hpp" />
+    <ClCompile Include="Math\Plane.cpp" />
     <ClCompile Include="Math\Vector.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PCH.hpp</PrecompiledHeaderFile>
@@ -249,6 +251,7 @@ copy /B "$(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll" "$(T
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="Renderer\GridFrustumsGenerator.cpp" />
     <ClCompile Include="Renderer\Instance.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PCH.hpp</PrecompiledHeaderFile>
@@ -356,6 +359,7 @@ copy /B "$(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll" "$(T
     <ClInclude Include="Renderer\Device.hpp" />
     <ClInclude Include="Renderer\Extensions.hpp" />
     <ClInclude Include="Renderer\Framebuffer.hpp" />
+    <ClInclude Include="Renderer\GridFrustumsGenerator.hpp" />
     <ClInclude Include="Renderer\Instance.hpp" />
     <ClInclude Include="Renderer\MultiPipeline.hpp" />
     <ClInclude Include="Renderer\Pipeline.hpp" />

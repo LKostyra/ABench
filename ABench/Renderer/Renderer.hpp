@@ -44,6 +44,7 @@ class Renderer final
     Buffer mVertexShaderCBuffer;
     Buffer mAllShaderLightCBuffer;
 
+
 public:
     Renderer();
     ~Renderer();
