@@ -60,40 +60,6 @@ VkSampler DescriptorLayoutManager::CreateSampler()
     return sampler;
 }
 
-VkDescriptorSetLayout DescriptorLayoutManager::CreateLayout(std::vector<DescriptorSetLayoutDesc>& descriptors)
-{
-    VkDescriptorSetLayout layout = VK_NULL_HANDLE;
-
-    std::vector<VkDescriptorSetLayoutBinding> bindings;
-
-    for (uint32_t i = 0; i < descriptors.size(); ++i)
-    {
-        VkDescriptorSetLayoutBinding binding;
-        ZERO_MEMORY(binding);
-        binding.descriptorCount = 1;
-        binding.binding = i;
-        binding.descriptorType = descriptors[i].type;
-        binding.stageFlags = descriptors[i].stage;
-        if (descriptors[i].sampler != VK_NULL_HANDLE)
-            binding.pImmutableSamplers = &descriptors[i].sampler;
-
-        bindings.push_back(binding);
-    }
-
-    VkDescriptorSetLayoutCreateInfo info;
-    ZERO_MEMORY(info);
-    info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    info.bindingCount = static_cast<uint32_t>(bindings.size());
-    info.pBindings = bindings.data();
-    VkResult result = vkCreateDescriptorSetLayout(mDevice, &info, nullptr, &layout);
-    RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create Descriptor Set Layout");
-
-    LOGD("Created Descriptor Set Layout 0x" << std::hex << reinterpret_cast<size_t*>(layout) <<
-         " with " << std::dec << bindings.size() << " bindings.");
-
-    return layout;
-}
-
 void DescriptorLayoutManager::DestroyLayout(VkDescriptorSetLayout& layout)
 {
     if (layout != VK_NULL_HANDLE)
@@ -117,33 +83,33 @@ bool DescriptorLayoutManager::Init(const VkDevice device)
     std::vector<DescriptorSetLayoutDesc> vsLayoutDesc;
     vsLayoutDesc.push_back({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT, VK_NULL_HANDLE});
     vsLayoutDesc.push_back({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, VK_NULL_HANDLE});
-    mVertexShaderLayout = CreateLayout(vsLayoutDesc);
+    mVertexShaderLayout = Tools::CreateDescriptorSetLayout(vsLayoutDesc);
     if (mVertexShaderLayout == VK_NULL_HANDLE)
         return false;
 
     std::vector<DescriptorSetLayoutDesc> fsLayoutDesc;
     fsLayoutDesc.push_back({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, VK_SHADER_STAGE_FRAGMENT_BIT, VK_NULL_HANDLE});
-    mFragmentShaderLayout = CreateLayout(fsLayoutDesc);
+    mFragmentShaderLayout = Tools::CreateDescriptorSetLayout(fsLayoutDesc);
     if (mFragmentShaderLayout == VK_NULL_HANDLE)
         return false;
 
     std::vector<DescriptorSetLayoutDesc> fsTexLayoutDesc;
     fsTexLayoutDesc.push_back({VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, mFragmentShaderSampler});
-    mFragmentShaderDiffuseTextureLayout = CreateLayout(fsTexLayoutDesc);
+    mFragmentShaderDiffuseTextureLayout = Tools::CreateDescriptorSetLayout(fsTexLayoutDesc);
     if (mFragmentShaderDiffuseTextureLayout == VK_NULL_HANDLE)
         return false;
 
-    mFragmentShaderNormalTextureLayout = CreateLayout(fsTexLayoutDesc);
+    mFragmentShaderNormalTextureLayout = Tools::CreateDescriptorSetLayout(fsTexLayoutDesc);
     if (mFragmentShaderNormalTextureLayout == VK_NULL_HANDLE)
         return false;
 
-    mFragmentShaderMaskTextureLayout = CreateLayout(fsTexLayoutDesc);
+    mFragmentShaderMaskTextureLayout = Tools::CreateDescriptorSetLayout(fsTexLayoutDesc);
     if (mFragmentShaderMaskTextureLayout == VK_NULL_HANDLE)
         return false;
 
     std::vector<DescriptorSetLayoutDesc> allLayoutDesc;
     allLayoutDesc.push_back({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, VK_NULL_HANDLE});
-    mAllShaderLayout = CreateLayout(allLayoutDesc);
+    mAllShaderLayout = Tools::CreateDescriptorSetLayout(allLayoutDesc);
     if (mAllShaderLayout == VK_NULL_HANDLE)
         return false;
 

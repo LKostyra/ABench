@@ -6,6 +6,12 @@ namespace Renderer {
 struct DescriptorAllocatorDesc
 {
     uint32_t limits[VK_DESCRIPTOR_TYPE_RANGE_SIZE];
+
+    DescriptorAllocatorDesc()
+    {
+        for (uint32_t i = 0; i < VK_DESCRIPTOR_TYPE_RANGE_SIZE; ++i)
+            limits[i] = 0;
+    }
 };
 
 struct DescriptorPool
@@ -17,7 +23,11 @@ struct DescriptorPool
     DescriptorPool()
         : pool(VK_NULL_HANDLE)
     {
-        
+        for (uint32_t i = 0; i < VK_DESCRIPTOR_TYPE_RANGE_SIZE; ++i)
+        {
+            limits[i] = 0;
+            taken[i] = 0;
+        }
     }
 };
 

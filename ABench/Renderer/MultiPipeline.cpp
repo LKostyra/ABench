@@ -195,7 +195,7 @@ bool MultiPipeline::Init(const MultiComputePipelineDesc& desc)
         for (auto& m: desc.computeShader.macros)
             macros.emplace_back(m.name, 0);
 
-    mBaseComputePipeline.desc.computeShader = mVertexShaders[macros].get();
+    mBaseComputePipeline.desc.computeShader = mComputeShaders[macros].get();
     mBaseComputePipeline.desc.flags = VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT;
 
     if (!mBaseComputePipeline.pipeline.Init(mBaseComputePipeline.desc))
@@ -247,7 +247,7 @@ VkPipeline MultiPipeline::GetComputePipeline(const ShaderMacros& comb)
         auto result = mComputePipelines.insert(std::make_pair(comb, p));
         if (!result.second)
         {
-            LOGE("Failed to create new Graphics Pipeline");
+            LOGE("Failed to create new Compute Pipeline");
             return VK_NULL_HANDLE;
         }
 

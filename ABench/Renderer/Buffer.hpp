@@ -44,6 +44,7 @@ public:
     ~Buffer();
 
     bool Init(const BufferDesc& desc);
+    void Free();
 
     ABENCH_INLINE VkBuffer GetVkBuffer() const
     {

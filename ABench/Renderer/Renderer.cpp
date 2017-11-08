@@ -158,7 +158,7 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderNormalTextureLayout());
     layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderMaskTextureLayout());
     layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderLayout());
-    mPipelineLayout = Tools::CreatePipelineLayout(layouts.data(), static_cast<uint32_t>(layouts.size()));
+    mPipelineLayout = Tools::CreatePipelineLayout(layouts);
     if (mPipelineLayout == VK_NULL_HANDLE)
         return false;
 
@@ -233,6 +233,9 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
 
     mRenderFence = Tools::CreateFence();
     if (mRenderFence == VK_NULL_HANDLE)
+        return false;
+
+    if (!mGridFrustums.Init())
         return false;
 
     return true;

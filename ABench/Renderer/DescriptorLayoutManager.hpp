@@ -5,27 +5,6 @@
 namespace ABench {
 namespace Renderer {
 
-struct DescriptorSetLayoutDesc
-{
-    VkDescriptorType type;
-    VkShaderStageFlags stage;
-    VkSampler sampler;
-
-    DescriptorSetLayoutDesc()
-        : type(VK_DESCRIPTOR_TYPE_SAMPLER)
-        , stage(0)
-        , sampler(VK_NULL_HANDLE)
-    {
-    }
-
-    DescriptorSetLayoutDesc(VkDescriptorType type, VkShaderStageFlags stage, VkSampler sampler)
-        : type(type)
-        , stage(stage)
-        , sampler(sampler)
-    {
-    }
-};
-
 class DescriptorLayoutManager
 {
     VkDevice mDevice;
@@ -46,7 +25,6 @@ class DescriptorLayoutManager
     DescriptorLayoutManager& operator=(DescriptorLayoutManager&&) = delete;
     ~DescriptorLayoutManager();
 
-    VkDescriptorSetLayout CreateLayout(std::vector<DescriptorSetLayoutDesc>& descriptors);
     void DestroyLayout(VkDescriptorSetLayout& layout);
     VkSampler CreateSampler();
 

@@ -21,10 +21,7 @@ Buffer::Buffer()
 
 Buffer::~Buffer()
 {
-    if (mBufferMemory)
-        vkFreeMemory(gDevice->GetDevice(), mBufferMemory, nullptr);
-    if (mBuffer)
-        vkDestroyBuffer(gDevice->GetDevice(), mBuffer, nullptr);
+    Free();
 }
 
 bool Buffer::Init(const BufferDesc& desc)
@@ -117,6 +114,17 @@ bool Buffer::Init(const BufferDesc& desc)
 
     mType = desc.type;
     return true;
+}
+
+void Buffer::Free()
+{
+    if (mBufferMemory != VK_NULL_HANDLE)
+        vkFreeMemory(gDevice->GetDevice(), mBufferMemory, nullptr);
+    if (mBuffer != VK_NULL_HANDLE)
+        vkDestroyBuffer(gDevice->GetDevice(), mBuffer, nullptr);
+
+    mBufferMemory = VK_NULL_HANDLE;
+    mBuffer = VK_NULL_HANDLE;
 }
 
 bool Buffer::Write(const void* data, size_t size, size_t offset)

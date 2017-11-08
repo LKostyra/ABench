@@ -12,25 +12,34 @@ namespace ABench {
 namespace Renderer {
 
 CommandBuffer::CommandBuffer()
-    : mCommandBuffer(VK_NULL_HANDLE)
+    : mOwningPool(VK_NULL_HANDLE)
+    , mCommandBuffer(VK_NULL_HANDLE)
     , mCurrentFramebuffer(nullptr)
 {
 }
 
 CommandBuffer::~CommandBuffer()
 {
-    if (mCommandBuffer)
-        vkFreeCommandBuffers(gDevice->GetDevice(), gDevice->GetCommandPool(DeviceQueueType::GRAPHICS), 1, &mCommandBuffer);
+    if (mCommandBuffer != VK_NULL_HANDLE)
+        vkFreeCommandBuffers(gDevice->GetDevice(), mOwningPool, 1, &mCommandBuffer);
 }
 
 bool CommandBuffer::Init(VkCommandPool commandPool)
 {
+    if (commandPool == VK_NULL_HANDLE)
+    {
+        LOGE("Invalid command pool provided");
+        return false;
+    }
+
+    mOwningPool = commandPool;
+
     VkCommandBufferAllocateInfo allocInfo;
     ZERO_MEMORY(allocInfo);
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = 1;
-    allocInfo.commandPool = commandPool;
+    allocInfo.commandPool = mOwningPool;
     VkResult result = vkAllocateCommandBuffers(gDevice->GetDevice(), &allocInfo, &mCommandBuffer);
     RETURN_FALSE_IF_FAILED(result, "Failed to allocate Command Buffer");
 

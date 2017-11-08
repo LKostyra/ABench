@@ -11,6 +11,7 @@
 #include "VertexLayout.hpp"
 #include "RingBuffer.hpp"
 #include "MultiPipeline.hpp"
+#include "GridFrustumsGenerator.hpp"
 
 #include "Common/Window.hpp"
 
@@ -43,6 +44,8 @@ class Renderer final
     VkDescriptorSet mAllShaderSet;
     Buffer mVertexShaderCBuffer;
     Buffer mAllShaderLightCBuffer;
+
+    GridFrustumsGenerator mGridFrustums;
 
 
 public:

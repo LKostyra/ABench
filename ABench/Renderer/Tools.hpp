@@ -8,6 +8,27 @@
 namespace ABench {
 namespace Renderer {
 
+struct DescriptorSetLayoutDesc
+{
+    VkDescriptorType type;
+    VkShaderStageFlags stage;
+    VkSampler sampler;
+
+    DescriptorSetLayoutDesc()
+        : type(VK_DESCRIPTOR_TYPE_SAMPLER)
+        , stage(0)
+        , sampler(VK_NULL_HANDLE)
+    {
+    }
+
+    DescriptorSetLayoutDesc(VkDescriptorType type, VkShaderStageFlags stage, VkSampler sampler)
+        : type(type)
+        , stage(stage)
+        , sampler(sampler)
+    {
+    }
+};
+
 /**
  * A collection of "tools" - single functions creating Vulkan object in one-line.
  *
@@ -26,8 +47,11 @@ public:
     // Fence creation
     static VkFence CreateFence();
 
+    // Descriptor Set Layout creation
+    static VkDescriptorSetLayout CreateDescriptorSetLayout(const std::vector<DescriptorSetLayoutDesc>& descriptors);
+
     // VkPipelineLayout creation, sets and setCount can be null/zero.
-    static VkPipelineLayout CreatePipelineLayout(VkDescriptorSetLayout* sets = nullptr, uint32_t setCount = 0);
+    static VkPipelineLayout CreatePipelineLayout(const std::vector<VkDescriptorSetLayout>& setLayouts);
 
     // VkRenderPass creation
     static VkRenderPass CreateRenderPass(VkFormat colorFormat, VkFormat depthFormat);

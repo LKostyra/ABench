@@ -21,6 +21,7 @@ class CommandBuffer
     friend class Device;
     friend class Texture;
 
+    VkCommandPool mOwningPool;
     VkCommandBuffer mCommandBuffer;
     Framebuffer* mCurrentFramebuffer;
 

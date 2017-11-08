@@ -1,0 +1,21 @@
+struct Plane
+{
+    vec3 N;
+    float d;
+};
+
+layout (set = 0, binding = 0) uniform cb
+{
+    int viewportWidth;
+    int viewportHeight;
+} gridInfoBuffer;
+
+layout (set = 0, binding = 1) buffer sb
+{
+    Plane plane[];
+} gridData;
+
+void main()
+{
+
+}

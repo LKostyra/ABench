@@ -24,15 +24,49 @@ VkFence Tools::CreateFence()
     return fence;
 }
 
-VkPipelineLayout Tools::CreatePipelineLayout(VkDescriptorSetLayout* sets, uint32_t setCount)
+VkDescriptorSetLayout Tools::CreateDescriptorSetLayout(const std::vector<DescriptorSetLayoutDesc>& descriptors)
+{
+    VkDescriptorSetLayout layout = VK_NULL_HANDLE;
+
+    std::vector<VkDescriptorSetLayoutBinding> bindings;
+
+    for (uint32_t i = 0; i < descriptors.size(); ++i)
+    {
+        VkDescriptorSetLayoutBinding binding;
+        ZERO_MEMORY(binding);
+        binding.descriptorCount = 1;
+        binding.binding = i;
+        binding.descriptorType = descriptors[i].type;
+        binding.stageFlags = descriptors[i].stage;
+        if (descriptors[i].sampler != VK_NULL_HANDLE)
+            binding.pImmutableSamplers = &descriptors[i].sampler;
+
+        bindings.push_back(binding);
+    }
+
+    VkDescriptorSetLayoutCreateInfo info;
+    ZERO_MEMORY(info);
+    info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    info.bindingCount = static_cast<uint32_t>(bindings.size());
+    info.pBindings = bindings.data();
+    VkResult result = vkCreateDescriptorSetLayout(gDevice->GetDevice(), &info, nullptr, &layout);
+    RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create Descriptor Set Layout");
+
+    LOGD("Created Descriptor Set Layout 0x" << std::hex << reinterpret_cast<size_t*>(layout) <<
+         " with " << std::dec << bindings.size() << " bindings.");
+
+    return layout;
+}
+
+VkPipelineLayout Tools::CreatePipelineLayout(const std::vector<VkDescriptorSetLayout>& setLayouts)
 {
     VkPipelineLayout layout = VK_NULL_HANDLE;
 
     VkPipelineLayoutCreateInfo info;
     ZERO_MEMORY(info);
     info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    info.pSetLayouts = sets;
-    info.setLayoutCount = setCount;
+    info.pSetLayouts = setLayouts.data();
+    info.setLayoutCount = static_cast<uint32_t>(setLayouts.size());
     VkResult result = vkCreatePipelineLayout(gDevice->GetDevice(), &info, nullptr, &layout);
     RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create Pipeline Layout");
 
