@@ -13,63 +13,24 @@
     <Filter Include="Scene">
       <UniqueIdentifier>{8c636787-4a62-4303-b10f-d68f25582ee7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Renderer\Win">
-      <UniqueIdentifier>{11347a3d-10e8-4c2a-9988-0f8b9e1b1fe4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Common\Win">
       <UniqueIdentifier>{40ce5f05-4845-4384-875b-c333f300d9a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\LowLevel">
+      <UniqueIdentifier>{7e0455f2-6292-4755-a62d-9c36cec05f84}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\HighLevel">
+      <UniqueIdentifier>{a545384a-00ea-4a84-9f92-845be9453ba1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\LowLevel\Win">
+      <UniqueIdentifier>{708cb32f-f6c7-4c6e-bc41-7872e28bc554}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="PCH.cpp" />
-    <ClCompile Include="Renderer\Device.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\Extensions.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\Instance.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\Backbuffer.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="Math\Matrix.cpp">
       <Filter>Math</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\Translations.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\Texture.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\Framebuffer.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\CommandBuffer.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\Buffer.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\Debugger.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\Pipeline.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\Shader.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\VertexLayout.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\Tools.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\Renderer.cpp">
-      <Filter>Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Scene\Camera.cpp">
       <Filter>Scene</Filter>
@@ -79,12 +40,6 @@
     </ClCompile>
     <ClCompile Include="Scene\Mesh.cpp">
       <Filter>Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\RingBuffer.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\Util.cpp">
-      <Filter>Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Common\Win\Common.cpp">
       <Filter>Common\Win</Filter>
@@ -101,9 +56,6 @@
     <ClCompile Include="Common\Win\Window.cpp">
       <Filter>Common\Win</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\Win\WinBackbuffer.cpp">
-      <Filter>Renderer\Win</Filter>
-    </ClCompile>
     <ClCompile Include="Common\FBXFile.cpp">
       <Filter>Common</Filter>
     </ClCompile>
@@ -116,12 +68,6 @@
     <ClCompile Include="Common\Image.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\DescriptorAllocator.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\DescriptorLayoutManager.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="Common\Win\FS.cpp">
       <Filter>Common\Win</Filter>
     </ClCompile>
@@ -129,17 +75,8 @@
     <ClCompile Include="Scene\Light.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\MultiPipeline.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\ShaderMacroDefinitions.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="Scene\Model.cpp">
       <Filter>Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\QueueManager.cpp">
-      <Filter>Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Math\Vector.cpp">
       <Filter>Math</Filter>
@@ -147,8 +84,80 @@
     <ClCompile Include="Math\Plane.cpp">
       <Filter>Math</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\GridFrustumsGenerator.cpp">
-      <Filter>Renderer</Filter>
+    <ClCompile Include="Renderer\HighLevel\DescriptorLayoutManager.cpp">
+      <Filter>Renderer\HighLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\HighLevel\GridFrustumsGenerator.cpp">
+      <Filter>Renderer\HighLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\HighLevel\Renderer.cpp">
+      <Filter>Renderer\HighLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\HighLevel\ShaderMacroDefinitions.cpp">
+      <Filter>Renderer\HighLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\LowLevel\Backbuffer.cpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\LowLevel\Buffer.cpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\LowLevel\CommandBuffer.cpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\LowLevel\Debugger.cpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\LowLevel\Device.cpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\LowLevel\Extensions.cpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\LowLevel\Framebuffer.cpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\LowLevel\Instance.cpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\LowLevel\MultiPipeline.cpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\LowLevel\Pipeline.cpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\LowLevel\QueueManager.cpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\LowLevel\RingBuffer.cpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\LowLevel\Shader.cpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\LowLevel\Texture.cpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\LowLevel\Tools.cpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\LowLevel\Translations.cpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\LowLevel\Util.cpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\LowLevel\VertexLayout.cpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\LowLevel\Win\WinBackbuffer.cpp">
+      <Filter>Renderer\LowLevel\Win</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\LowLevel\DescriptorAllocator.cpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\HighLevel\ResourceManager.cpp">
+      <Filter>Renderer\HighLevel</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -156,23 +165,11 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="PCH.hpp" />
-    <ClInclude Include="Renderer\Device.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\Extensions.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\Instance.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="Common\Library.hpp">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="Common\Logger.hpp">
       <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\Backbuffer.hpp">
-      <Filter>Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Math\Common.hpp">
       <Filter>Math</Filter>
@@ -183,44 +180,8 @@
     <ClInclude Include="Math\Vector.hpp">
       <Filter>Math</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer\Util.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="Common\Common.hpp">
       <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\Translations.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\Texture.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\Framebuffer.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\CommandBuffer.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\Buffer.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\Debugger.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\Pipeline.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\Shader.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\VertexLayout.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\Tools.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\Renderer.hpp">
-      <Filter>Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Common\Timer.hpp">
       <Filter>Common</Filter>
@@ -233,12 +194,6 @@
     </ClInclude>
     <ClInclude Include="Scene\Mesh.hpp">
       <Filter>Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\RingBuffer.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\Win\WinBackbuffer.hpp">
-      <Filter>Renderer\Win</Filter>
     </ClInclude>
     <ClInclude Include="Common\FBXFile.hpp">
       <Filter>Common</Filter>
@@ -256,12 +211,6 @@
     <ClInclude Include="Common\Image.hpp">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer\DescriptorAllocator.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\DescriptorLayoutManager.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="Common\FS.hpp">
       <Filter>Common</Filter>
     </ClInclude>
@@ -272,26 +221,92 @@
     <ClInclude Include="Math\Sort.hpp">
       <Filter>Math</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer\MultiPipeline.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\ShaderMacroDefinitions.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="Math\SortImpl.hpp">
       <Filter>Math</Filter>
     </ClInclude>
     <ClInclude Include="Scene\Model.hpp">
       <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer\QueueManager.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="Math\Plane.hpp">
       <Filter>Math</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer\GridFrustumsGenerator.hpp">
-      <Filter>Renderer</Filter>
+    <ClInclude Include="Renderer\HighLevel\DescriptorLayoutManager.hpp">
+      <Filter>Renderer\HighLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\HighLevel\GridFrustumsGenerator.hpp">
+      <Filter>Renderer\HighLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\HighLevel\Renderer.hpp">
+      <Filter>Renderer\HighLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\HighLevel\ShaderMacroDefinitions.hpp">
+      <Filter>Renderer\HighLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\LowLevel\Backbuffer.hpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\LowLevel\Buffer.hpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\LowLevel\CommandBuffer.hpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\LowLevel\Debugger.hpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\LowLevel\Device.hpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\LowLevel\Extensions.hpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\LowLevel\Framebuffer.hpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\LowLevel\Instance.hpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\LowLevel\MultiPipeline.hpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\LowLevel\Pipeline.hpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\LowLevel\QueueManager.hpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\LowLevel\RingBuffer.hpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\LowLevel\Shader.hpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\LowLevel\Texture.hpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\LowLevel\Tools.hpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\LowLevel\Translations.hpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\LowLevel\Util.hpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\LowLevel\VertexLayout.hpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\LowLevel\Win\WinBackbuffer.hpp">
+      <Filter>Renderer\LowLevel\Win</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\LowLevel\DescriptorAllocator.hpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\HighLevel\ResourceManager.hpp">
+      <Filter>Renderer\HighLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\LowLevel\Types.hpp">
+      <Filter>Renderer\LowLevel</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

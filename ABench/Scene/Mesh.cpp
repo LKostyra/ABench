@@ -39,7 +39,8 @@ bool Mesh::InitBuffers(const std::vector<Vertex>& vertices, int* indices, int in
     vbDesc.dataSize = vertices.size() * sizeof(Vertex);
     vbDesc.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
     vbDesc.type = BufferType::Static;
-    if (!mVertexBuffer.Init(vbDesc))
+    mVertexBuffer = ResourceManager::Instance().GetBuffer(vbDesc);
+    if (mVertexBuffer == nullptr)
         return false;
 
     mByIndices = false;
@@ -52,8 +53,10 @@ bool Mesh::InitBuffers(const std::vector<Vertex>& vertices, int* indices, int in
         ibDesc.dataSize = indexCount * sizeof(uint32_t);
         ibDesc.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
         ibDesc.type = BufferType::Static;
-        if (!mIndexBuffer.Init(ibDesc))
+        mIndexBuffer = ResourceManager::Instance().GetBuffer(ibDesc);
+        if (mIndexBuffer == nullptr)
             return false;
+
         mByIndices = true;
         mPointCount = indexCount;
     }

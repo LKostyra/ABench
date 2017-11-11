@@ -207,110 +207,31 @@ copy /B "$(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll" "$(T
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Renderer\Backbuffer.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
-    </ClCompile>
-    <ClCompile Include="Renderer\Buffer.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
-    </ClCompile>
-    <ClCompile Include="Renderer\CommandBuffer.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
-    </ClCompile>
-    <ClCompile Include="Renderer\Debugger.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
-    </ClCompile>
-    <ClCompile Include="Renderer\DescriptorAllocator.cpp" />
-    <ClCompile Include="Renderer\DescriptorLayoutManager.cpp" />
-    <ClCompile Include="Renderer\Device.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
-    </ClCompile>
-    <ClCompile Include="Renderer\Extensions.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
-    </ClCompile>
-    <ClCompile Include="Renderer\Framebuffer.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
-    </ClCompile>
-    <ClCompile Include="Renderer\GridFrustumsGenerator.cpp" />
-    <ClCompile Include="Renderer\Instance.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
-    </ClCompile>
-    <ClCompile Include="Renderer\MultiPipeline.cpp" />
-    <ClCompile Include="Renderer\Pipeline.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
-    </ClCompile>
-    <ClCompile Include="Renderer\QueueManager.cpp" />
-    <ClCompile Include="Renderer\Renderer.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
-    </ClCompile>
-    <ClCompile Include="Renderer\RingBuffer.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
-    </ClCompile>
-    <ClCompile Include="Renderer\Shader.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
-    </ClCompile>
-    <ClCompile Include="Renderer\ShaderMacroDefinitions.cpp" />
-    <ClCompile Include="Renderer\Texture.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
-    </ClCompile>
-    <ClCompile Include="Renderer\Tools.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
-    </ClCompile>
-    <ClCompile Include="Renderer\Translations.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
-    </ClCompile>
-    <ClCompile Include="Renderer\Util.cpp" />
-    <ClCompile Include="Renderer\VertexLayout.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
-    </ClCompile>
-    <ClCompile Include="Renderer\Win\WinBackbuffer.cpp" />
+    <ClCompile Include="Renderer\HighLevel\DescriptorLayoutManager.cpp" />
+    <ClCompile Include="Renderer\HighLevel\GridFrustumsGenerator.cpp" />
+    <ClCompile Include="Renderer\HighLevel\Renderer.cpp" />
+    <ClCompile Include="Renderer\HighLevel\ResourceManager.cpp" />
+    <ClCompile Include="Renderer\HighLevel\ShaderMacroDefinitions.cpp" />
+    <ClCompile Include="Renderer\LowLevel\Backbuffer.cpp" />
+    <ClCompile Include="Renderer\LowLevel\Buffer.cpp" />
+    <ClCompile Include="Renderer\LowLevel\CommandBuffer.cpp" />
+    <ClCompile Include="Renderer\LowLevel\Debugger.cpp" />
+    <ClCompile Include="Renderer\LowLevel\DescriptorAllocator.cpp" />
+    <ClCompile Include="Renderer\LowLevel\Device.cpp" />
+    <ClCompile Include="Renderer\LowLevel\Extensions.cpp" />
+    <ClCompile Include="Renderer\LowLevel\Framebuffer.cpp" />
+    <ClCompile Include="Renderer\LowLevel\Instance.cpp" />
+    <ClCompile Include="Renderer\LowLevel\MultiPipeline.cpp" />
+    <ClCompile Include="Renderer\LowLevel\Pipeline.cpp" />
+    <ClCompile Include="Renderer\LowLevel\QueueManager.cpp" />
+    <ClCompile Include="Renderer\LowLevel\RingBuffer.cpp" />
+    <ClCompile Include="Renderer\LowLevel\Shader.cpp" />
+    <ClCompile Include="Renderer\LowLevel\Texture.cpp" />
+    <ClCompile Include="Renderer\LowLevel\Tools.cpp" />
+    <ClCompile Include="Renderer\LowLevel\Translations.cpp" />
+    <ClCompile Include="Renderer\LowLevel\Util.cpp" />
+    <ClCompile Include="Renderer\LowLevel\VertexLayout.cpp" />
+    <ClCompile Include="Renderer\LowLevel\Win\WinBackbuffer.cpp" />
     <ClCompile Include="ResourceDir.cpp" />
     <ClCompile Include="Scene\Camera.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
@@ -350,30 +271,32 @@ copy /B "$(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll" "$(T
     <ClInclude Include="Math\Vector.hpp" />
     <ClInclude Include="PCH.hpp" />
     <ClInclude Include="Prerequisites.hpp" />
-    <ClInclude Include="Renderer\Backbuffer.hpp" />
-    <ClInclude Include="Renderer\Buffer.hpp" />
-    <ClInclude Include="Renderer\CommandBuffer.hpp" />
-    <ClInclude Include="Renderer\Debugger.hpp" />
-    <ClInclude Include="Renderer\DescriptorAllocator.hpp" />
-    <ClInclude Include="Renderer\DescriptorLayoutManager.hpp" />
-    <ClInclude Include="Renderer\Device.hpp" />
-    <ClInclude Include="Renderer\Extensions.hpp" />
-    <ClInclude Include="Renderer\Framebuffer.hpp" />
-    <ClInclude Include="Renderer\GridFrustumsGenerator.hpp" />
-    <ClInclude Include="Renderer\Instance.hpp" />
-    <ClInclude Include="Renderer\MultiPipeline.hpp" />
-    <ClInclude Include="Renderer\Pipeline.hpp" />
-    <ClInclude Include="Renderer\QueueManager.hpp" />
-    <ClInclude Include="Renderer\Renderer.hpp" />
-    <ClInclude Include="Renderer\RingBuffer.hpp" />
-    <ClInclude Include="Renderer\Shader.hpp" />
-    <ClInclude Include="Renderer\ShaderMacroDefinitions.hpp" />
-    <ClInclude Include="Renderer\Texture.hpp" />
-    <ClInclude Include="Renderer\Tools.hpp" />
-    <ClInclude Include="Renderer\Translations.hpp" />
-    <ClInclude Include="Renderer\Util.hpp" />
-    <ClInclude Include="Renderer\VertexLayout.hpp" />
-    <ClInclude Include="Renderer\Win\WinBackbuffer.hpp" />
+    <ClInclude Include="Renderer\HighLevel\DescriptorLayoutManager.hpp" />
+    <ClInclude Include="Renderer\HighLevel\GridFrustumsGenerator.hpp" />
+    <ClInclude Include="Renderer\HighLevel\Renderer.hpp" />
+    <ClInclude Include="Renderer\HighLevel\ResourceManager.hpp" />
+    <ClInclude Include="Renderer\HighLevel\ShaderMacroDefinitions.hpp" />
+    <ClInclude Include="Renderer\LowLevel\Backbuffer.hpp" />
+    <ClInclude Include="Renderer\LowLevel\Buffer.hpp" />
+    <ClInclude Include="Renderer\LowLevel\CommandBuffer.hpp" />
+    <ClInclude Include="Renderer\LowLevel\Debugger.hpp" />
+    <ClInclude Include="Renderer\LowLevel\DescriptorAllocator.hpp" />
+    <ClInclude Include="Renderer\LowLevel\Device.hpp" />
+    <ClInclude Include="Renderer\LowLevel\Extensions.hpp" />
+    <ClInclude Include="Renderer\LowLevel\Framebuffer.hpp" />
+    <ClInclude Include="Renderer\LowLevel\Instance.hpp" />
+    <ClInclude Include="Renderer\LowLevel\MultiPipeline.hpp" />
+    <ClInclude Include="Renderer\LowLevel\Pipeline.hpp" />
+    <ClInclude Include="Renderer\LowLevel\QueueManager.hpp" />
+    <ClInclude Include="Renderer\LowLevel\RingBuffer.hpp" />
+    <ClInclude Include="Renderer\LowLevel\Shader.hpp" />
+    <ClInclude Include="Renderer\LowLevel\Texture.hpp" />
+    <ClInclude Include="Renderer\LowLevel\Tools.hpp" />
+    <ClInclude Include="Renderer\LowLevel\Translations.hpp" />
+    <ClInclude Include="Renderer\LowLevel\Types.hpp" />
+    <ClInclude Include="Renderer\LowLevel\Util.hpp" />
+    <ClInclude Include="Renderer\LowLevel\VertexLayout.hpp" />
+    <ClInclude Include="Renderer\LowLevel\Win\WinBackbuffer.hpp" />
     <ClInclude Include="ResourceDir.hpp" />
     <ClInclude Include="Scene\Camera.hpp" />
     <ClInclude Include="Scene\Component.hpp" />

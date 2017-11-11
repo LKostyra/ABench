@@ -1,8 +1,10 @@
 #pragma once
 
 #include "Common/Image.hpp"
-#include "Renderer/Texture.hpp"
 #include "Math/Vector.hpp"
+
+#include "Renderer/LowLevel/Texture.hpp"
+#include "Renderer/HighLevel/ResourceManager.hpp"
 
 
 namespace ABench {
@@ -34,11 +36,11 @@ class Material
     std::string mMaterialName;
 
     Math::Vector4 mColor;
-    Renderer::Texture mDiffuseTexture;
-    Renderer::Texture mNormalTexture;
-    Renderer::Texture mMaskTexture;
+    Renderer::Texture* mDiffuseTexture;
+    Renderer::Texture* mNormalTexture;
+    Renderer::Texture* mMaskTexture;
 
-    bool CreateRendererTexture(const std::string& image, VkImageUsageFlags usage, Renderer::Texture& texture);
+    bool CreateRendererTexture(const std::string& image, VkImageUsageFlags usage, Renderer::Texture*& texture);
 
 public:
     Material(const std::string& name);
@@ -53,17 +55,26 @@ public:
 
     ABENCH_INLINE const VkDescriptorSet GetDiffuseDescriptor() const
     {
-        return mDiffuseTexture.GetDescriptorSet();
+        if (mDiffuseTexture)
+            return mDiffuseTexture->GetDescriptorSet();
+        else
+            return VK_NULL_HANDLE;
     }
 
     ABENCH_INLINE const VkDescriptorSet GetNormalDescriptor() const
     {
-        return mNormalTexture.GetDescriptorSet();
+        if (mNormalTexture)
+            return mNormalTexture->GetDescriptorSet();
+        else
+            return VK_NULL_HANDLE;
     }
 
     ABENCH_INLINE const VkDescriptorSet GetMaskDescriptor() const
     {
-        return mMaskTexture.GetDescriptorSet();
+        if (mMaskTexture)
+            return mMaskTexture->GetDescriptorSet();
+        else
+            return VK_NULL_HANDLE;
     }
 };
 

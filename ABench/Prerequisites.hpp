@@ -37,6 +37,9 @@ class Texture;
 class Tools;
 class VertexLayout;
 
+using InstancePtr = std::shared_ptr<Instance>;
+using DevicePtr = std::shared_ptr<Device>;
+
 } // namespace Renderer
 
 namespace Scene {

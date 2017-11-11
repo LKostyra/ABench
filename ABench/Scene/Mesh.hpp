@@ -4,7 +4,7 @@
 #include "Component.hpp"
 #include "Material.hpp"
 
-#include "Renderer/Buffer.hpp"
+#include "Renderer/HighLevel/ResourceManager.hpp"
 
 
 namespace ABench {
@@ -20,8 +20,8 @@ struct Vertex
 
 class Mesh final
 {
-    ABench::Renderer::Buffer mVertexBuffer;
-    ABench::Renderer::Buffer mIndexBuffer;
+    ABench::Renderer::Buffer* mVertexBuffer;
+    ABench::Renderer::Buffer* mIndexBuffer;
     uint32_t mPointCount;
     Material* mMaterial;
     bool mByIndices;
@@ -44,12 +44,12 @@ public:
 
     ABENCH_INLINE const ABench::Renderer::Buffer* GetVertexBuffer() const
     {
-        return &mVertexBuffer;
+        return mVertexBuffer;
     }
 
     ABENCH_INLINE const ABench::Renderer::Buffer* GetIndexBuffer() const
     {
-        return &mIndexBuffer;
+        return mIndexBuffer;
     }
 
     ABENCH_INLINE const uint32_t GetPointCount() const

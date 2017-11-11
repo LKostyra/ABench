@@ -15,7 +15,7 @@ Material::~Material()
 {
 }
 
-bool Material::CreateRendererTexture(const std::string& imagePath, VkImageUsageFlags usage, Renderer::Texture& texture)
+bool Material::CreateRendererTexture(const std::string& imagePath, VkImageUsageFlags usage, Renderer::Texture*& texture)
 {
     Common::Image image;
     if (!image.Init(imagePath, true))
@@ -43,7 +43,8 @@ bool Material::CreateRendererTexture(const std::string& imagePath, VkImageUsageF
         return false;
     }
 
-    return texture.Init(texDesc);
+    texture = Renderer::ResourceManager::Instance().GetTexture(texDesc);
+    return (texture != nullptr);
 }
 
 bool Material::Init(const MaterialDesc& desc)

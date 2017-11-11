@@ -1,7 +1,7 @@
 #pragma once
 
+#include "Common/Common.hpp"
 #include "Math/Matrix.hpp"
-#include "Renderer/CommandBuffer.hpp"
 
 #include "Component.hpp"
 

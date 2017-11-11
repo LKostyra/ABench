@@ -3,7 +3,7 @@
 #include "Common/Logger.hpp"
 #include "Common/Timer.hpp"
 #include "Common/FS.hpp"
-#include "Renderer/Renderer.hpp"
+#include "Renderer/HighLevel/Renderer.hpp"
 #include "Math/Matrix.hpp"
 #include "Scene/Camera.hpp"
 #include "Scene/Mesh.hpp"
