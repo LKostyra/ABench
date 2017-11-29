@@ -52,6 +52,11 @@ public:
         return mBuffer;
     }
 
+    ABENCH_INLINE VkDeviceMemory GetVkMemory() const
+    {
+        return mBufferMemory;
+    }
+
     ABENCH_INLINE VkDeviceSize GetSize() const
     {
         return mBufferSize;

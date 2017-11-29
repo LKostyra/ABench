@@ -122,11 +122,11 @@ bool GridFrustumsGenerator::Generate(uint32_t viewportWidth, uint32_t viewportHe
         mDispatchCommandBuffer.Begin();
         mDispatchCommandBuffer.BindPipeline(mPipeline.GetComputePipeline(emptyMacros), VK_PIPELINE_BIND_POINT_COMPUTE);
         mDispatchCommandBuffer.BindDescriptorSet(mGridFrustumsDataSet, 0, mPipelineLayout);
-        mDispatchCommandBuffer.Dispatch(1, 1, 0);
+        mDispatchCommandBuffer.Dispatch(mFrustumsPerWidth, mFrustumsPerHeight, 0);
         mDispatchCommandBuffer.End();
 
         mDevice->Execute(DeviceQueueType::COMPUTE, &mDispatchCommandBuffer);
-        mDevice->Wait(DeviceQueueType::COMPUTE);
+        mDevice->Wait(DeviceQueueType::COMPUTE); // TODO remove
     }
 
     return true;

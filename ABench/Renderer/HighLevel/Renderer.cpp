@@ -123,7 +123,13 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     bbDesc.vsync = false;
     if (!mBackbuffer.Init(mDevice, bbDesc))
         return false;
+    /* FIXME device gets lost after generation
+    if (!mGridFrustums.Init(mDevice))
+        return false;
 
+    if (!mGridFrustums.Generate(window.GetWidth(), window.GetHeight()))
+        return false;
+    */
     TextureDesc depthTexDesc;
     depthTexDesc.width = window.GetWidth();
     depthTexDesc.height = window.GetHeight();

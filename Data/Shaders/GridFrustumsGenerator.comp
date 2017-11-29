@@ -15,7 +15,10 @@ layout (set = 0, binding = 1) buffer sb
     Plane plane[];
 } gridData;
 
+layout (local_size_x = 1, local_size_y = 1) in;
+
 void main()
 {
-
+    gridData.plane[gl_LocalInvocationIndex].N = vec3(0.0, 1.0, 2.0);
+    gridData.plane[gl_LocalInvocationIndex].d = float(gl_LocalInvocationIndex);
 }

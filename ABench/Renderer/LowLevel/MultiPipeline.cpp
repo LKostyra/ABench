@@ -48,7 +48,11 @@ ShaderPtr MultiPipeline::GenerateShader(const std::string& path, const ShaderMac
     sDesc.macros = macros;
 
     ShaderPtr s = std::make_shared<Shader>();
-    s->Init(mDevice, sDesc);
+    if (!s->Init(mDevice, sDesc))
+    {
+        LOGE("Failed to initialize Shader module");
+        return nullptr;
+    }
 
     return s;
 }
@@ -64,7 +68,14 @@ bool MultiPipeline::GenerateShaderModules(const MultiPipelineShaderDesc& desc, S
     for (uint32_t c = 0; c < combinations; ++c)
     {
         // pre-create shaders now for further use
-        targetMap->insert(std::make_pair(macros, GenerateShader(desc.path, macros, type)));
+        ShaderPtr shader = GenerateShader(desc.path, macros, type);
+        if (!shader)
+        {
+            LOGE("Failed to generate Shader combination from file " << desc.path);
+            return false;
+        }
+
+        targetMap->insert(std::make_pair(macros, std::move(shader)));
         AdvanceCombinations(macros, desc.macros);
     }
 
