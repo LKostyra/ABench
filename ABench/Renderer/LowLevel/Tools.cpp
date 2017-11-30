@@ -52,7 +52,7 @@ VkDescriptorSetLayout Tools::CreateDescriptorSetLayout(const DevicePtr& device, 
     VkResult result = vkCreateDescriptorSetLayout(device->GetDevice(), &info, nullptr, &layout);
     RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create Descriptor Set Layout");
 
-    LOGD("Created Descriptor Set Layout 0x" << std::hex << reinterpret_cast<size_t*>(layout) <<
+    LOGD("Created Descriptor Set Layout " << std::hex << reinterpret_cast<size_t*>(layout) <<
          " with " << std::dec << bindings.size() << " bindings.");
 
     return layout;
@@ -70,7 +70,7 @@ VkPipelineLayout Tools::CreatePipelineLayout(const DevicePtr& device, const std:
     VkResult result = vkCreatePipelineLayout(device->GetDevice(), &info, nullptr, &layout);
     RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create Pipeline Layout");
 
-    LOGD("Created Pipeline Layout 0x" << std::hex << reinterpret_cast<size_t*>(layout));
+    LOGD("Created Pipeline Layout " << std::hex << reinterpret_cast<size_t*>(layout));
     return layout;
 }
 
@@ -79,7 +79,7 @@ VkRenderPass Tools::CreateRenderPass(const DevicePtr& device, VkFormat colorForm
     VkRenderPass rp = VK_NULL_HANDLE;
 
     // TODO multiple color attachments
-    VkAttachmentDescription atts[2];
+    std::array<VkAttachmentDescription, 2> atts;
     uint32_t attCount = 0;
     ZERO_MEMORY(atts[attCount]);
     atts[attCount].format = colorFormat;
@@ -124,18 +124,37 @@ VkRenderPass Tools::CreateRenderPass(const DevicePtr& device, VkFormat colorForm
     if (depthFormat != VK_FORMAT_UNDEFINED)
         subpass.pDepthStencilAttachment = &depthRef;
 
+    std::array<VkSubpassDependency, 2> subpassDeps;
+    subpassDeps[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+    subpassDeps[0].dstSubpass = 0;
+    subpassDeps[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+    subpassDeps[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    subpassDeps[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+    subpassDeps[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    subpassDeps[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+    subpassDeps[1].srcSubpass = 0;
+    subpassDeps[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+    subpassDeps[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    subpassDeps[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+    subpassDeps[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    subpassDeps[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+    subpassDeps[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
     VkRenderPassCreateInfo rpInfo;
     ZERO_MEMORY(rpInfo);
     rpInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
     rpInfo.attachmentCount = attCount;
-    rpInfo.pAttachments = atts;
+    rpInfo.pAttachments = atts.data();
     rpInfo.subpassCount = 1;
     rpInfo.pSubpasses = &subpass;
+    rpInfo.dependencyCount = static_cast<uint32_t>(subpassDeps.size());
+    rpInfo.pDependencies = subpassDeps.data();
 
     VkResult result = vkCreateRenderPass(device->GetDevice(), &rpInfo, nullptr, &rp);
     RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create Render Pass");
 
-    LOGD("Created Render Pass 0x" << std::hex << reinterpret_cast<size_t*>(rp));
+    LOGD("Created Render Pass " << std::hex << reinterpret_cast<size_t*>(rp));
     return rp;
 }
 

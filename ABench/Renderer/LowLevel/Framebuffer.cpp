@@ -59,7 +59,7 @@ bool Framebuffer::Init(const DevicePtr& device, const FramebufferDesc& desc)
         if (desc.depthTex)
         {
             fbAtts[1] = desc.depthTex->mImages[0].view;
-            fbInfo.attachmentCount = 2;
+            fbInfo.attachmentCount++;
         }
 
         fbInfo.pAttachments = fbAtts;

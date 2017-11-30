@@ -50,12 +50,13 @@ Window::Window()
     , mMouseDownX(0)
     , mMouseDownY(0)
     , mOpened(false)
+    , mKeys{false}
+    , mMouseButtons{false}
 {
 }
 
 Window::~Window()
 {
-    OnClose();
     Close();
 
     if (mDeleteReply) free(mDeleteReply);
@@ -84,6 +85,8 @@ bool Window::Init()
     mScreen = xcbScreenIt.data;
 
     xcb_set_screen_saver(mConnection, 0, 0, XCB_BLANKING_NOT_PREFERRED, XCB_EXPOSURES_ALLOWED);
+
+    OnInit();
     return true;
 }
 
@@ -106,10 +109,10 @@ bool Window::Open(int x, int y, int width, int height, const std::string& title)
         colormap
     };
 
-    xcb_void_cookie_t cookie = xcb_create_window_checked(mConnection, mScreen->root_depth, mWindow,
-                                                         mScreen->root, x, y, mWidth, mHeight, 1,
-                                                         XCB_WINDOW_CLASS_INPUT_OUTPUT, mScreen->root_visual,
-                                                         valueMask, valueList);
+    xcb_void_cookie_t cookie = xcb_create_window_checked(mConnection, XCB_COPY_FROM_PARENT, mWindow,
+                                                         mScreen->root, x, y, mWidth, mHeight, 3,
+                                                         XCB_WINDOW_CLASS_INPUT_OUTPUT,
+                                                         mScreen->root_visual, valueMask, valueList);
 
     xcb_generic_error_t* err = xcb_request_check(mConnection, cookie);
     if (err)
@@ -133,6 +136,7 @@ bool Window::Open(int x, int y, int width, int height, const std::string& title)
 
     xcb_map_window(mConnection, mWindow);
 
+    OnOpen();
     mOpened = true;
     return true;
 }
@@ -197,10 +201,8 @@ void Window::ProcessMessages()
             xcb_client_message_event_t* cm = reinterpret_cast<xcb_client_message_event_t*>(event);
 
             if (static_cast<xcb_atom_t>(cm->data.data32[0]) == mDeleteReply->atom)
-            {
-                this->OnClose();
                 this->Close();
-            }
+
             break;
         }
         case XCB_KEY_PRESS:
@@ -260,6 +262,7 @@ void Window::Close()
     if (!mOpened)
         return;
 
+    OnClose();
     mOpened = false;
 }
 

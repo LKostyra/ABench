@@ -1,4 +1,4 @@
-MESSAGE("Generating Makefile for ABench")
+MESSAGE(STATUS "Generating Makefile for ABench")
 
 FILE(GLOB ABENCH_SOURCES          *.cpp)
 FILE(GLOB ABENCH_HEADERS          *.hpp)

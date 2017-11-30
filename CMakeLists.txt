@@ -2,7 +2,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
 PROJECT(ABench)
 
-MESSAGE("Generating Makefile for ABench project")
+MESSAGE(STATUS "Generating Makefile for ABench project")
 
 INCLUDE(FindPkgConfig)
 
@@ -74,7 +74,7 @@ ENDIF()
 ### Compiler configuration ###
 
 # Enable all warnings and make them errors
-ADD_DEFINITIONS("-Wall -Wextra -Wno-sign-compare -Werror")
+ADD_DEFINITIONS("-Wall -Wextra -Wsign-compare -Werror")
 
 # Warnings exceptions
 ADD_DEFINITIONS("-Wno-multichar")
@@ -91,9 +91,9 @@ ADD_DEFINITIONS("-Wl,--no-as-needed")
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${ABENCH_OUTPUT_DIRECTORY})
 SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${ABENCH_OUTPUT_DIRECTORY})
 
-MESSAGE("Build type is ${CMAKE_BUILD_TYPE}")
-MESSAGE("Output path is ${ABENCH_OUTPUT_DIRECTORY}")
-MESSAGE("Platform is ${BUILD_PLATFORM}")
+MESSAGE(STATUS "Build type is ${CMAKE_BUILD_TYPE}")
+MESSAGE(STATUS "Output path is ${ABENCH_OUTPUT_DIRECTORY}")
+MESSAGE(STATUS "Platform is ${BUILD_PLATFORM}")
 
 
 ### Add all projects ###

@@ -4,12 +4,10 @@ layout (location = 2) in vec2 InUV;
 layout (location = 3) in vec3 InTangent;
 
 
-
 // temporarily changed from block because glslang has a bug
 layout (location = 0) out vec3 VertNorm;
 layout (location = 1) out vec2 VertUV;
 layout (location = 2) out vec3 VertLightDir;
-
 
 
 layout (set = 0, binding = 0) uniform dynamicCb
