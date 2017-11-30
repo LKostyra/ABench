@@ -8,6 +8,10 @@ namespace Scene {
 
 Material::Material(const std::string& name)
     : mMaterialName(name)
+    , mColor(1.0f)
+    , mDiffuseTexture(nullptr)
+    , mNormalTexture(nullptr)
+    , mMaskTexture(nullptr)
 {
 }
 
