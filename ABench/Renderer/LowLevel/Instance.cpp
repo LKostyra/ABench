@@ -66,7 +66,10 @@ bool Instance::Init(VkDebugReportFlagsEXT debugFlags)
     enabledExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
 
     if (debugFlags)
+    {
+        LOGW("Debug enabled - adding Vulkan Debug Report layer");
         enabledExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+    }
 
 #ifdef WIN32
     enabledExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);

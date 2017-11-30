@@ -43,7 +43,7 @@ uint32_t QueueManager::GetQueueIndex(VkQueueFlags requestedFlag)
     // If we would like to push TRANSFER ops independently from GRAPHICS ops, we have to use the less
     // capable queue family for TRANSFER operations, as GRAPHICS operations are pushed to the more
     // capable one. Otherwise, we would just enqueue all operations on one queue family, which would
-    // ruin all multithreading capabilities of Vulkan.
+    // probably ruin all multithreading capabilities of Vulkan.
     for (size_t i = 0; i < mQueueProperties.size(); ++i)
     {
         if ((mQueueProperties[i].queueFlags & requestedFlag) &&
@@ -81,6 +81,7 @@ bool QueueManager::Init(VkPhysicalDevice physicalDevice)
         LOGD("Queue Family #" << i << ":");
         LOGD("  Flags: " << std::hex << mQueueProperties[i].queueFlags << " ("
                          << TranslateVkQueueFlagsToString(mQueueProperties[i].queueFlags) << ")");
+        LOGD("  Queue count: " << mQueueProperties[i].queueCount);
     }
 
     mQueues[DeviceQueueType::GRAPHICS].index = GetQueueIndex(VK_QUEUE_GRAPHICS_BIT);

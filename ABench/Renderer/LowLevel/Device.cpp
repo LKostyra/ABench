@@ -118,6 +118,7 @@ bool Device::Init(const InstancePtr& inst)
     devInfo.ppEnabledExtensionNames = enabledExtensions;
     if (mInstance->IsDebuggingEnabled())
     {
+        LOGW("Debug enabled - adding Vulkan Validation layer");
         devInfo.enabledLayerCount = 1;
         devInfo.ppEnabledLayerNames = enabledLayers;
     }

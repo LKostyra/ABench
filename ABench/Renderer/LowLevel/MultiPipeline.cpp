@@ -169,7 +169,7 @@ bool MultiPipeline::Init(const DevicePtr& device, const MultiGraphicsPipelineDes
     mBaseGraphicsPipeline.desc.tessControlShader = nullptr;
     mBaseGraphicsPipeline.desc.tessEvalShader = nullptr;
     mBaseGraphicsPipeline.desc.geometryShader = nullptr;
-    mBaseGraphicsPipeline.desc.fragmentShader = mFragmentShaders[macros].get();
+    mBaseGraphicsPipeline.desc.fragmentShader = nullptr;
     mBaseGraphicsPipeline.desc.flags = VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT;
     mBaseGraphicsPipeline.desc.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
