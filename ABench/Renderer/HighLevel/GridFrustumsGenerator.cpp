@@ -75,9 +75,6 @@ bool GridFrustumsGenerator::Init(const DevicePtr& device)
     if (!mPipeline.Init(mDevice, cpDesc))
         return false;
 
-    if (!mDispatchCommandBuffer.Init(mDevice, DeviceQueueType::COMPUTE))
-        return false;
-
     BufferDesc infoDesc;
     infoDesc.data = nullptr;
     infoDesc.dataSize = sizeof(GridFrustumsInfoBuffer);
@@ -88,6 +85,9 @@ bool GridFrustumsGenerator::Init(const DevicePtr& device)
 
     Tools::UpdateBufferDescriptorSet(mDevice, mGridFrustumsDataSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0,
                                      mGridFrustumsInfo.GetVkBuffer(), mGridFrustumsInfo.GetSize());
+
+    if (!mDispatchCommandBuffer.Init(mDevice, DeviceQueueType::COMPUTE))
+        return false;
 
     return true;
 }
@@ -121,12 +121,16 @@ bool GridFrustumsGenerator::Generate(uint32_t viewportWidth, uint32_t viewportHe
 
         mDispatchCommandBuffer.Begin();
         mDispatchCommandBuffer.BindPipeline(mPipeline.GetComputePipeline(emptyMacros), VK_PIPELINE_BIND_POINT_COMPUTE);
-        mDispatchCommandBuffer.BindDescriptorSet(mGridFrustumsDataSet, 0, mPipelineLayout);
-        mDispatchCommandBuffer.Dispatch(mFrustumsPerWidth, mFrustumsPerHeight, 0);
-        mDispatchCommandBuffer.End();
+        mDispatchCommandBuffer.BindDescriptorSet(mGridFrustumsDataSet, VK_PIPELINE_BIND_POINT_COMPUTE, 0, mPipelineLayout);
+        mDispatchCommandBuffer.Dispatch(mFrustumsPerWidth, mFrustumsPerHeight, 1);
+        mDispatchCommandBuffer.BufferBarrier(&mGridFrustumsData, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                                             VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
+                                             mDevice->GetQueueIndex(DeviceQueueType::COMPUTE), mDevice->GetQueueIndex(DeviceQueueType::COMPUTE));
+        if (!mDispatchCommandBuffer.End())
+            return false;
 
         mDevice->Execute(DeviceQueueType::COMPUTE, &mDispatchCommandBuffer);
-        mDevice->Wait(DeviceQueueType::COMPUTE); // TODO remove
+        mDevice->Wait(DeviceQueueType::COMPUTE);
     }
 
     return true;

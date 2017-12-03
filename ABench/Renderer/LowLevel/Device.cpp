@@ -93,7 +93,7 @@ bool Device::Init(const InstancePtr& inst)
     // Memory properties (for further use)
     vkGetPhysicalDeviceMemoryProperties(mPhysicalDevice, &mMemoryProperties);
 
-    if (!mQueueManager.Init(mPhysicalDevice))
+    if (!mQueueManager.Init(mPhysicalDevice, true))
     {
         LOGE("Failed to initialize Queue Manager");
         return false;
@@ -169,7 +169,7 @@ bool Device::Execute(DeviceQueueType queueType, CommandBuffer* cmd, VkFence wait
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &cmd->mCommandBuffer;
     VkResult result = vkQueueSubmit(mQueueManager.GetQueue(queueType), 1, &submitInfo, waitFence);
-    RETURN_FALSE_IF_FAILED(result, "Failed to submit graphics operation");
+    RETURN_FALSE_IF_FAILED(result, "Failed to execute command buffer");
 
     return true;
 }

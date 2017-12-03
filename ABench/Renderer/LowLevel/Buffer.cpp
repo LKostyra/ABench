@@ -45,8 +45,14 @@ bool Buffer::Init(const DevicePtr& device, const BufferDesc& desc)
     ZERO_MEMORY(bufInfo);
     bufInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufInfo.size = mBufferSize;
-    bufInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     bufInfo.usage = desc.usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    bufInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    if (desc.concurrent && device->GetQueueCount() > 1)
+    {
+        bufInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+        bufInfo.queueFamilyIndexCount = device->GetQueueCount();
+        bufInfo.pQueueFamilyIndices = device->GetQueueIndices();
+    }
     VkResult result = vkCreateBuffer(mDevice->GetDevice(), &bufInfo, nullptr, &mBuffer);
     RETURN_FALSE_IF_FAILED(result, "Failed to create device buffer");
 

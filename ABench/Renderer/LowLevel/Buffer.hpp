@@ -20,12 +20,14 @@ struct BufferDesc
     VkDeviceSize dataSize;
     VkBufferUsageFlags usage;
     BufferType type;
+    bool concurrent;
 
     BufferDesc()
         : data(nullptr)
         , dataSize(0)
         , usage(0)
         , type(BufferType::Static)
+        , concurrent(false)
     {
     }
 };

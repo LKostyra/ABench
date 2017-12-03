@@ -41,6 +41,23 @@ bool CommandBuffer::Init(const DevicePtr& device, DeviceQueueType queueType)
     return true;
 }
 
+void CommandBuffer::BufferBarrier(const Buffer* buffer, VkPipelineStageFlags fromStage, VkPipelineStageFlags toStage,
+                                  VkAccessFlags accessFrom, VkAccessFlags accessTo,
+                                  uint32_t fromQueueFamily, uint32_t toQueueFamily)
+{
+    VkBufferMemoryBarrier barrier;
+    ZERO_MEMORY(barrier);
+    barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+    barrier.buffer = buffer->GetVkBuffer();
+    barrier.size = buffer->GetSize();
+    barrier.srcAccessMask = accessFrom;
+    barrier.dstAccessMask = accessTo;
+    barrier.srcQueueFamilyIndex = fromQueueFamily;
+    barrier.dstQueueFamilyIndex = toQueueFamily;
+
+    vkCmdPipelineBarrier(mCommandBuffer, fromStage, toStage, 0, 0, nullptr, 1, &barrier, 0, nullptr);
+}
+
 void CommandBuffer::Begin()
 {
     VkCommandBufferBeginInfo beginInfo;
@@ -109,20 +126,20 @@ void CommandBuffer::BindPipeline(VkPipeline pipeline, VkPipelineBindPoint point)
     vkCmdBindPipeline(mCommandBuffer, point, pipeline);
 }
 
-void CommandBuffer::BindDescriptorSet(VkDescriptorSet set, uint32_t setSlot, VkPipelineLayout layout)
+void CommandBuffer::BindDescriptorSet(VkDescriptorSet set, VkPipelineBindPoint point, uint32_t setSlot, VkPipelineLayout layout)
 {
     ASSERT(set != VK_NULL_HANDLE, "Provided descriptor set is not initialized");
     ASSERT(layout != VK_NULL_HANDLE, "Provided pipeline layout is not initialized");
 
-    vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, setSlot, 1, &set, 0, nullptr);
+    vkCmdBindDescriptorSets(mCommandBuffer, point, layout, setSlot, 1, &set, 0, nullptr);
 }
 
-void CommandBuffer::BindDescriptorSet(VkDescriptorSet set, uint32_t setSlot, VkPipelineLayout layout, uint32_t dynamicOffset)
+void CommandBuffer::BindDescriptorSet(VkDescriptorSet set, VkPipelineBindPoint point, uint32_t setSlot, VkPipelineLayout layout, uint32_t dynamicOffset)
 {
     ASSERT(set != VK_NULL_HANDLE, "Provided descriptor set is not initialized");
     ASSERT(layout != VK_NULL_HANDLE, "Provided pipeline layout is not initialized");
 
-    vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, setSlot, 1, &set, 1, &dynamicOffset);
+    vkCmdBindDescriptorSets(mCommandBuffer, point, layout, setSlot, 1, &set, 1, &dynamicOffset);
 }
 
 void CommandBuffer::Clear(ClearType types, float clearValues[4], float depthValue)

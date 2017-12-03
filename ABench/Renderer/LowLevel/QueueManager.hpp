@@ -40,6 +40,7 @@ private:
     QueueCreateInfos mQueueCreateInfos;
     DeviceQueues mQueues;
     std::array<float, 1> mQueuePriorities;
+    std::vector<uint32_t> mQueueIndices;
     bool mSeparateTransferQueue;
     bool mSeparateComputeQueue;
 
@@ -49,7 +50,7 @@ public:
     QueueManager();
     ~QueueManager();
 
-    bool Init(VkPhysicalDevice physicalDevice);
+    bool Init(VkPhysicalDevice physicalDevice, bool allowSeparateQueues);
     bool CreateQueues(VkDevice device);
     void Release();
 
@@ -66,6 +67,21 @@ public:
     ABENCH_INLINE VkCommandPool GetCommandPool(DeviceQueueType queueType) const
     {
         return mQueues[queueType].commandPool;
+    }
+
+    ABENCH_INLINE uint32_t GetQueueIndex(DeviceQueueType queueType) const
+    {
+        return mQueues[queueType].index;
+    }
+
+    ABENCH_INLINE uint32_t GetQueueCount() const
+    {
+        return static_cast<uint32_t>(mQueueIndices.size());
+    }
+
+    ABENCH_INLINE const uint32_t* GetQueueIndices() const
+    {
+        return mQueueIndices.data();
     }
 };
 

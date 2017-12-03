@@ -43,6 +43,21 @@ public:
     {
         return mQueueManager.GetCommandPool(queueType);
     }
+
+    ABENCH_INLINE uint32_t GetQueueIndex(DeviceQueueType queueType) const
+    {
+        return mQueueManager.GetQueueIndex(queueType);
+    }
+
+    ABENCH_INLINE uint32_t GetQueueCount() const
+    {
+        return mQueueManager.GetQueueCount();
+    }
+
+    ABENCH_INLINE const uint32_t* GetQueueIndices() const
+    {
+        return mQueueManager.GetQueueIndices();
+    }
 };
 
 } // namespace Renderer

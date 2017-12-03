@@ -123,13 +123,13 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     bbDesc.vsync = false;
     if (!mBackbuffer.Init(mDevice, bbDesc))
         return false;
-    /* FIXME device gets lost after generation
+
     if (!mGridFrustums.Init(mDevice))
         return false;
 
     if (!mGridFrustums.Generate(window.GetWidth(), window.GetHeight()))
         return false;
-    */
+
     TextureDesc depthTexDesc;
     depthTexDesc.width = window.GetWidth();
     depthTexDesc.height = window.GetHeight();
@@ -252,9 +252,6 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (mRenderFence == VK_NULL_HANDLE)
         return false;
 
-    if (!mGridFrustums.Init(mDevice))
-        return false;
-
     return true;
 }
 
@@ -292,8 +289,9 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
         mCommandBuffer.SetScissor(0, 0, mBackbuffer.GetWidth(), mBackbuffer.GetHeight());
 
         float clearValue[] = {0.1f, 0.1f, 0.1f, 0.0f};
+        VkPipelineBindPoint bindPoint =  VK_PIPELINE_BIND_POINT_GRAPHICS;
         mCommandBuffer.BeginRenderPass(mRenderPass, &mFramebuffer, ABENCH_CLEAR_ALL, clearValue, 1.0f);
-        mCommandBuffer.BindDescriptorSet(mAllShaderSet, 1, mPipelineLayout);
+        mCommandBuffer.BindDescriptorSet(mAllShaderSet, bindPoint, 1, mPipelineLayout);
 
         MultiGraphicsPipelineShaderMacros macros;
         macros.vertexShader = {
@@ -310,7 +308,7 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
             {
                 // world matrix update
                 uint32_t offset = mRingBuffer.Write(&o->GetTransform(), sizeof(ABench::Math::Matrix));
-                mCommandBuffer.BindDescriptorSet(mVertexShaderSet, 0, mPipelineLayout, offset);
+                mCommandBuffer.BindDescriptorSet(mVertexShaderSet, bindPoint, 0, mPipelineLayout, offset);
 
                 Scene::Model* model = dynamic_cast<Scene::Model*>(o->GetComponent());
                 model->ForEachMesh([&](Scene::Mesh* mesh) {
@@ -325,29 +323,29 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
                         // material data update
                         materialBuf.color = material->GetColor();
                         offset = mRingBuffer.Write(&materialBuf, sizeof(materialBuf));
-                        mCommandBuffer.BindDescriptorSet(mFragmentShaderSet, 5, mPipelineLayout, offset);
+                        mCommandBuffer.BindDescriptorSet(mFragmentShaderSet, bindPoint, 5, mPipelineLayout, offset);
 
                         if (material->GetDiffuseDescriptor() != VK_NULL_HANDLE)
                         {
                             macros.fragmentShader[0].value = 1;
-                            mCommandBuffer.BindDescriptorSet(material->GetDiffuseDescriptor(), 2, mPipelineLayout);
+                            mCommandBuffer.BindDescriptorSet(material->GetDiffuseDescriptor(), bindPoint, 2, mPipelineLayout);
                         }
 
                         if (material->GetNormalDescriptor() != VK_NULL_HANDLE)
                         {
                             macros.vertexShader[0].value = 1;
                             macros.fragmentShader[1].value = 1;
-                            mCommandBuffer.BindDescriptorSet(material->GetNormalDescriptor(), 3, mPipelineLayout);
+                            mCommandBuffer.BindDescriptorSet(material->GetNormalDescriptor(), bindPoint, 3, mPipelineLayout);
                         }
 
                         if (material->GetMaskDescriptor() != VK_NULL_HANDLE)
                         {
                             macros.fragmentShader[2].value = 1;
-                            mCommandBuffer.BindDescriptorSet(material->GetMaskDescriptor(), 4, mPipelineLayout);
+                            mCommandBuffer.BindDescriptorSet(material->GetMaskDescriptor(), bindPoint, 4, mPipelineLayout);
                         }
                     }
 
-                    mCommandBuffer.BindPipeline(mPipeline.GetGraphicsPipeline(macros), VK_PIPELINE_BIND_POINT_GRAPHICS);
+                    mCommandBuffer.BindPipeline(mPipeline.GetGraphicsPipeline(macros), bindPoint);
                     mCommandBuffer.BindVertexBuffer(mesh->GetVertexBuffer());
 
                     if (mesh->ByIndices())

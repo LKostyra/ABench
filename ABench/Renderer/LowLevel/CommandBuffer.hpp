@@ -28,13 +28,16 @@ public:
 
     bool Init(const DevicePtr& device, DeviceQueueType queueType);
 
+    void BufferBarrier(const Buffer* buffer, VkPipelineStageFlags fromStage, VkPipelineStageFlags toStage,
+                       VkAccessFlags accessFrom, VkAccessFlags accessTo,
+                       uint32_t fromQueueFamily, uint32_t toQueueFamily);
     void Begin();
     void BeginRenderPass(VkRenderPass rp, Framebuffer* fb, ClearType types, float clearValues[4], float depthValue = 0.0f);
     void BindVertexBuffer(const Buffer* buffer);
     void BindIndexBuffer(const Buffer* buffer);
     void BindPipeline(VkPipeline pipeline, VkPipelineBindPoint point);
-    void BindDescriptorSet(VkDescriptorSet set, uint32_t setSlot, VkPipelineLayout layout);
-    void BindDescriptorSet(VkDescriptorSet set, uint32_t setSlot, VkPipelineLayout layout, uint32_t dynamicOffset);
+    void BindDescriptorSet(VkDescriptorSet set, VkPipelineBindPoint point, uint32_t setSlot, VkPipelineLayout layout);
+    void BindDescriptorSet(VkDescriptorSet set, VkPipelineBindPoint point, uint32_t setSlot, VkPipelineLayout layout, uint32_t dynamicOffset);
     void Clear(ClearType types, float clearValues[4], float depthValue);
     void CopyBuffer(VkBuffer src, VkBuffer dst, VkDeviceSize size);
     void CopyBufferToTexture(Buffer* src, Texture* dst);

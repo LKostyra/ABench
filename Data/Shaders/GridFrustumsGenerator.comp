@@ -4,18 +4,18 @@ struct Plane
     float d;
 };
 
-layout (set = 0, binding = 0) uniform cb
+layout (std140, set = 0, binding = 0) uniform cb
 {
-    int viewportWidth;
-    int viewportHeight;
+    uint viewportWidth;
+    uint viewportHeight;
 } gridInfoBuffer;
 
-layout (set = 0, binding = 1) buffer sb
+layout (std140, set = 0, binding = 1) buffer sb
 {
     Plane plane[];
 } gridData;
 
-layout (local_size_x = 1, local_size_y = 1) in;
+layout (local_size_x = 16, local_size_y = 16) in;
 
 void main()
 {

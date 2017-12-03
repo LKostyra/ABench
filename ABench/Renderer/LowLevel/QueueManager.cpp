@@ -62,7 +62,7 @@ uint32_t QueueManager::GetQueueIndex(VkQueueFlags requestedFlag)
     return queueIndex;
 }
 
-bool QueueManager::Init(VkPhysicalDevice physicalDevice)
+bool QueueManager::Init(VkPhysicalDevice physicalDevice, bool allowSeparateQueues)
 {
     uint32_t queueCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueCount, nullptr);
@@ -85,8 +85,17 @@ bool QueueManager::Init(VkPhysicalDevice physicalDevice)
     }
 
     mQueues[DeviceQueueType::GRAPHICS].index = GetQueueIndex(VK_QUEUE_GRAPHICS_BIT);
-    mQueues[DeviceQueueType::TRANSFER].index = GetQueueIndex(VK_QUEUE_TRANSFER_BIT);
-    mQueues[DeviceQueueType::COMPUTE].index = GetQueueIndex(VK_QUEUE_COMPUTE_BIT);
+
+    if (allowSeparateQueues)
+    {
+        mQueues[DeviceQueueType::TRANSFER].index = GetQueueIndex(VK_QUEUE_TRANSFER_BIT);
+        mQueues[DeviceQueueType::COMPUTE].index = GetQueueIndex(VK_QUEUE_COMPUTE_BIT);
+    }
+    else
+    {
+        mQueues[DeviceQueueType::TRANSFER].index = mQueues[DeviceQueueType::GRAPHICS].index;
+        mQueues[DeviceQueueType::COMPUTE].index = mQueues[DeviceQueueType::GRAPHICS].index;
+    }
 
     if (mQueues[DeviceQueueType::GRAPHICS].index == INVALID_QUEUE_INDEX ||
         mQueues[DeviceQueueType::TRANSFER].index == INVALID_QUEUE_INDEX ||
@@ -142,6 +151,7 @@ bool QueueManager::CreateQueues(VkDevice device)
     poolInfo.queueFamilyIndex = mQueues[DeviceQueueType::GRAPHICS].index;
     VkResult result = vkCreateCommandPool(device, &poolInfo, nullptr, &mQueues[DeviceQueueType::GRAPHICS].commandPool);
     RETURN_FALSE_IF_FAILED(result, "Failed to create Graphics Command Pool");
+    mQueueIndices.emplace_back(mQueues[DeviceQueueType::GRAPHICS].index);
 
     // Transfer Queue (optional)
     if (mSeparateTransferQueue)
@@ -149,6 +159,7 @@ bool QueueManager::CreateQueues(VkDevice device)
         poolInfo.queueFamilyIndex = mQueues[DeviceQueueType::TRANSFER].index;
         result = vkCreateCommandPool(device, &poolInfo, nullptr, &mQueues[DeviceQueueType::TRANSFER].commandPool);
         RETURN_FALSE_IF_FAILED(result, "Failed to create Transfer Command Pool");
+        mQueueIndices.emplace_back(mQueues[DeviceQueueType::TRANSFER].index);
     }
     else
     {
@@ -161,6 +172,7 @@ bool QueueManager::CreateQueues(VkDevice device)
         poolInfo.queueFamilyIndex = mQueues[DeviceQueueType::COMPUTE].index;
         result = vkCreateCommandPool(device, &poolInfo, nullptr, &mQueues[DeviceQueueType::COMPUTE].commandPool);
         RETURN_FALSE_IF_FAILED(result, "Failed to create Compute Command Pool");
+        mQueueIndices.emplace_back(mQueues[DeviceQueueType::COMPUTE].index);
     }
     else
     {
