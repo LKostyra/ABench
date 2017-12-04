@@ -50,6 +50,7 @@ Window::Window()
     , mMouseDownX(0)
     , mMouseDownY(0)
     , mOpened(false)
+    , mInvisible(false)
     , mKeys{false}
     , mMouseButtons{false}
 {
@@ -59,11 +60,17 @@ Window::~Window()
 {
     Close();
 
-    if (mDeleteReply) free(mDeleteReply);
-    xcb_set_screen_saver(mConnection, -1, 0, XCB_BLANKING_NOT_PREFERRED, XCB_EXPOSURES_ALLOWED);
-    xcb_destroy_window(mConnection, mWindow);
-    xcb_flush(mConnection);
-    xcb_disconnect(mConnection);
+    if (mDeleteReply)
+        free(mDeleteReply);
+
+    if (mConnection)
+    {
+        xcb_set_screen_saver(mConnection, -1, 0, XCB_BLANKING_NOT_PREFERRED, XCB_EXPOSURES_ALLOWED);
+        if (mWindow)
+            xcb_destroy_window(mConnection, mWindow);
+        xcb_flush(mConnection);
+        xcb_disconnect(mConnection);
+    }
 }
 
 bool Window::Init()
@@ -94,6 +101,12 @@ bool Window::Open(int x, int y, int width, int height, const std::string& title)
 {
     mWidth = width;
     mHeight = height;
+
+    if (mConnection == nullptr)
+    {
+        LOGE("Window not initialized - cannot open");
+        return false;
+    }
 
     mWindow = xcb_generate_id(mConnection);
 
@@ -134,7 +147,8 @@ bool Window::Open(int x, int y, int width, int height, const std::string& title)
     xcb_change_property(mConnection, XCB_PROP_MODE_REPLACE, mWindow, wmProtReply->atom, 4, 32, 1, &mDeleteReply->atom);
     free(wmProtReply);
 
-    xcb_map_window(mConnection, mWindow);
+    if (!mInvisible)
+        xcb_map_window(mConnection, mWindow);
 
     OnOpen();
     mOpened = true;
@@ -157,6 +171,19 @@ bool Window::SetTitle(const std::string& title)
     }
 
     return true;
+}
+
+void Window::SetInvisible(bool invisible)
+{
+    mInvisible = invisible;
+
+    if (mOpened && mWindow)
+    {
+        if (mInvisible)
+            xcb_unmap_window(mConnection, mWindow);
+        else
+            xcb_map_window(mConnection, mWindow);
+    }
 }
 
 void Window::MouseButtonDown(int button, int x, int y)

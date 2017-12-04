@@ -3,11 +3,19 @@
 // GTest
 #include <gtest/gtest.h>
 
-// WinAPI
 #ifdef WIN32
+// WinAPI & other Windows internals
 #include <Windows.h>
 #include <windowsx.h>
-#endif // WIN32
+#elif defined(__linux__) || defined(__LINUX__)
+#include <time.h> // for Timer
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <xcb/xcb.h>
+#else
+#error "Target platform not defined"
+#endif
 
 // FBX SDK
 #include <fbxsdk.h>

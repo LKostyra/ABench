@@ -16,12 +16,12 @@ Window::Window()
     , mWidth(0)
     , mHeight(0)
     , mOpened(false)
+    , mInvisible(false)
 {
 }
 
 Window::~Window()
 {
-    OnClose();
     Close();
 }
 
@@ -34,7 +34,6 @@ LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
     switch (msg)
     {
     case WM_CLOSE:
-        wnd->OnClose();
         wnd->Close();
         break;
 
@@ -131,6 +130,12 @@ bool Window::Open(int x, int y, int width, int height, const std::string& title)
     if (mOpened)
         return false; // we cannot open a new window - we are already opened
 
+    if (mInstance == 0)
+    {
+        LOGE("WinAPI Instance not acquired - Window not initialized");
+        return false;
+    }
+
     // TODO FULLSCREEN
     std::wstring wideTitle;
     if (!UTF8ToUTF16(title, wideTitle))
@@ -155,9 +160,12 @@ bool Window::Open(int x, int y, int width, int height, const std::string& title)
 
     SetWindowLongPtr(mHWND, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 
-    ShowWindow(mHWND, SW_SHOW);
     UpdateWindow(mHWND);
-    SetFocus(mHWND);
+    if (!mInvisible)
+    {
+        ShowWindow(mHWND, SW_SHOW);
+        SetFocus(mHWND);
+    }
 
     mOpened = true;
     mWidth = width;
@@ -190,6 +198,19 @@ bool Window::SetTitle(const std::string& title)
     }
 
     return SetTitle(wideTitle);
+}
+
+void Window::SetInvisible(bool invisible)
+{
+    mInvisible = invisible;
+
+    if (mOpened && mHWND)
+    {
+        if (mInvisible)
+            ShowWindow(mHWND, SW_SHOW);
+        else
+            ShowWindow(mHWND, SW_HIDE);
+    }
 }
 
 void Window::Update(float deltaTime)
@@ -237,7 +258,16 @@ void Window::Close()
     if (!mOpened)
         return;
 
-    DestroyWindow(mHWND);
+    OnClose();
+
+    if (mInstance != 0)
+    {
+        if (mHWND != 0)
+            DestroyWindow(mHWND);
+
+        UnregisterClass(mClassName.c_str(), mInstance);
+    }
+
     mOpened = false;
 }
 

@@ -32,6 +32,7 @@ class Window
     int mMouseDownX;
     int mMouseDownY;
     bool mOpened;
+    bool mInvisible;
     bool mKeys[255];
     bool mMouseButtons[3];
 
@@ -65,6 +66,7 @@ public:
     bool Open(int x, int y, int width, int height, const std::string& title);
     bool SetTitle(const std::wstring& title);
     bool SetTitle(const std::string& title);
+    void SetInvisible(bool invisible);
     void Update(float deltaTime);
     void MouseButtonDown(int button, int x, int y);
     void MouseButtonUp(int button);

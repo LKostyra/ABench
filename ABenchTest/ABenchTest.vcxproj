@@ -162,6 +162,7 @@
     <ClCompile Include="..\ABench\Common\Win\FS.cpp" />
     <ClCompile Include="..\ABench\Common\Win\Logger.cpp" />
     <ClCompile Include="..\ABench\Common\Win\Timer.cpp" />
+    <ClCompile Include="..\ABench\Common\Win\Window.cpp" />
     <ClCompile Include="..\ABench\Math\Vector.cpp" />
     <ClCompile Include="Main.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
@@ -183,6 +184,7 @@
     <ClCompile Include="Tests\SortTest.cpp" />
     <ClCompile Include="Tests\Vector3Test.cpp" />
     <ClCompile Include="Tests\Vector4Test.cpp" />
+    <ClCompile Include="Tests\WindowTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.hpp" />

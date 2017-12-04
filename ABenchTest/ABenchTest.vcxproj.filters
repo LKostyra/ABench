@@ -33,6 +33,12 @@
     <ClCompile Include="..\ABench\Common\Win\FS.cpp">
       <Filter>Modules\Win</Filter>
     </ClCompile>
+    <ClCompile Include="..\ABench\Common\Win\Window.cpp">
+      <Filter>Modules\Win</Filter>
+    </ClCompile>
+    <ClCompile Include="Tests\WindowTest.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Tests">
