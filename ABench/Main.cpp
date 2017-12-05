@@ -5,6 +5,7 @@
 #include "Common/FS.hpp"
 #include "Renderer/HighLevel/Renderer.hpp"
 #include "Math/Matrix.hpp"
+#include "Math/RingAverage.hpp"
 #include "Scene/Camera.hpp"
 #include "Scene/Mesh.hpp"
 #include "Scene/Light.hpp"
@@ -102,7 +103,7 @@ class ABenchWindow: public ABench::Common::Window
         }
     }
 
-    void OnKeyDown(ABench::Common::KeyCode key)
+    void OnKeyDown(ABench::Common::KeyCode key) override
     {
         if (key == ABench::Common::KeyCode::T)
             mLightFollowsCamera ^= true;
@@ -209,15 +210,18 @@ int main()
     gLightObj->SetPosition(3.0f, 3.0f, 0.0f);
 
     ABench::Common::Timer timer;
+    ABench::Math::RingAverage<float, 200> avgTime;
     timer.Start();
 
     while(window.IsOpen())
     {
         float frameTime = static_cast<float>(timer.Stop());
         timer.Start();
-        float fps = 1.0f / frameTime;
+        avgTime.Add(frameTime);
+        float time = avgTime.Get();
+        float fps = 1.0f / time;
 
-        window.SetTitle("ABench - " + std::to_string(fps) + " FPS (" + std::to_string(frameTime * 1000.0f) + " ms)");
+        window.SetTitle("ABench - " + std::to_string(fps) + " FPS (" + std::to_string(time * 1000.0f) + " ms)");
         window.Update(frameTime);
         rend.Draw(scene, window.GetCamera());
     }

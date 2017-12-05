@@ -17,10 +17,11 @@ QueueManager::QueueManager()
     : mQueueProperties()
     , mQueueCreateInfos()
     , mQueues()
-    , mQueuePriorities{1.0f}
+    , mQueuePriorities()
     , mSeparateTransferQueue(false)
     , mSeparateComputeQueue(false)
 {
+    mQueuePriorities.fill(1.0f);
 }
 
 QueueManager::~QueueManager()

@@ -8,7 +8,7 @@ ADD_LIBRARY(gtest ${GTEST_SOURCES} ${GTEST_HEADERS})
 # gtest authors recommend compiling the library with no-missing-field-initializers warning
 # For more info visit: https://groups.google.com/forum/#!topic/googletestframework/8S3QSezcoRA
 SET_TARGET_PROPERTIES(gtest PROPERTIES
-                      COMPILE_FLAGS "-Wno-missing-field-initializers"
+                      COMPILE_FLAGS "-Wno-missing-field-initializers -Wno-error"
                       LINK_FLAGS "-Wno-missing-field-initializers")
 
 ADD_CUSTOM_COMMAND(TARGET gtest POST_BUILD COMMAND

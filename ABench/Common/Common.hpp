@@ -9,7 +9,7 @@
 
 #ifdef WIN32
 #define ABENCH_INLINE __forceinline
-#elif defined(__linux__) | defined(__LINUX__)
+#elif defined(__linux__) || defined(__LINUX__)
 #define ABENCH_INLINE __attribute__((always_inline))
 #else
 #error "Target platform not supported"

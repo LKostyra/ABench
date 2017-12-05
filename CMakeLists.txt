@@ -22,10 +22,11 @@ IF(NOT DEFINED BUILD_PLATFORM)
 ENDIF(NOT DEFINED BUILD_PLATFORM)
 
 
-### Set required variables ###
+### Set global build type variables ###
 
-SET(CMAKE_CXX_FLAGS       "${CMAKE_CXX_FLAGS} -O2 -std=c++1y")
-SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG -O0 -g -std=c++1y")
+SET(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++1y")
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2")
+SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG -O0 -g")
 
 
 ### Set directory macros ###
@@ -83,7 +84,7 @@ ADD_DEFINITIONS("-Wno-unused-result")
 ADD_DEFINITIONS("-Wno-ignored-qualifiers")
 ADD_DEFINITIONS("-Wno-unused-parameter")
 ADD_DEFINITIONS("-Wno-missing-field-initializers")
-ADD_DEFINITIONS("-Wl,--no-as-needed")
+#ADD_DEFINITIONS("-Wl,--no-as-needed")
 
 
 ### Building outputs ###

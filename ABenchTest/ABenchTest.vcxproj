@@ -181,6 +181,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="Tests\FBXFileTest.cpp" />
+    <ClCompile Include="Tests\RingAverageTest.cpp" />
     <ClCompile Include="Tests\SortTest.cpp" />
     <ClCompile Include="Tests\Vector3Test.cpp" />
     <ClCompile Include="Tests\Vector4Test.cpp" />
