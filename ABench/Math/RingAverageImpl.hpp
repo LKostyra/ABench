@@ -16,7 +16,7 @@ V RingAverage<V,N>::Get()
     V average = static_cast<V>(0);
     for (size_t i = 0; i < mCurrentSize; ++i)
         average += mValues[i];
-    return (average / mCurrentSize);
+    return (average / static_cast<V>(mCurrentSize));
 }
 
 template <typename V, size_t N>
