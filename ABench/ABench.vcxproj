@@ -186,12 +186,18 @@ copy /B "$(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll" "$(T
     <ClCompile Include="Common\Win\Timer.cpp" />
     <ClCompile Include="Common\Win\Window.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Math\Interpolation\CubicInterpolator.cpp" />
+    <ClCompile Include="Math\Interpolation\Interpolator.cpp" />
+    <ClCompile Include="Math\Interpolation\LinearInterpolator.cpp" />
     <ClCompile Include="Math\Matrix.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PCH.hpp</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PCH.hpp</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
     </ClCompile>
+    <ClInclude Include="Math\Interpolation\CubicInterpolator.hpp" />
+    <ClInclude Include="Math\Interpolation\Interpolator.hpp" />
+    <ClInclude Include="Math\Interpolation\LinearInterpolator.hpp" />
     <ClInclude Include="Math\Plane.hpp" />
     <ClInclude Include="Math\SortImpl.hpp" />
     <ClCompile Include="Math\Plane.cpp" />

@@ -25,6 +25,7 @@ class ABenchWindow: public ABench::Common::Window
     float mAngleX = 0.0f;
     float mAngleY = 0.0f;
     bool mLightFollowsCamera = false;
+    bool mCameraOnRails = false;
 
     void OnOpen() override
     {
@@ -107,6 +108,9 @@ class ABenchWindow: public ABench::Common::Window
     {
         if (key == ABench::Common::KeyCode::T)
             mLightFollowsCamera ^= true;
+
+        if (key == ABench::Common::KeyCode::F1)
+            mCameraOnRails ^= true;
     }
 
 public:

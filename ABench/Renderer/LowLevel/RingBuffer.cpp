@@ -35,7 +35,6 @@ bool RingBuffer::Init(const DevicePtr& device, VkDeviceSize bufferSize)
 {
     mDevice = device;
 
-    // create our buffer
     VkBufferCreateInfo bufInfo;
     ZERO_MEMORY(bufInfo);
     bufInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;

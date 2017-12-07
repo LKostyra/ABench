@@ -25,6 +25,9 @@
     <Filter Include="Renderer\LowLevel\Win">
       <UniqueIdentifier>{708cb32f-f6c7-4c6e-bc41-7872e28bc554}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Math\Interpolation">
+      <UniqueIdentifier>{1e141e09-4d6a-4b8d-818a-bdf506d63277}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
@@ -158,6 +161,15 @@
     </ClCompile>
     <ClCompile Include="Renderer\HighLevel\ResourceManager.cpp">
       <Filter>Renderer\HighLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Interpolation\CubicInterpolator.cpp">
+      <Filter>Math\Interpolation</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Interpolation\Interpolator.cpp">
+      <Filter>Math\Interpolation</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Interpolation\LinearInterpolator.cpp">
+      <Filter>Math\Interpolation</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -307,6 +319,15 @@
     </ClInclude>
     <ClInclude Include="Renderer\LowLevel\Types.hpp">
       <Filter>Renderer\LowLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Interpolation\CubicInterpolator.hpp">
+      <Filter>Math\Interpolation</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Interpolation\Interpolator.hpp">
+      <Filter>Math\Interpolation</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Interpolation\LinearInterpolator.hpp">
+      <Filter>Math\Interpolation</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
