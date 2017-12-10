@@ -67,5 +67,7 @@ public:
     bool Write(const void* data, size_t size, size_t offset = 0);
 };
 
+using BufferPtr = std::shared_ptr<Buffer>;
+
 } // namespace Renderer
 } // namespace ABench

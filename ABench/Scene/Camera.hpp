@@ -42,7 +42,7 @@ class Camera final
     Math::Matrix mView;
     Math::Matrix mProjection;
 
-    ABench::Renderer::Buffer* mGridFrustums;
+    ABench::Renderer::BufferPtr mGridFrustums;
 
 public:
     Camera();
@@ -78,7 +78,7 @@ public:
 
     ABENCH_INLINE const Renderer::Buffer* GetGridFrustums() const
     {
-        return mGridFrustums;
+        return mGridFrustums.get();
     }
 };
 

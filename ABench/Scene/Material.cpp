@@ -19,7 +19,7 @@ Material::~Material()
 {
 }
 
-bool Material::CreateRendererTexture(const std::string& imagePath, VkImageUsageFlags usage, Renderer::Texture*& texture)
+bool Material::CreateRendererTexture(const std::string& imagePath, VkImageUsageFlags usage, Renderer::TexturePtr& texture)
 {
     Common::Image image;
     if (!image.Init(imagePath, true))

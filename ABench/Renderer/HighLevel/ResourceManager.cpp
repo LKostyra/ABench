@@ -24,10 +24,10 @@ bool ResourceManager::Init(const DevicePtr& device)
     return true;
 }
 
-Buffer* ResourceManager::GetBuffer(const BufferDesc& desc)
+BufferPtr ResourceManager::GetBuffer(const BufferDesc& desc)
 {
-    mBuffers.emplace_back(std::make_unique<Buffer>());
-    Buffer* b = mBuffers.back().get();
+    mBuffers.emplace_back(std::make_shared<Buffer>());
+    BufferPtr& b = mBuffers.back();
     if (!b->Init(mDevice, desc))
     {
         mBuffers.pop_back();
@@ -37,10 +37,10 @@ Buffer* ResourceManager::GetBuffer(const BufferDesc& desc)
     return b;
 }
 
-Texture* ResourceManager::GetTexture(const TextureDesc& desc)
+TexturePtr ResourceManager::GetTexture(const TextureDesc& desc)
 {
-    mTextures.emplace_back(std::make_unique<Texture>());
-    Texture* t = mTextures.back().get();
+    mTextures.emplace_back(std::make_shared<Texture>());
+    TexturePtr& t = mTextures.back();
     if (!t->Init(mDevice, desc))
     {
         mTextures.pop_back();

@@ -27,7 +27,7 @@ bool Camera::Init(const CameraDesc& desc)
     genDesc.projMat = mProjection;
     genDesc.viewportWidth = desc.windowWidth;
     genDesc.viewportHeight = desc.windowHeight;
-    return Renderer::GridFrustumsGenerator::Instance().Generate(genDesc, &mGridFrustums);
+    return Renderer::GridFrustumsGenerator::Instance().Generate(genDesc, mGridFrustums);
 }
 
 void Camera::Update(const CameraUpdateDesc& desc)

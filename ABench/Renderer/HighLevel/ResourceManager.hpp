@@ -12,11 +12,11 @@ namespace Renderer {
 class ResourceManager final
 {
     template <typename T>
-    using ResourceCollection = std::list<std::unique_ptr<T>>;
+    using ResourceCollection = std::list<T>;
 
     DevicePtr mDevice;
-    ResourceCollection<Buffer> mBuffers;
-    ResourceCollection<Texture> mTextures;
+    ResourceCollection<BufferPtr> mBuffers;
+    ResourceCollection<TexturePtr> mTextures;
 
     ResourceManager();
     ResourceManager(const ResourceManager&) = delete;
@@ -30,9 +30,8 @@ public:
 
     bool Init(const DevicePtr& device);
 
-    // TODO smart pointers? shared_ptr could be a good idea
-    Buffer* GetBuffer(const BufferDesc& desc);
-    Texture* GetTexture(const TextureDesc& desc);
+    BufferPtr GetBuffer(const BufferDesc& desc);
+    TexturePtr GetTexture(const TextureDesc& desc);
 };
 
 } // namespace Renderer

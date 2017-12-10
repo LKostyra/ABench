@@ -39,7 +39,7 @@ public:
     static GridFrustumsGenerator& Instance();
 
     bool Init(const DevicePtr& device);
-    bool Generate(const GridFrustumsGenerationDesc& desc, Buffer** frustumData);
+    bool Generate(const GridFrustumsGenerationDesc& desc, BufferPtr& frustumData);
 };
 
 } // namespace Renderer

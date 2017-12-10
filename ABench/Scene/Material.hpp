@@ -36,11 +36,11 @@ class Material
     std::string mMaterialName;
 
     Math::Vector4 mColor;
-    Renderer::Texture* mDiffuseTexture;
-    Renderer::Texture* mNormalTexture;
-    Renderer::Texture* mMaskTexture;
+    Renderer::TexturePtr mDiffuseTexture;
+    Renderer::TexturePtr mNormalTexture;
+    Renderer::TexturePtr mMaskTexture;
 
-    bool CreateRendererTexture(const std::string& image, VkImageUsageFlags usage, Renderer::Texture*& texture);
+    bool CreateRendererTexture(const std::string& image, VkImageUsageFlags usage, Renderer::TexturePtr& texture);
 
 public:
     Material(const std::string& name);

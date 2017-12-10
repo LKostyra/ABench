@@ -118,5 +118,7 @@ public:
     void Transition(VkCommandBuffer cmdBuffer, VkImageLayout targetLayout = VK_IMAGE_LAYOUT_UNDEFINED);
 };
 
+using TexturePtr = std::shared_ptr<Texture>;
+
 } // namespace Renderer
 } // namespace ABench

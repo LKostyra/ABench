@@ -20,8 +20,8 @@ struct Vertex
 
 class Mesh final
 {
-    ABench::Renderer::Buffer* mVertexBuffer;
-    ABench::Renderer::Buffer* mIndexBuffer;
+    ABench::Renderer::BufferPtr mVertexBuffer;
+    ABench::Renderer::BufferPtr mIndexBuffer;
     uint32_t mPointCount;
     Material* mMaterial;
     bool mByIndices;
@@ -44,12 +44,12 @@ public:
 
     ABENCH_INLINE const ABench::Renderer::Buffer* GetVertexBuffer() const
     {
-        return mVertexBuffer;
+        return mVertexBuffer.get();
     }
 
     ABENCH_INLINE const ABench::Renderer::Buffer* GetIndexBuffer() const
     {
-        return mIndexBuffer;
+        return mIndexBuffer.get();
     }
 
     ABENCH_INLINE const uint32_t GetPointCount() const
