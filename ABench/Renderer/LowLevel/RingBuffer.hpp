@@ -38,14 +38,9 @@ public:
     uint32_t Write(const void* data, size_t dataSize);
 
     /**
-     * Waits for given fence until last frame finishes rendering. Then,
-     * advances the offsets and marks the beginning of next frame.
-     *
-     * TODO this needs reworking - right now this function will be our
-     * bottleneck. Rendering multiple frames at once won't work this way.
+     * Advances the offsets and marks the beginning of next frame.
      */
-    bool MarkFinishedFrame(VkFence waitFence);
-
+    bool MarkFinishedFrame();
 
     ABENCH_INLINE VkBuffer GetVkBuffer() const
     {

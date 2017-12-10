@@ -70,10 +70,10 @@ public:
     bool Init(const DevicePtr& device, const BackbufferDesc& desc);
 
     // Present current image on screen. This should be usually called at the end of current frame.
-    bool Present();
+    bool Present(VkSemaphore waitSemaphore);
 
     // Acquire new image. This should be called at the beginning of the frame.
-    bool AcquireNextImage();
+    bool AcquireNextImage(VkSemaphore semaphore);
 };
 
 } // namespace Renderer

@@ -17,11 +17,26 @@ VkFence Tools::CreateFence(const DevicePtr& device)
     VkFenceCreateInfo info;
     ZERO_MEMORY(info);
     info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
     VkResult result = vkCreateFence(device->GetDevice(), &info, nullptr, &fence);
     RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create fence");
 
     return fence;
+}
+
+VkSemaphore Tools::CreateSem(const DevicePtr& device)
+{
+    VkSemaphore semaphore;
+
+    VkSemaphoreCreateInfo info;
+    ZERO_MEMORY(info);
+    info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    VkResult result = vkCreateSemaphore(device->GetDevice(), &info, nullptr, &semaphore);
+    RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create semaphore");
+
+    return semaphore;
 }
 
 VkDescriptorSetLayout Tools::CreateDescriptorSetLayout(const DevicePtr& device, const std::vector<DescriptorSetLayoutDesc>& descriptors)

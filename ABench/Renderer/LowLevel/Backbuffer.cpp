@@ -290,20 +290,11 @@ bool Backbuffer::CreateImageAcquireFences()
     return true;
 }
 
-bool Backbuffer::AcquireNextImage()
+bool Backbuffer::AcquireNextImage(VkSemaphore semaphore)
 {
     VkResult result = vkAcquireNextImageKHR(mDevice->GetDevice(), mSwapchain, UINT64_MAX,
-                                            VK_NULL_HANDLE, mImageAcquireFence, &mCurrentBuffer);
+                                            semaphore, VK_NULL_HANDLE, &mCurrentBuffer);
     RETURN_FALSE_IF_FAILED(result, "Failed to preacquire next image for presenting");
-
-    do
-    {
-        result = vkWaitForFences(mDevice->GetDevice(), 1, &mImageAcquireFence, VK_TRUE, 0);
-    } while (result != VK_SUCCESS);
-
-
-    result = vkResetFences(mDevice->GetDevice(), 1, &mImageAcquireFence);
-    RETURN_FALSE_IF_FAILED(result, "Error while resetting Image acquisition Fence");
 
     return true;
 }
@@ -330,7 +321,7 @@ bool Backbuffer::Init(const DevicePtr& device, const BackbufferDesc& desc)
     return true;
 }
 
-bool Backbuffer::Present()
+bool Backbuffer::Present(VkSemaphore waitSemaphore)
 {
     VkResult result = VK_SUCCESS;
 
@@ -342,6 +333,8 @@ bool Backbuffer::Present()
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = &mSwapchain;
     presentInfo.pImageIndices = &mCurrentBuffer;
+    presentInfo.pWaitSemaphores = &waitSemaphore;
+    presentInfo.waitSemaphoreCount = 1;
     presentInfo.pResults = &result;
     vkQueuePresentKHR(mPresentQueue, &presentInfo);
     RETURN_FALSE_IF_FAILED(result, "Failed to present rendered image on screen");

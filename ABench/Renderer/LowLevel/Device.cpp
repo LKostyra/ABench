@@ -161,13 +161,34 @@ void Device::Wait(DeviceQueueType queueType) const
     vkQueueWaitIdle(mQueueManager.GetQueue(queueType));
 }
 
-bool Device::Execute(DeviceQueueType queueType, CommandBuffer* cmd, VkFence waitFence) const
+bool Device::Execute(DeviceQueueType queueType, CommandBuffer* cmd) const
 {
     VkSubmitInfo submitInfo;
     ZERO_MEMORY(submitInfo);
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &cmd->mCommandBuffer;
+    VkResult result = vkQueueSubmit(mQueueManager.GetQueue(queueType), 1, &submitInfo, VK_NULL_HANDLE);
+    RETURN_FALSE_IF_FAILED(result, "Failed to execute command buffer");
+
+    return true;
+}
+
+bool Device::Execute(DeviceQueueType queueType, CommandBuffer* cmd, VkSemaphore waitSemaphore,
+                     VkSemaphore signalSemaphore, VkFence waitFence) const
+{
+    VkPipelineStageFlags waitFlags[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+
+    VkSubmitInfo submitInfo;
+    ZERO_MEMORY(submitInfo);
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &cmd->mCommandBuffer;
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores = &waitSemaphore;
+    submitInfo.pWaitDstStageMask = waitFlags;
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = &signalSemaphore;
     VkResult result = vkQueueSubmit(mQueueManager.GetQueue(queueType), 1, &submitInfo, waitFence);
     RETURN_FALSE_IF_FAILED(result, "Failed to execute command buffer");
 

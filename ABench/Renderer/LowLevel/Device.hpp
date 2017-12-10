@@ -32,7 +32,9 @@ public:
     uint32_t GetMemoryTypeIndex(uint32_t typeBits, VkFlags properties) const;
 
     void Wait(DeviceQueueType queueType) const;
-    bool Execute(DeviceQueueType queueType, CommandBuffer* cmd, VkFence waitFence = VK_NULL_HANDLE) const;
+    bool Execute(DeviceQueueType queueType, CommandBuffer* cmd) const;
+    bool Execute(DeviceQueueType queueType, CommandBuffer* cmd, VkSemaphore waitSemaphore,
+                 VkSemaphore signalSemaphore,  VkFence waitFence) const;
 
     ABENCH_INLINE VkDevice GetDevice() const
     {

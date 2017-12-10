@@ -230,5 +230,7 @@ int main()
     system("PAUSE");
 #endif
 
+    rend.WaitForAll();
+
     return 0;
 }

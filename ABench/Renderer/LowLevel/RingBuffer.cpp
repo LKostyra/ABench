@@ -89,13 +89,8 @@ uint32_t RingBuffer::Write(const void* data, size_t dataSize)
     return dataHead;
 }
 
-bool RingBuffer::MarkFinishedFrame(VkFence waitFence)
+bool RingBuffer::MarkFinishedFrame()
 {
-    VkResult result = vkWaitForFences(mDevice->GetDevice(), 1, &waitFence, VK_TRUE, UINT64_MAX);
-    RETURN_FALSE_IF_FAILED(result, "Failure to wait for rendering fence");
-
-    vkResetFences(mDevice->GetDevice(), 1, &waitFence);
-
     mStartOffset = mCurrentOffset;
     return true;
 }

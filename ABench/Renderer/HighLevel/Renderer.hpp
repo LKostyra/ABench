@@ -39,7 +39,9 @@ class Renderer final
 
     VkRenderPass mRenderPass;
     VkPipelineLayout mPipelineLayout;
-    VkFence mRenderFence;
+    VkSemaphore mImageAcquiredSem;
+    VkSemaphore mRenderFinishedSem;
+    VkFence mFrameFence;
 
     VkDescriptorSet mVertexShaderSet;
     VkDescriptorSet mFragmentShaderSet;
@@ -53,6 +55,9 @@ public:
 
     bool Init(const Common::Window& window, bool debugEnable = false, bool debugVerbose = false);
     void Draw(const Scene::Scene& scene, const Scene::Camera& camera);
+
+    // this function should be used only when application finishes
+    void WaitForAll() const;
 };
 
 } // namespace Renderer

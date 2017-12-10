@@ -40,12 +40,15 @@ struct DescriptorSetLayoutDesc
 class Tools
 {
     // hide ctor/dtor - this class should only provide static methods
-    Tools() {};
-    ~Tools() {};
+    Tools() = default;
+    ~Tools() = default;
 
 public:
     // Fence creation
     static VkFence CreateFence(const DevicePtr& device);
+
+    // Semaphore creation (we cannot call this "CreateSemaphore" >:( WinAPI has the same define )
+    static VkSemaphore CreateSem(const DevicePtr& device);
 
     // Descriptor Set Layout creation
     static VkDescriptorSetLayout CreateDescriptorSetLayout(const DevicePtr& device, const std::vector<DescriptorSetLayoutDesc>& descriptors);

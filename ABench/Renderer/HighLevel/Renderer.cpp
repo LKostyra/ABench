@@ -4,6 +4,7 @@
 #include "Renderer/LowLevel/DescriptorAllocator.hpp"
 #include "Renderer/LowLevel/Extensions.hpp"
 #include "Renderer/LowLevel/Tools.hpp"
+#include "Renderer/LowLevel/Translations.hpp"
 
 #include "Common/Logger.hpp"
 #include "Math/Matrix.hpp"
@@ -45,8 +46,11 @@ struct MaterialCBuffer
 Renderer::Renderer()
     : mRenderPass(VK_NULL_HANDLE)
     , mPipelineLayout(VK_NULL_HANDLE)
-    , mRenderFence(VK_NULL_HANDLE)
+    , mImageAcquiredSem(VK_NULL_HANDLE)
+    , mRenderFinishedSem(VK_NULL_HANDLE)
+    , mFrameFence(VK_NULL_HANDLE)
     , mVertexShaderSet(VK_NULL_HANDLE)
+    , mFragmentShaderSet(VK_NULL_HANDLE)
     , mAllShaderSet(VK_NULL_HANDLE)
 {
 }
@@ -55,8 +59,12 @@ Renderer::~Renderer()
 {
     DescriptorLayoutManager::Instance().Release();
 
-    if (mRenderFence != VK_NULL_HANDLE)
-        vkDestroyFence(mDevice->GetDevice(), mRenderFence, nullptr);
+    if (mRenderFinishedSem != VK_NULL_HANDLE)
+        vkDestroySemaphore(mDevice->GetDevice(), mRenderFinishedSem, nullptr);
+    if (mImageAcquiredSem != VK_NULL_HANDLE)
+        vkDestroySemaphore(mDevice->GetDevice(), mImageAcquiredSem, nullptr);
+    if (mFrameFence != VK_NULL_HANDLE)
+        vkDestroyFence(mDevice->GetDevice(), mFrameFence, nullptr);
     if (mRenderPass != VK_NULL_HANDLE)
         vkDestroyRenderPass(mDevice->GetDevice(), mRenderPass, nullptr);
     if (mPipelineLayout != VK_NULL_HANDLE)
@@ -244,9 +252,17 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     Tools::UpdateBufferDescriptorSet(mDevice, mAllShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0,
                                      mAllShaderLightCBuffer.GetVkBuffer(), sizeof(FragmentShaderLightCBuffer));
 
+    // Synchronization primitives
+    mImageAcquiredSem = Tools::CreateSem(mDevice);
+    if (mImageAcquiredSem == VK_NULL_HANDLE)
+        return false;
 
-    mRenderFence = Tools::CreateFence(mDevice);
-    if (mRenderFence == VK_NULL_HANDLE)
+    mRenderFinishedSem = Tools::CreateSem(mDevice);
+    if (mRenderFinishedSem == VK_NULL_HANDLE)
+        return false;
+
+    mFrameFence = Tools::CreateFence(mDevice);
+    if (mFrameFence == VK_NULL_HANDLE)
         return false;
 
     return true;
@@ -259,7 +275,6 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
     VertexShaderCBuffer buf;
     buf.viewMatrix = camera.GetView();
     buf.projMatrix = camera.GetProjection();
-    mVertexShaderCBuffer.Write(&buf, sizeof(VertexShaderCBuffer));
 
     FragmentShaderLightCBuffer lightBuf;
     MaterialCBuffer materialBuf;
@@ -272,11 +287,21 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
         lightBuf.diffuse = l->GetDiffuseIntensity();
         return false;
     });
+
+    VkResult result = vkWaitForFences(mDevice->GetDevice(), 1, &mFrameFence, VK_TRUE, UINT64_MAX);
+    if (result != VK_SUCCESS)
+        LOGW("Failed to wait for fence: " << result << " (" << TranslateVkResultToString(result) << ")");
+
+    result = vkResetFences(mDevice->GetDevice(), 1, &mFrameFence);
+    if (result != VK_SUCCESS)
+        LOGW("Failed to reset frame fence: " << result << " (" << TranslateVkResultToString(result) << ")");
+
+    // updating buffers
+    mVertexShaderCBuffer.Write(&buf, sizeof(VertexShaderCBuffer));
     mAllShaderLightCBuffer.Write(&lightBuf, sizeof(FragmentShaderLightCBuffer));
 
-
     // Rendering
-    if (!mBackbuffer.AcquireNextImage())
+    if (!mBackbuffer.AcquireNextImage(mImageAcquiredSem))
         LOGE("Failed to acquire next image for rendering");
 
     {
@@ -369,14 +394,20 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
         }
     }
 
-    mDevice->Execute(DeviceQueueType::GRAPHICS, &mCommandBuffer, mRenderFence);
 
-    // TODO waiting is performed inside Ring Buffer on mRenderFence
-    //      Escape from this limitation in the future
-    mRingBuffer.MarkFinishedFrame(mRenderFence);
+    mDevice->Execute(DeviceQueueType::GRAPHICS, &mCommandBuffer, mImageAcquiredSem, mRenderFinishedSem, mFrameFence);
 
-    if (!mBackbuffer.Present())
+    mRingBuffer.MarkFinishedFrame();
+
+    if (!mBackbuffer.Present(mRenderFinishedSem))
         LOGE("Error during image presentation");
+}
+
+void Renderer::WaitForAll() const
+{
+    mDevice->Wait(DeviceQueueType::GRAPHICS);
+    mDevice->Wait(DeviceQueueType::COMPUTE);
+    mDevice->Wait(DeviceQueueType::TRANSFER);
 }
 
 } // namespace Renderer
