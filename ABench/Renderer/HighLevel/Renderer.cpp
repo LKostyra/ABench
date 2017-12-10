@@ -124,10 +124,7 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (!mBackbuffer.Init(mDevice, bbDesc))
         return false;
 
-    if (!mGridFrustums.Init(mDevice))
-        return false;
-
-    if (!mGridFrustums.Generate(window.GetWidth(), window.GetHeight()))
+    if (!GridFrustumsGenerator::Instance().Init(mDevice))
         return false;
 
     TextureDesc depthTexDesc;

@@ -4,19 +4,22 @@
 #include "Renderer/LowLevel/MultiPipeline.hpp"
 #include "Renderer/LowLevel/DescriptorAllocator.hpp"
 #include "Renderer/LowLevel/CommandBuffer.hpp"
-
+#include "Math/Matrix.hpp"
 
 namespace ABench {
 namespace Renderer {
+
+struct GridFrustumsGenerationDesc
+{
+    ABench::Math::Matrix projMat;
+    uint32_t viewportWidth;
+    uint32_t viewportHeight;
+};
 
 class GridFrustumsGenerator
 {
     DevicePtr mDevice;
 
-    uint32_t mFrustumsPerWidth;
-    uint32_t mFrustumsPerHeight;
-    BufferDesc mGridFrustumsDataDesc;
-    Buffer mGridFrustumsData;
     Buffer mGridFrustumsInfo;
     VkDescriptorSet mGridFrustumsDataSet;
     VkDescriptorSetLayout mGridFrustumsDataSetLayout;
@@ -24,12 +27,19 @@ class GridFrustumsGenerator
     MultiPipeline mPipeline;
     CommandBuffer mDispatchCommandBuffer;
 
-public:
     GridFrustumsGenerator();
+    GridFrustumsGenerator(const GridFrustumsGenerator&) = delete;
+    GridFrustumsGenerator(GridFrustumsGenerator&&) = delete;
+    GridFrustumsGenerator& operator=(const GridFrustumsGenerator&) = delete;
+    GridFrustumsGenerator& operator=(GridFrustumsGenerator&&) = delete;
     ~GridFrustumsGenerator();
 
+
+public:
+    static GridFrustumsGenerator& Instance();
+
     bool Init(const DevicePtr& device);
-    bool Generate(uint32_t viewportWidth, uint32_t viewportHeight);
+    bool Generate(const GridFrustumsGenerationDesc& desc, Buffer** frustumData);
 };
 
 } // namespace Renderer

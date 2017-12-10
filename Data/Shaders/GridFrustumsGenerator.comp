@@ -4,21 +4,77 @@ struct Plane
     float d;
 };
 
+struct Frustum
+{
+    Plane plane[4];
+};
+
 layout (std140, set = 0, binding = 0) uniform cb
 {
-    uint viewportWidth;
-    uint viewportHeight;
+    mat4 proj;
+    uvec2 viewport;
+    uvec2 threadLimits;
 } gridInfoBuffer;
 
 layout (std140, set = 0, binding = 1) buffer sb
 {
-    Plane plane[];
+    Frustum frustum[];
 } gridData;
 
 layout (local_size_x = 16, local_size_y = 16) in;
 
+Plane computePlane(vec3 p0, vec3 p1, vec3 p2)
+{
+    Plane result;
+
+    vec3 v0 = p1 - p0;
+    vec3 v2 = p2 - p0;
+
+    result.N = normalize(cross(v0, v2));
+    result.d = dot(result.N, p0);
+
+    return result;
+}
+
+vec3 screenSpaceToViewSpace(vec4 v)
+{
+    // convert to clip space
+    vec4 vClip = vec4(        v.x / gridInfoBuffer.viewport.x  * 2.0f - 1.0f,
+                      (1.0f - v.y / gridInfoBuffer.viewport.y) * 2.0f - 1.0f, v.z, v.w);
+
+    vec4 vView = inverse(gridInfoBuffer.proj) * vClip;
+    return (vView / vView.w).xyz;
+}
+
+Frustum computeFrustum(uint frustumX, uint frustumY)
+{
+    vec4 screenSpace[4];
+    vec3 viewSpace[4];
+    vec3 eye = vec3(0.0f);
+    Frustum result;
+
+    const uint PIXELS_PER_FRUSTUM = 16; // TODO deliver as uniform
+    screenSpace[0] = vec4( frustumX * PIXELS_PER_FRUSTUM,       frustumY * PIXELS_PER_FRUSTUM,      -1.0f, 1.0f);
+    screenSpace[1] = vec4((frustumX + 1) * PIXELS_PER_FRUSTUM,  frustumY * PIXELS_PER_FRUSTUM,      -1.0f, 1.0f);
+    screenSpace[2] = vec4( frustumX * PIXELS_PER_FRUSTUM,      (frustumY + 1) * PIXELS_PER_FRUSTUM, -1.0f, 1.0f);
+    screenSpace[3] = vec4((frustumX + 1) * PIXELS_PER_FRUSTUM, (frustumY + 1) * PIXELS_PER_FRUSTUM, -1.0f, 1.0f);
+
+    viewSpace[0] = screenSpaceToViewSpace(screenSpace[0]);
+    viewSpace[1] = screenSpaceToViewSpace(screenSpace[1]);
+    viewSpace[2] = screenSpaceToViewSpace(screenSpace[2]);
+    viewSpace[3] = screenSpaceToViewSpace(screenSpace[3]);
+
+    result.plane[0] = computePlane(eye, viewSpace[2], viewSpace[0]); // Left
+    result.plane[1] = computePlane(eye, viewSpace[1], viewSpace[3]); // Right
+    result.plane[2] = computePlane(eye, viewSpace[0], viewSpace[1]); // Top
+    result.plane[3] = computePlane(eye, viewSpace[3], viewSpace[2]); // Bottom
+
+    return result;
+}
+
 void main()
 {
-    gridData.plane[gl_LocalInvocationIndex].N = vec3(0.0, 1.0, 2.0);
-    gridData.plane[gl_LocalInvocationIndex].d = float(gl_LocalInvocationIndex);
+    if (gl_LocalInvocationID.x < gridInfoBuffer.threadLimits.x &&
+        gl_LocalInvocationID.y < gridInfoBuffer.threadLimits.y)
+        gridData.frustum[gl_LocalInvocationIndex] = computeFrustum(gl_LocalInvocationID.x, gl_LocalInvocationID.y);
 }

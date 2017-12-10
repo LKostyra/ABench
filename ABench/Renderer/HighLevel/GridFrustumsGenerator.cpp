@@ -1,10 +1,13 @@
 #include "PCH.hpp"
 #include "GridFrustumsGenerator.hpp"
 
+#include "ResourceManager.hpp"
+
 #include "Renderer/LowLevel/Tools.hpp"
 #include "Renderer/LowLevel/Device.hpp"
 #include "Renderer/LowLevel/Extensions.hpp"
 
+#include "Math/Matrix.hpp"
 #include "Math/Plane.hpp"
 
 
@@ -14,8 +17,11 @@ const uint32_t PIXELS_PER_GRID_FRUSTUM = 16;
 
 struct GridFrustumsInfoBuffer
 {
+    ABench::Math::Matrix proj;
     uint32_t viewportWidth;
     uint32_t viewportHeight;
+    uint32_t threadLimitX;
+    uint32_t threadLimitY;
 };
 
 } // namespace
@@ -24,11 +30,7 @@ namespace ABench {
 namespace Renderer {
 
 GridFrustumsGenerator::GridFrustumsGenerator()
-    : mFrustumsPerWidth(0)
-    , mFrustumsPerHeight(0)
-    , mGridFrustumsDataDesc()
-    , mGridFrustumsData()
-    , mGridFrustumsDataSet(VK_NULL_HANDLE)
+    : mGridFrustumsDataSet(VK_NULL_HANDLE)
     , mGridFrustumsDataSetLayout(VK_NULL_HANDLE)
     , mPipelineLayout(VK_NULL_HANDLE)
     , mPipeline()
@@ -44,13 +46,15 @@ GridFrustumsGenerator::~GridFrustumsGenerator()
         vkDestroyPipelineLayout(mDevice->GetDevice(), mPipelineLayout, nullptr);
 }
 
+GridFrustumsGenerator& GridFrustumsGenerator::Instance()
+{
+    static GridFrustumsGenerator instance;
+    return instance;
+}
+
 bool GridFrustumsGenerator::Init(const DevicePtr& device)
 {
     mDevice = device;
-
-    mGridFrustumsDataDesc.data = nullptr;
-    mGridFrustumsDataDesc.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-    mGridFrustumsDataDesc.type = BufferType::Dynamic;
 
     std::vector<DescriptorSetLayoutDesc> layoutDesc;
     layoutDesc.push_back({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, VK_NULL_HANDLE});
@@ -92,38 +96,63 @@ bool GridFrustumsGenerator::Init(const DevicePtr& device)
     return true;
 }
 
-bool GridFrustumsGenerator::Generate(uint32_t viewportWidth, uint32_t viewportHeight)
+bool GridFrustumsGenerator::Generate(const GridFrustumsGenerationDesc& desc, Buffer** frustumData)
 {
+    if (frustumData == nullptr)
+    {
+        LOGE("Incorrect pointer to output data buffer");
+        return false;
+    }
+
+    uint32_t frustumsPerWidth = desc.viewportWidth / PIXELS_PER_GRID_FRUSTUM;
+    uint32_t frustumsPerHeight = desc.viewportHeight / PIXELS_PER_GRID_FRUSTUM;
+
+    if (desc.viewportWidth % PIXELS_PER_GRID_FRUSTUM > 0)
+        frustumsPerWidth++;
+    if (desc.viewportHeight % PIXELS_PER_GRID_FRUSTUM > 0)
+        frustumsPerHeight++;
+
     GridFrustumsInfoBuffer info;
-    info.viewportWidth = viewportWidth;
-    info.viewportHeight = viewportHeight;
+    info.proj = desc.projMat; // TODO inverse matrix here instead of GLSL shader
+    info.viewportWidth = desc.viewportWidth;
+    info.viewportHeight = desc.viewportHeight;
+    info.threadLimitX = frustumsPerWidth;
+    info.threadLimitY = frustumsPerHeight;
     if (!mGridFrustumsInfo.Write(&info, sizeof(GridFrustumsInfoBuffer)))
         return false;
 
-    mFrustumsPerWidth = viewportWidth / PIXELS_PER_GRID_FRUSTUM;
-    mFrustumsPerHeight = viewportHeight / PIXELS_PER_GRID_FRUSTUM;
-
-    if (viewportWidth % PIXELS_PER_GRID_FRUSTUM > 0)
-        mFrustumsPerWidth++;
-    if (viewportHeight % PIXELS_PER_GRID_FRUSTUM > 0)
-        mFrustumsPerHeight++;
-
-    mGridFrustumsDataDesc.dataSize = sizeof(Math::Plane) * mFrustumsPerWidth * mFrustumsPerHeight;
-    mGridFrustumsData.Free();
-    if (!mGridFrustumsData.Init(mDevice, mGridFrustumsDataDesc))
+    BufferDesc gridFrustumsDataDesc;
+    gridFrustumsDataDesc.data = nullptr;
+    gridFrustumsDataDesc.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+    gridFrustumsDataDesc.type = BufferType::Dynamic;
+    gridFrustumsDataDesc.dataSize = sizeof(Math::Plane) * 4 * frustumsPerWidth * frustumsPerHeight;
+    Buffer* gridData = ResourceManager::Instance().GetBuffer(gridFrustumsDataDesc);
+    if (gridData == nullptr)
         return false;
 
     Tools::UpdateBufferDescriptorSet(mDevice, mGridFrustumsDataSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1,
-                                     mGridFrustumsData.GetVkBuffer(), mGridFrustumsData.GetSize());
+                                     gridData->GetVkBuffer(), gridData->GetSize());
+
+    uint32_t dispatchThreadsX = frustumsPerWidth / PIXELS_PER_GRID_FRUSTUM;
+    uint32_t dispatchThreadsY = frustumsPerHeight / PIXELS_PER_GRID_FRUSTUM;
+
+    if (frustumsPerWidth % PIXELS_PER_GRID_FRUSTUM > 0)
+        dispatchThreadsX++;
+    if (frustumsPerHeight % PIXELS_PER_GRID_FRUSTUM > 0)
+        dispatchThreadsY++;
 
     {
         ShaderMacros emptyMacros;
 
         mDispatchCommandBuffer.Begin();
+        // TODO Buffer::Transition might be a better choice here, like in Texture
+        mDispatchCommandBuffer.BufferBarrier(gridData, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                                             0, VK_ACCESS_SHADER_WRITE_BIT,
+                                             mDevice->GetQueueIndex(DeviceQueueType::COMPUTE), mDevice->GetQueueIndex(DeviceQueueType::COMPUTE));
         mDispatchCommandBuffer.BindPipeline(mPipeline.GetComputePipeline(emptyMacros), VK_PIPELINE_BIND_POINT_COMPUTE);
         mDispatchCommandBuffer.BindDescriptorSet(mGridFrustumsDataSet, VK_PIPELINE_BIND_POINT_COMPUTE, 0, mPipelineLayout);
-        mDispatchCommandBuffer.Dispatch(mFrustumsPerWidth, mFrustumsPerHeight, 1);
-        mDispatchCommandBuffer.BufferBarrier(&mGridFrustumsData, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+        mDispatchCommandBuffer.Dispatch(dispatchThreadsX, dispatchThreadsY, 1);
+        mDispatchCommandBuffer.BufferBarrier(gridData, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
                                              VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
                                              mDevice->GetQueueIndex(DeviceQueueType::COMPUTE), mDevice->GetQueueIndex(DeviceQueueType::COMPUTE));
         if (!mDispatchCommandBuffer.End())
@@ -133,6 +162,7 @@ bool GridFrustumsGenerator::Generate(uint32_t viewportWidth, uint32_t viewportHe
         mDevice->Wait(DeviceQueueType::COMPUTE);
     }
 
+    *frustumData = gridData;
     return true;
 }
 

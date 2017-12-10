@@ -1,5 +1,6 @@
 #include "PCH.hpp"
 #include "Camera.hpp"
+#include "Renderer/HighLevel/GridFrustumsGenerator.hpp"
 
 
 namespace ABench {
@@ -15,12 +16,18 @@ Camera::~Camera()
 
 bool Camera::Init(const CameraDesc& desc)
 {
-    mProjection = Math::CreateRHProjectionMatrix(desc.fov, desc.aspect, desc.nearZ, desc.farZ);
+    float aspect = static_cast<float>(desc.windowWidth) / static_cast<float>(desc.windowHeight);
+    mProjection = Math::CreateRHProjectionMatrix(desc.fov, aspect, desc.nearZ, desc.farZ);
     mView = Math::CreateRHLookAtMatrix(desc.view.pos, desc.view.at, desc.view.up);
     mPosition = desc.view.pos;
     mAtPosition = desc.view.at;
     mUpVector = desc.view.up;
-    return true;
+
+    Renderer::GridFrustumsGenerationDesc genDesc;
+    genDesc.projMat = mProjection;
+    genDesc.viewportWidth = desc.windowWidth;
+    genDesc.viewportHeight = desc.windowHeight;
+    return Renderer::GridFrustumsGenerator::Instance().Generate(genDesc, &mGridFrustums);
 }
 
 void Camera::Update(const CameraUpdateDesc& desc)

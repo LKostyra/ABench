@@ -3,6 +3,7 @@
 #include "Math/Vector.hpp"
 #include "Math/Matrix.hpp"
 #include "Common/Common.hpp"
+#include "Renderer/HighLevel/ResourceManager.hpp"
 
 
 namespace ABench {
@@ -26,9 +27,10 @@ struct CameraDesc
     CameraUpdateDesc view;
 
     float fov;
-    float aspect;
     float nearZ;
     float farZ;
+    uint32_t windowWidth;
+    uint32_t windowHeight;
 };
 
 class Camera final
@@ -39,6 +41,8 @@ class Camera final
 
     Math::Matrix mView;
     Math::Matrix mProjection;
+
+    ABench::Renderer::Buffer* mGridFrustums;
 
 public:
     Camera();
@@ -70,6 +74,11 @@ public:
     ABENCH_INLINE const Math::Matrix& GetProjection() const
     {
         return mProjection;
+    }
+
+    ABENCH_INLINE const Renderer::Buffer* GetGridFrustums() const
+    {
+        return mGridFrustums;
     }
 };
 
