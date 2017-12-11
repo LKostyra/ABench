@@ -18,14 +18,14 @@ uint32_t windowWidth = 1280;
 uint32_t windowHeight = 720;
 ABench::Scene::Light* gLight;
 ABench::Scene::Object* gLightObj;
-ABench::Scene::Camera gCamera;
 
 class ABenchWindow: public ABench::Common::Window
 {
+    ABench::Scene::Camera mCamera;
     float mAngleX = 0.0f;
     float mAngleY = 0.0f;
     bool mLightFollowsCamera = false;
-    bool gCameraOnRails = false;
+    bool mCameraOnRails = false;
 
     void OnOpen() override
     {
@@ -35,9 +35,9 @@ class ABenchWindow: public ABench::Common::Window
     {
         ABench::Math::Vector4 newPos;
 
-        ABench::Math::Vector4 cameraFrontDir = gCamera.GetAtPosition() - gCamera.GetPosition();
+        ABench::Math::Vector4 cameraFrontDir = mCamera.GetAtPosition() - mCamera.GetPosition();
         cameraFrontDir.Normalize();
-        ABench::Math::Vector4 cameraRightDir = cameraFrontDir.Cross(gCamera.GetUpVector());
+        ABench::Math::Vector4 cameraRightDir = cameraFrontDir.Cross(mCamera.GetUpVector());
         ABench::Math::Vector4 cameraUpDir = cameraRightDir.Cross(cameraFrontDir);
 
         if (IsKeyPressed(ABench::Common::KeyCode::W)) newPos += cameraFrontDir;
@@ -57,10 +57,10 @@ class ABenchWindow: public ABench::Common::Window
 
         // TODO it would be better to update the position in a more friendly way
         ABench::Scene::CameraUpdateDesc desc;
-        desc.pos = gCamera.GetPosition() + (newPos * speed * deltaTime);
+        desc.pos = mCamera.GetPosition() + (newPos * speed * deltaTime);
         desc.at = desc.pos + updateDir;
-        desc.up = gCamera.GetUpVector();
-        gCamera.Update(desc);
+        desc.up = mCamera.GetUpVector();
+        mCamera.Update(desc);
 
         // Light
         ABench::Math::Vector4 lightNewPos;
@@ -68,7 +68,7 @@ class ABenchWindow: public ABench::Common::Window
 
         if (mLightFollowsCamera)
         {
-            lightNewPos = gCamera.GetPosition();
+            lightNewPos = mCamera.GetPosition();
             gLightObj->SetPosition(lightNewPos);
         }
         else
@@ -101,7 +101,13 @@ class ABenchWindow: public ABench::Common::Window
             mLightFollowsCamera ^= true;
 
         if (key == ABench::Common::KeyCode::F1)
-            gCameraOnRails ^= true;
+            mCameraOnRails ^= true;
+    }
+
+public:
+    ABENCH_INLINE ABench::Scene::Camera& GetCamera()
+    {
+        return mCamera;
     }
 };
 
@@ -144,7 +150,7 @@ int main()
     desc.windowHeight = window.GetHeight();
     desc.nearZ = 0.1f;
     desc.farZ = 2000.0f;
-    gCamera.Init(desc);
+    window.GetCamera().Init(desc);
 
     ABench::Scene::Scene scene;
     scene.Init(ABench::Common::FS::JoinPaths(ABench::ResourceDir::SCENES, "sponza.fbx"));
@@ -223,7 +229,7 @@ int main()
 
         window.SetTitle("ABench - " + std::to_string(fps) + " FPS (" + std::to_string(time * 1000.0f) + " ms)");
         window.Update(frameTime);
-        rend.Draw(scene, gCamera);
+        rend.Draw(scene, window.GetCamera());
     }
 
 #if defined(_DEBUG) && defined(WIN32)

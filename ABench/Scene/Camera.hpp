@@ -42,7 +42,7 @@ class Camera final
     Math::Matrix mView;
     Math::Matrix mProjection;
 
-    ABench::Renderer::BufferPtr mGridFrustums;
+    Renderer::BufferPtr mGridFrustums;
 
 public:
     Camera();

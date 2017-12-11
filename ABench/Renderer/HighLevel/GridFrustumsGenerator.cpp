@@ -96,7 +96,7 @@ bool GridFrustumsGenerator::Init(const DevicePtr& device)
     return true;
 }
 
-bool GridFrustumsGenerator::Generate(const GridFrustumsGenerationDesc& desc, BufferPtr& frustumData)
+BufferPtr GridFrustumsGenerator::Generate(const GridFrustumsGenerationDesc& desc)
 {
     uint32_t frustumsPerWidth = desc.viewportWidth / PIXELS_PER_GRID_FRUSTUM;
     uint32_t frustumsPerHeight = desc.viewportHeight / PIXELS_PER_GRID_FRUSTUM;
@@ -113,7 +113,7 @@ bool GridFrustumsGenerator::Generate(const GridFrustumsGenerationDesc& desc, Buf
     info.threadLimitX = frustumsPerWidth;
     info.threadLimitY = frustumsPerHeight;
     if (!mGridFrustumsInfo.Write(&info, sizeof(GridFrustumsInfoBuffer)))
-        return false;
+        return nullptr;
 
     // allocate buffer for output data
     // size includes 4 planes per each frustum in the grid
@@ -122,9 +122,9 @@ bool GridFrustumsGenerator::Generate(const GridFrustumsGenerationDesc& desc, Buf
     gridFrustumsDataDesc.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
     gridFrustumsDataDesc.type = BufferType::Dynamic;
     gridFrustumsDataDesc.dataSize = sizeof(Math::Plane) * 4 * frustumsPerWidth * frustumsPerHeight;
-    frustumData = ResourceManager::Instance().GetBuffer(gridFrustumsDataDesc);
+    BufferPtr frustumData = ResourceManager::Instance().GetBuffer(gridFrustumsDataDesc);
     if (!frustumData)
-        return false;
+        return nullptr;
 
     Tools::UpdateBufferDescriptorSet(mDevice, mGridFrustumsDataSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1,
                                      frustumData->GetVkBuffer(), frustumData->GetSize());
@@ -152,13 +152,13 @@ bool GridFrustumsGenerator::Generate(const GridFrustumsGenerationDesc& desc, Buf
                                              VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
                                              mDevice->GetQueueIndex(DeviceQueueType::COMPUTE), mDevice->GetQueueIndex(DeviceQueueType::COMPUTE));
         if (!mDispatchCommandBuffer.End())
-            return false;
+            return nullptr;
 
         mDevice->Execute(DeviceQueueType::COMPUTE, &mDispatchCommandBuffer);
         mDevice->Wait(DeviceQueueType::COMPUTE);
     }
 
-    return true;
+    return frustumData;
 }
 
 } // namespace Renderer
