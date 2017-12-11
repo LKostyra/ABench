@@ -160,10 +160,10 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     VertexLayoutDesc vlDesc;
 
     std::vector<VertexLayoutEntry> vlEntries;
-    vlEntries.emplace_back(VK_FORMAT_R32G32B32_SFLOAT, 0, 0, 44, false); // vertex position
-    vlEntries.emplace_back(VK_FORMAT_R32G32B32_SFLOAT, 12, 0, 44, false); // vertex normal
-    vlEntries.emplace_back(VK_FORMAT_R32G32_SFLOAT, 24, 0, 44, false); // vertex uv
-    vlEntries.emplace_back(VK_FORMAT_R32G32B32_SFLOAT, 32, 0, 44, false); // vertex tangent
+    vlEntries.emplace_back(VK_FORMAT_R32G32B32_SFLOAT, 0, 0, 12, false); // vertex position
+    vlEntries.emplace_back(VK_FORMAT_R32G32B32_SFLOAT, 0, 1, 32, false); // vertex normal
+    vlEntries.emplace_back(VK_FORMAT_R32G32_SFLOAT, 12, 1, 32, false); // vertex uv
+    vlEntries.emplace_back(VK_FORMAT_R32G32B32_SFLOAT, 20, 1, 32, false); // vertex tangent
 
     vlDesc.entryCount = static_cast<uint32_t>(vlEntries.size());
     vlDesc.entries = vlEntries.data();
@@ -368,7 +368,8 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
                     }
 
                     mCommandBuffer.BindPipeline(mPipeline.GetGraphicsPipeline(macros), bindPoint);
-                    mCommandBuffer.BindVertexBuffer(mesh->GetVertexBuffer());
+                    mCommandBuffer.BindVertexBuffer(mesh->GetVertexBuffer(), 0);
+                    mCommandBuffer.BindVertexBuffer(mesh->GetVertexParamsBuffer(), 1);
 
                     if (mesh->ByIndices())
                     {

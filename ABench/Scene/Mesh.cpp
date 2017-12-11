@@ -32,7 +32,9 @@ bool Mesh::HasNormalMap(FbxMesh* mesh, int materialIndex)
     return (prop.GetSrcObjectCount<FbxTexture>() > 0);
 }
 
-bool Mesh::InitBuffers(const std::vector<Vertex>& vertices, int* indices, int indexCount)
+bool Mesh::InitBuffers(const std::vector<Vertex>& vertices,
+                       const std::vector<VertexParams>& vertexParams,
+                       int* indices, int indexCount)
 {
     BufferDesc vbDesc;
     vbDesc.data = vertices.data();
@@ -41,6 +43,12 @@ bool Mesh::InitBuffers(const std::vector<Vertex>& vertices, int* indices, int in
     vbDesc.type = BufferType::Static;
     mVertexBuffer = ResourceManager::Instance().GetBuffer(vbDesc);
     if (mVertexBuffer == nullptr)
+        return false;
+
+    vbDesc.data = vertexParams.data();
+    vbDesc.dataSize = vertexParams.size() * sizeof(VertexParams);
+    mVertexParamsBuffer = ResourceManager::Instance().GetBuffer(vbDesc);
+    if (mVertexParamsBuffer == nullptr)
         return false;
 
     mByIndices = false;
@@ -122,7 +130,9 @@ bool Mesh::InitFromFBX(FbxMesh* mesh, int materialIndex)
     // const char* lReferenceMode[] = { "Direct", "Index", "Index to Direct"};
 
     std::vector<Vertex> vertices;
+    std::vector<VertexParams> vertexParams;
     Vertex vert;
+    VertexParams vertParams;
     ZERO_MEMORY(vert);
 
     FbxVector4 normalVec;
@@ -140,30 +150,32 @@ bool Mesh::InitFromFBX(FbxMesh* mesh, int materialIndex)
                 vert.pos[0] = static_cast<float>(mesh->GetControlPoints()[p].Buffer()[0]);
                 vert.pos[1] = static_cast<float>(mesh->GetControlPoints()[p].Buffer()[1]);
                 vert.pos[2] = static_cast<float>(mesh->GetControlPoints()[p].Buffer()[2]);
-                vert.norm[0] = static_cast<float>(normalVec[0]);
-                vert.norm[1] = static_cast<float>(normalVec[1]);
-                vert.norm[2] = static_cast<float>(normalVec[2]);
-                vert.uv[0] = static_cast<float>(uvs->GetDirectArray()[uv].Buffer()[0]);
-                vert.uv[1] = static_cast<float>(uvs->GetDirectArray()[uv].Buffer()[1]);
+                vertParams.norm[0] = static_cast<float>(normalVec[0]);
+                vertParams.norm[1] = static_cast<float>(normalVec[1]);
+                vertParams.norm[2] = static_cast<float>(normalVec[2]);
+                vertParams.uv[0] = static_cast<float>(uvs->GetDirectArray()[uv].Buffer()[0]);
+                vertParams.uv[1] = static_cast<float>(uvs->GetDirectArray()[uv].Buffer()[1]);
 
                 if (tangents)
                 {
-                    vert.tang[0] = static_cast<float>(tangents->GetDirectArray().GetAt((i*mesh->GetPolygonSize(i))+j).Buffer()[0]);
-                    vert.tang[1] = static_cast<float>(tangents->GetDirectArray().GetAt((i*mesh->GetPolygonSize(i))+j).Buffer()[1]);
-                    vert.tang[2] = static_cast<float>(tangents->GetDirectArray().GetAt((i*mesh->GetPolygonSize(i))+j).Buffer()[2]);
+                    vertParams.tang[0] = static_cast<float>(tangents->GetDirectArray().GetAt((i*mesh->GetPolygonSize(i))+j).Buffer()[0]);
+                    vertParams.tang[1] = static_cast<float>(tangents->GetDirectArray().GetAt((i*mesh->GetPolygonSize(i))+j).Buffer()[1]);
+                    vertParams.tang[2] = static_cast<float>(tangents->GetDirectArray().GetAt((i*mesh->GetPolygonSize(i))+j).Buffer()[2]);
                 }
                 else
                 {
-                    vert.tang[0] = 0.0f;
-                    vert.tang[1] = 0.0f;
-                    vert.tang[2] = 0.0f;
+                    vertParams.tang[0] = 0.0f;
+                    vertParams.tang[1] = 0.0f;
+                    vertParams.tang[2] = 0.0f;
                 }
+
                 vertices.push_back(vert);
+                vertexParams.push_back(vertParams);
             }
         }
     }
 
-    return InitBuffers(vertices, nullptr, 0);
+    return InitBuffers(vertices, vertexParams, nullptr, 0);
 }
 
 bool Mesh::InitDefault()
@@ -171,37 +183,73 @@ bool Mesh::InitDefault()
     std::vector<Vertex> vertices
     {
         // front
-        { { -0.5f,-0.5f, 0.5f }, {  0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } }, // 0        7----6
-        { {  0.5f,-0.5f, 0.5f }, {  0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f } }, // 1      3----2 |
-        { {  0.5f, 0.5f, 0.5f }, {  0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f } }, // 2      | 4--|-5
-        { { -0.5f, 0.5f, 0.5f }, {  0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f } }, // 3      0----1
+        { { -0.5f,-0.5f, 0.5f } }, // 0        7----6
+        { {  0.5f,-0.5f, 0.5f } }, // 1      3----2 |
+        { {  0.5f, 0.5f, 0.5f } }, // 2      | 4--|-5
+        { { -0.5f, 0.5f, 0.5f } }, // 3      0----1
 
-        { { -0.5f,-0.5f,-0.5f }, {  0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f } }, // 4
-        { {  0.5f,-0.5f,-0.5f }, {  0.0f, 0.0f,-1.0f }, { 1.0f, 1.0f } }, // 5
-        { {  0.5f, 0.5f,-0.5f }, {  0.0f, 0.0f,-1.0f }, { 1.0f, 0.0f } }, // 6
-        { { -0.5f, 0.5f,-0.5f }, {  0.0f, 0.0f,-1.0f }, { 0.0f, 0.0f } }, // 7
+        { { -0.5f,-0.5f,-0.5f } }, // 4
+        { {  0.5f,-0.5f,-0.5f } }, // 5
+        { {  0.5f, 0.5f,-0.5f } }, // 6
+        { { -0.5f, 0.5f,-0.5f } }, // 7
 
         // side
-        { { -0.5f,-0.5f,-0.5f }, { -1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } }, // 4
-        { { -0.5f,-0.5f, 0.5f }, { -1.0f, 0.0f, 0.0f }, { 1.0f, 0.0f } }, // 0
-        { { -0.5f, 0.5f, 0.5f }, { -1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f } }, // 3
-        { { -0.5f, 0.5f,-0.5f }, { -1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f } }, // 7
+        { { -0.5f,-0.5f,-0.5f } }, // 4
+        { { -0.5f,-0.5f, 0.5f } }, // 0
+        { { -0.5f, 0.5f, 0.5f } }, // 3
+        { { -0.5f, 0.5f,-0.5f } }, // 7
 
-        { {  0.5f,-0.5f, 0.5f }, {  1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } }, // 1
-        { {  0.5f,-0.5f,-0.5f }, {  1.0f, 0.0f, 0.0f }, { 1.0f, 0.0f } }, // 5
-        { {  0.5f, 0.5f,-0.5f }, {  1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f } }, // 6
-        { {  0.5f, 0.5f, 0.5f }, {  1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f } }, // 2
+        { {  0.5f,-0.5f, 0.5f } }, // 1
+        { {  0.5f,-0.5f,-0.5f } }, // 5
+        { {  0.5f, 0.5f,-0.5f } }, // 6
+        { {  0.5f, 0.5f, 0.5f } }, // 2
 
         // top
-        { { -0.5f, 0.5f, 0.5f }, {  0.0f, 1.0f, 0.0f }, { 0.0f, 1.0f } }, // 3
-        { {  0.5f, 0.5f, 0.5f }, {  0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f } }, // 2
-        { {  0.5f, 0.5f,-0.5f }, {  0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f } }, // 6
-        { { -0.5f, 0.5f,-0.5f }, {  0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f } }, // 7
+        { { -0.5f, 0.5f, 0.5f } }, // 3
+        { {  0.5f, 0.5f, 0.5f } }, // 2
+        { {  0.5f, 0.5f,-0.5f } }, // 6
+        { { -0.5f, 0.5f,-0.5f } }, // 7
 
-        { { -0.5f,-0.5f,-0.5f }, {  0.0f,-1.0f, 0.0f }, { 0.0f, 1.0f } }, // 4
-        { {  0.5f,-0.5f,-0.5f }, {  0.0f,-1.0f, 0.0f }, { 1.0f, 1.0f } }, // 5
-        { {  0.5f,-0.5f, 0.5f }, {  0.0f,-1.0f, 0.0f }, { 1.0f, 0.0f } }, // 1
-        { { -0.5f,-0.5f, 0.5f }, {  0.0f,-1.0f, 0.0f }, { 0.0f, 0.0f } }, // 0
+        { { -0.5f,-0.5f,-0.5f } }, // 4
+        { {  0.5f,-0.5f,-0.5f } }, // 5
+        { {  0.5f,-0.5f, 0.5f } }, // 1
+        { { -0.5f,-0.5f, 0.5f } }, // 0
+    };
+
+    std::vector<VertexParams> vertexParams
+    {
+        // front
+        { {  0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } }, // 0        7----6
+        { {  0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f } }, // 1      3----2 |
+        { {  0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f } }, // 2      | 4--|-5
+        { {  0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f } }, // 3      0----1
+
+        { {  0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f } }, // 4
+        { {  0.0f, 0.0f,-1.0f }, { 1.0f, 1.0f } }, // 5
+        { {  0.0f, 0.0f,-1.0f }, { 1.0f, 0.0f } }, // 6
+        { {  0.0f, 0.0f,-1.0f }, { 0.0f, 0.0f } }, // 7
+
+        // side
+        { { -1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } }, // 4
+        { { -1.0f, 0.0f, 0.0f }, { 1.0f, 0.0f } }, // 0
+        { { -1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f } }, // 3
+        { { -1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f } }, // 7
+
+        { {  1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } }, // 1
+        { {  1.0f, 0.0f, 0.0f }, { 1.0f, 0.0f } }, // 5
+        { {  1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f } }, // 6
+        { {  1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f } }, // 2
+
+        // top
+        { {  0.0f, 1.0f, 0.0f }, { 0.0f, 1.0f } }, // 3
+        { {  0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f } }, // 2
+        { {  0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f } }, // 6
+        { {  0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f } }, // 7
+
+        { {  0.0f,-1.0f, 0.0f }, { 0.0f, 1.0f } }, // 4
+        { {  0.0f,-1.0f, 0.0f }, { 1.0f, 1.0f } }, // 5
+        { {  0.0f,-1.0f, 0.0f }, { 1.0f, 0.0f } }, // 1
+        { {  0.0f,-1.0f, 0.0f }, { 0.0f, 0.0f } }, // 0
     };
 
     std::vector<int> indices
@@ -214,7 +262,7 @@ bool Mesh::InitDefault()
        20,21,22,20,22,23, // bottom
     };
 
-    return InitBuffers(vertices, indices.data(), static_cast<int>(indices.size()));
+    return InitBuffers(vertices, vertexParams, indices.data(), static_cast<int>(indices.size()));
 }
 
 bool Mesh::Init(FbxMesh* mesh, uint32_t materialIndex)

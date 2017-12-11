@@ -33,7 +33,7 @@ public:
                        uint32_t fromQueueFamily, uint32_t toQueueFamily);
     void Begin();
     void BeginRenderPass(VkRenderPass rp, Framebuffer* fb, ClearType types, float clearValues[4], float depthValue = 0.0f);
-    void BindVertexBuffer(const Buffer* buffer);
+    void BindVertexBuffer(const Buffer* buffer, uint32_t binding);
     void BindIndexBuffer(const Buffer* buffer);
     void BindPipeline(VkPipeline pipeline, VkPipelineBindPoint point);
     void BindDescriptorSet(VkDescriptorSet set, VkPipelineBindPoint point, uint32_t setSlot, VkPipelineLayout layout);

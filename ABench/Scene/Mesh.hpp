@@ -13,6 +13,10 @@ namespace Scene {
 struct Vertex
 {
     float pos[3];
+};
+
+struct VertexParams
+{
     float norm[3];
     float uv[2];
     float tang[3];
@@ -21,13 +25,16 @@ struct Vertex
 class Mesh final
 {
     ABench::Renderer::BufferPtr mVertexBuffer;
+    ABench::Renderer::BufferPtr mVertexParamsBuffer;
     ABench::Renderer::BufferPtr mIndexBuffer;
     uint32_t mPointCount;
     Material* mMaterial;
     bool mByIndices;
 
     bool HasNormalMap(FbxMesh* mesh, int materialIndex);
-    bool InitBuffers(const std::vector<Vertex>& vertices, int* indices, int indexCount);
+    bool InitBuffers(const std::vector<Vertex>& vertices,
+                     const std::vector<VertexParams>& vertexParams,
+                     int* indices, int indexCount);
     bool InitFromFBX(FbxMesh* mesh, int materialIndex);
     bool InitDefault();
 
@@ -45,6 +52,11 @@ public:
     ABENCH_INLINE const ABench::Renderer::Buffer* GetVertexBuffer() const
     {
         return mVertexBuffer.get();
+    }
+
+    ABENCH_INLINE const ABench::Renderer::Buffer* GetVertexParamsBuffer() const
+    {
+        return mVertexParamsBuffer.get();
     }
 
     ABENCH_INLINE const ABench::Renderer::Buffer* GetIndexBuffer() const

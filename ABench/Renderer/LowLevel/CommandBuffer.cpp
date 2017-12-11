@@ -102,13 +102,13 @@ void CommandBuffer::BeginRenderPass(VkRenderPass rp, Framebuffer* fb, ClearType 
     mCurrentFramebuffer = fb;
 }
 
-void CommandBuffer::BindVertexBuffer(const Buffer* buffer)
+void CommandBuffer::BindVertexBuffer(const Buffer* buffer, uint32_t binding)
 {
     ASSERT(buffer != nullptr, "Provided buffer is null");
     ASSERT(buffer->mBuffer != VK_NULL_HANDLE, "Provided buffer is not initialized");
 
     VkDeviceSize offset = 0;
-    vkCmdBindVertexBuffers(mCommandBuffer, 0, 1, &buffer->mBuffer, &offset);
+    vkCmdBindVertexBuffers(mCommandBuffer, binding, 1, &buffer->mBuffer, &offset);
 }
 
 void CommandBuffer::BindIndexBuffer(const Buffer* buffer)
