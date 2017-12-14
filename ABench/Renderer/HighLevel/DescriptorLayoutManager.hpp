@@ -2,6 +2,7 @@
 
 #include "Common/Common.hpp"
 #include "Renderer/LowLevel/Device.hpp"
+#include "Renderer/LowLevel/Tools.hpp"
 
 namespace ABench {
 namespace Renderer {
@@ -10,14 +11,14 @@ class DescriptorLayoutManager
 {
     DevicePtr mDevice;
 
-    VkSampler mFragmentShaderSampler;
+    VkRAII<VkSampler> mFragmentShaderSampler;
 
-    VkDescriptorSetLayout mVertexShaderLayout;
-    VkDescriptorSetLayout mFragmentShaderLayout;
-    VkDescriptorSetLayout mFragmentShaderDiffuseTextureLayout;
-    VkDescriptorSetLayout mFragmentShaderNormalTextureLayout;
-    VkDescriptorSetLayout mFragmentShaderMaskTextureLayout;
-    VkDescriptorSetLayout mAllShaderLayout;
+    VkRAII<VkDescriptorSetLayout> mVertexShaderLayout;
+    VkRAII<VkDescriptorSetLayout> mFragmentShaderLayout;
+    VkRAII<VkDescriptorSetLayout> mFragmentShaderDiffuseTextureLayout;
+    VkRAII<VkDescriptorSetLayout> mFragmentShaderNormalTextureLayout;
+    VkRAII<VkDescriptorSetLayout> mFragmentShaderMaskTextureLayout;
+    VkRAII<VkDescriptorSetLayout> mAllShaderLayout;
 
     DescriptorLayoutManager();
     DescriptorLayoutManager(const DescriptorLayoutManager&) = delete;
@@ -26,41 +27,37 @@ class DescriptorLayoutManager
     DescriptorLayoutManager& operator=(DescriptorLayoutManager&&) = delete;
     ~DescriptorLayoutManager();
 
-    void DestroyLayout(VkDescriptorSetLayout& layout);
-    VkSampler CreateSampler();
-
 public:
     static DescriptorLayoutManager& Instance();
 
     bool Init(const DevicePtr& device);
-    void Release();
 
-    ABENCH_INLINE const VkDescriptorSetLayout GetVertexShaderLayout() const
+    ABENCH_INLINE VkRAII<VkDescriptorSetLayout>& GetVertexShaderLayout()
     {
         return mVertexShaderLayout;
     }
 
-    ABENCH_INLINE const VkDescriptorSetLayout GetFragmentShaderLayout() const
+    ABENCH_INLINE VkRAII<VkDescriptorSetLayout>& GetFragmentShaderLayout()
     {
         return mFragmentShaderLayout;
     }
 
-    ABENCH_INLINE const VkDescriptorSetLayout GetFragmentShaderDiffuseTextureLayout() const
+    ABENCH_INLINE VkRAII<VkDescriptorSetLayout>& GetFragmentShaderDiffuseTextureLayout()
     {
         return mFragmentShaderDiffuseTextureLayout;
     }
 
-    ABENCH_INLINE const VkDescriptorSetLayout GetFragmentShaderNormalTextureLayout() const
+    ABENCH_INLINE VkRAII<VkDescriptorSetLayout>& GetFragmentShaderNormalTextureLayout()
     {
         return mFragmentShaderNormalTextureLayout;
     }
 
-    ABENCH_INLINE const VkDescriptorSetLayout GetFragmentShaderMaskTextureLayout() const
+    ABENCH_INLINE VkRAII<VkDescriptorSetLayout>& GetFragmentShaderMaskTextureLayout()
     {
         return mFragmentShaderMaskTextureLayout;
     }
 
-    ABENCH_INLINE const VkDescriptorSetLayout GetAllShaderLayout() const
+    ABENCH_INLINE VkRAII<VkDescriptorSetLayout>& GetAllShaderLayout()
     {
         return mAllShaderLayout;
     }

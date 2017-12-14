@@ -10,7 +10,7 @@
 namespace ABench {
 namespace Renderer {
 
-VkFence Tools::CreateFence(const DevicePtr& device)
+VkRAII<VkFence> Tools::CreateFence(const DevicePtr& device)
 {
     VkFence fence;
 
@@ -20,26 +20,30 @@ VkFence Tools::CreateFence(const DevicePtr& device)
     info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
     VkResult result = vkCreateFence(device->GetDevice(), &info, nullptr, &fence);
-    RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create fence");
+    RETURN_EMPTY_VKRAII_IF_FAILED(VkFence, result, "Failed to create fence");
 
-    return fence;
+    return VkRAII<VkFence>(fence, [device](VkFence f) {
+        vkDestroyFence(device->GetDevice(), f, nullptr);
+    });
 }
 
-VkSemaphore Tools::CreateSem(const DevicePtr& device)
+VkRAII<VkSemaphore> Tools::CreateSem(const DevicePtr& device)
 {
-    VkSemaphore semaphore;
+    VkSemaphore sem;
 
     VkSemaphoreCreateInfo info;
     ZERO_MEMORY(info);
     info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-    VkResult result = vkCreateSemaphore(device->GetDevice(), &info, nullptr, &semaphore);
-    RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create semaphore");
+    VkResult result = vkCreateSemaphore(device->GetDevice(), &info, nullptr, &sem);
+    RETURN_EMPTY_VKRAII_IF_FAILED(VkSemaphore, result, "Failed to create semaphore");
 
-    return semaphore;
+    return VkRAII<VkSemaphore>(sem, [device](VkSemaphore s) {
+        vkDestroySemaphore(device->GetDevice(), s, nullptr);
+    });
 }
 
-VkDescriptorSetLayout Tools::CreateDescriptorSetLayout(const DevicePtr& device, const std::vector<DescriptorSetLayoutDesc>& descriptors)
+VkRAII<VkDescriptorSetLayout> Tools::CreateDescriptorSetLayout(const DevicePtr& device, const std::vector<DescriptorSetLayoutDesc>& descriptors)
 {
     VkDescriptorSetLayout layout = VK_NULL_HANDLE;
 
@@ -65,15 +69,14 @@ VkDescriptorSetLayout Tools::CreateDescriptorSetLayout(const DevicePtr& device, 
     info.bindingCount = static_cast<uint32_t>(bindings.size());
     info.pBindings = bindings.data();
     VkResult result = vkCreateDescriptorSetLayout(device->GetDevice(), &info, nullptr, &layout);
-    RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create Descriptor Set Layout");
+    RETURN_EMPTY_VKRAII_IF_FAILED(VkDescriptorSetLayout, result, "Failed to create Descriptor Set Layout");
 
-    LOGD("Created Descriptor Set Layout " << std::hex << reinterpret_cast<size_t*>(layout) <<
-         " with " << std::dec << bindings.size() << " bindings.");
-
-    return layout;
+    return VkRAII<VkDescriptorSetLayout>(layout, [device](VkDescriptorSetLayout dsl) {
+        vkDestroyDescriptorSetLayout(device->GetDevice(), dsl, nullptr);
+    });
 }
 
-VkPipelineLayout Tools::CreatePipelineLayout(const DevicePtr& device, const std::vector<VkDescriptorSetLayout>& setLayouts)
+VkRAII<VkPipelineLayout> Tools::CreatePipelineLayout(const DevicePtr& device, const std::vector<VkDescriptorSetLayout>& setLayouts)
 {
     VkPipelineLayout layout = VK_NULL_HANDLE;
 
@@ -83,34 +86,39 @@ VkPipelineLayout Tools::CreatePipelineLayout(const DevicePtr& device, const std:
     info.pSetLayouts = setLayouts.data();
     info.setLayoutCount = static_cast<uint32_t>(setLayouts.size());
     VkResult result = vkCreatePipelineLayout(device->GetDevice(), &info, nullptr, &layout);
-    RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create Pipeline Layout");
+    RETURN_EMPTY_VKRAII_IF_FAILED(VkPipelineLayout, result, "Failed to create Pipeline Layout");
 
-    LOGD("Created Pipeline Layout " << std::hex << reinterpret_cast<size_t*>(layout));
-    return layout;
+    return VkRAII<VkPipelineLayout>(layout, [device](VkPipelineLayout pl) {
+        vkDestroyPipelineLayout(device->GetDevice(), pl, nullptr);
+    });
 }
 
-VkRenderPass Tools::CreateRenderPass(const DevicePtr& device, VkFormat colorFormat, VkFormat depthFormat)
+VkRAII<VkRenderPass> Tools::CreateRenderPass(const DevicePtr& device, VkFormat colorFormat, VkFormat depthFormat)
 {
     VkRenderPass rp = VK_NULL_HANDLE;
 
     // TODO multiple color attachments
     std::array<VkAttachmentDescription, 2> atts;
     uint32_t attCount = 0;
-    ZERO_MEMORY(atts[attCount]);
-    atts[attCount].format = colorFormat;
-    atts[attCount].samples = VK_SAMPLE_COUNT_1_BIT;
-    atts[attCount].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    atts[attCount].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    atts[attCount].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    atts[attCount].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    atts[attCount].initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    atts[attCount].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    attCount++;
 
     VkAttachmentReference colorRef;
-    ZERO_MEMORY(colorRef);
-    colorRef.attachment = 0;
-    colorRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    if (colorFormat != VK_FORMAT_UNDEFINED)
+    {
+        ZERO_MEMORY(atts[attCount]);
+        atts[attCount].format = colorFormat;
+        atts[attCount].samples = VK_SAMPLE_COUNT_1_BIT;
+        atts[attCount].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        atts[attCount].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        atts[attCount].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        atts[attCount].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        atts[attCount].initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        atts[attCount].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        attCount++;
+
+        ZERO_MEMORY(colorRef);
+        colorRef.attachment = 0;
+        colorRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    }
 
     VkAttachmentReference depthRef;
     if (depthFormat != VK_FORMAT_UNDEFINED)
@@ -134,10 +142,15 @@ VkRenderPass Tools::CreateRenderPass(const DevicePtr& device, VkFormat colorForm
     VkSubpassDescription subpass;
     ZERO_MEMORY(subpass);
     subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpass.colorAttachmentCount = 1;
-    subpass.pColorAttachments = &colorRef;
+    if (colorFormat != VK_FORMAT_UNDEFINED)
+    {
+        subpass.colorAttachmentCount = 1;
+        subpass.pColorAttachments = &colorRef;
+    }
     if (depthFormat != VK_FORMAT_UNDEFINED)
+    {
         subpass.pDepthStencilAttachment = &depthRef;
+    }
 
     std::array<VkSubpassDependency, 2> subpassDeps;
     subpassDeps[0].srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -167,10 +180,41 @@ VkRenderPass Tools::CreateRenderPass(const DevicePtr& device, VkFormat colorForm
     rpInfo.pDependencies = subpassDeps.data();
 
     VkResult result = vkCreateRenderPass(device->GetDevice(), &rpInfo, nullptr, &rp);
-    RETURN_NULL_HANDLE_IF_FAILED(result, "Failed to create Render Pass");
+    RETURN_EMPTY_VKRAII_IF_FAILED(VkRenderPass, result, "Failed to create Render Pass");
 
-    LOGD("Created Render Pass " << std::hex << reinterpret_cast<size_t*>(rp));
-    return rp;
+    return VkRAII<VkRenderPass>(rp, [device](VkRenderPass rp) {
+        vkDestroyRenderPass(device->GetDevice(), rp, nullptr);
+    });
+}
+
+VkRAII<VkSampler> Tools::CreateSampler(const DevicePtr& device)
+{
+    VkSampler sampler;
+
+    VkSamplerCreateInfo sampInfo;
+    ZERO_MEMORY(sampInfo);
+    sampInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    sampInfo.magFilter = VK_FILTER_LINEAR;
+    sampInfo.minFilter = VK_FILTER_LINEAR;
+    sampInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    sampInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    sampInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    sampInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    sampInfo.mipLodBias = 0.0f;
+    sampInfo.anisotropyEnable = VK_FALSE;
+    sampInfo.maxAnisotropy = 1.0f;
+    sampInfo.compareEnable = VK_FALSE;
+    sampInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+    sampInfo.minLod = FLT_MIN;
+    sampInfo.maxLod = FLT_MAX;
+    sampInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
+    sampInfo.unnormalizedCoordinates = VK_FALSE;
+    VkResult result = vkCreateSampler(device->GetDevice(), &sampInfo, nullptr, &sampler);
+    RETURN_EMPTY_VKRAII_IF_FAILED(VkSampler, result, "Failed to create Sampler");
+
+    return VkRAII<VkSampler>(sampler, [device](VkSampler s) {
+        vkDestroySampler(device->GetDevice(), s, nullptr);
+    });
 }
 
 void Tools::UpdateBufferDescriptorSet(const DevicePtr& device, VkDescriptorSet set, VkDescriptorType type, uint32_t binding, VkBuffer buffer, VkDeviceSize size)

@@ -329,5 +329,11 @@
     <ClInclude Include="Math\Interpolation\LinearInterpolator.hpp">
       <Filter>Math\Interpolation</Filter>
     </ClInclude>
+    <ClInclude Include="Common\Traits.hpp">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\LowLevel\VkRAII.hpp">
+      <Filter>Renderer\LowLevel</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

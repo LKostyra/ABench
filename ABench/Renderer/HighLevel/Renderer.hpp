@@ -11,6 +11,7 @@
 #include "Renderer/LowLevel/VertexLayout.hpp"
 #include "Renderer/LowLevel/RingBuffer.hpp"
 #include "Renderer/LowLevel/MultiPipeline.hpp"
+#include "Renderer/LowLevel/Tools.hpp"
 
 #include "Common/Window.hpp"
 
@@ -30,6 +31,7 @@ class Renderer final
     DevicePtr mDevice;
 
     Backbuffer mBackbuffer;
+
     Texture mDepthTexture;
     Framebuffer mFramebuffer;
     VertexLayout mVertexLayout;
@@ -37,11 +39,11 @@ class Renderer final
     CommandBuffer mCommandBuffer;
     RingBuffer mRingBuffer;
 
-    VkRenderPass mRenderPass;
-    VkPipelineLayout mPipelineLayout;
-    VkSemaphore mImageAcquiredSem;
-    VkSemaphore mRenderFinishedSem;
-    VkFence mFrameFence;
+    VkRAII<VkRenderPass> mRenderPass;
+    VkRAII<VkPipelineLayout> mPipelineLayout;
+    VkRAII<VkSemaphore> mImageAcquiredSem;
+    VkRAII<VkSemaphore> mRenderFinishedSem;
+    VkRAII<VkFence> mFrameFence;
 
     VkDescriptorSet mVertexShaderSet;
     VkDescriptorSet mFragmentShaderSet;

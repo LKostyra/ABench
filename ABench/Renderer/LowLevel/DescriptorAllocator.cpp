@@ -82,7 +82,7 @@ void DescriptorAllocator::Release()
     mDescriptorPools.clear();
 }
 
-VkDescriptorSet DescriptorAllocator::AllocateDescriptorSet(VkDescriptorSetLayout layout)
+VkDescriptorSet DescriptorAllocator::AllocateDescriptorSet(const VkDescriptorSetLayout layout)
 {
     // TODO memory tracking (somehow)
 

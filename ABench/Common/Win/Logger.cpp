@@ -31,12 +31,15 @@ void Log(LogLevel level, const std::stringstream& msg)
         break;
     case LogLevel::WARNING:
         levelStr = " WRN ";
-        SetConsoleTextAttribute(console, FOREGROUND_RED | FOREGROUND_GREEN);
+        SetConsoleTextAttribute(console, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
         break;
     case LogLevel::ERROR:
         levelStr = "ERROR";
         SetConsoleTextAttribute(console, FOREGROUND_RED | FOREGROUND_INTENSITY);
         break;
+    case LogLevel::MEMORY:
+        levelStr = " MEM ";
+        SetConsoleTextAttribute(console, FOREGROUND_RED | FOREGROUND_GREEN);
     }
 
     std::stringstream fullMsg;

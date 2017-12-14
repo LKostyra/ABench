@@ -195,6 +195,7 @@ copy /B "$(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll" "$(T
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.hpp</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
     </ClCompile>
+    <ClInclude Include="Common\Traits.hpp" />
     <ClInclude Include="Math\Interpolation\CubicInterpolator.hpp" />
     <ClInclude Include="Math\Interpolation\Interpolator.hpp" />
     <ClInclude Include="Math\Interpolation\LinearInterpolator.hpp" />
@@ -302,6 +303,7 @@ copy /B "$(SolutionDir)Deps\freeimage\Dist\$(PlatformTarget)\FreeImage.dll" "$(T
     <ClInclude Include="Renderer\LowLevel\Types.hpp" />
     <ClInclude Include="Renderer\LowLevel\Util.hpp" />
     <ClInclude Include="Renderer\LowLevel\VertexLayout.hpp" />
+    <ClInclude Include="Renderer\LowLevel\VkRAII.hpp" />
     <ClInclude Include="Renderer\LowLevel\Win\WinBackbuffer.hpp" />
     <ClInclude Include="ResourceDir.hpp" />
     <ClInclude Include="Scene\Camera.hpp" />

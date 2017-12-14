@@ -4,6 +4,8 @@
 #include "Renderer/LowLevel/MultiPipeline.hpp"
 #include "Renderer/LowLevel/DescriptorAllocator.hpp"
 #include "Renderer/LowLevel/CommandBuffer.hpp"
+#include "Renderer/LowLevel/Tools.hpp"
+#include "Renderer/LowLevel/Device.hpp"
 #include "Math/Matrix.hpp"
 
 namespace ABench {
@@ -22,8 +24,8 @@ class GridFrustumsGenerator
 
     Buffer mGridFrustumsInfo;
     VkDescriptorSet mGridFrustumsDataSet;
-    VkDescriptorSetLayout mGridFrustumsDataSetLayout;
-    VkPipelineLayout mPipelineLayout;
+    VkRAII<VkDescriptorSetLayout> mGridFrustumsDataSetLayout;
+    VkRAII<VkPipelineLayout> mPipelineLayout;
     MultiPipeline mPipeline;
     CommandBuffer mDispatchCommandBuffer;
 

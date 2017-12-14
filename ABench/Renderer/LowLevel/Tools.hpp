@@ -3,6 +3,9 @@
 #include "Prerequisites.hpp"
 #include "Device.hpp"
 #include "Buffer.hpp"
+#include "VkRAII.hpp"
+
+#include "Common/Traits.hpp"
 
 
 namespace ABench {
@@ -45,19 +48,22 @@ class Tools
 
 public:
     // Fence creation
-    static VkFence CreateFence(const DevicePtr& device);
+    static VkRAII<VkFence> CreateFence(const DevicePtr& device);
 
     // Semaphore creation (we cannot call this "CreateSemaphore" >:( WinAPI has the same define )
-    static VkSemaphore CreateSem(const DevicePtr& device);
+    static VkRAII<VkSemaphore> CreateSem(const DevicePtr& device);
 
     // Descriptor Set Layout creation
-    static VkDescriptorSetLayout CreateDescriptorSetLayout(const DevicePtr& device, const std::vector<DescriptorSetLayoutDesc>& descriptors);
+    static VkRAII<VkDescriptorSetLayout> CreateDescriptorSetLayout(const DevicePtr& device, const std::vector<DescriptorSetLayoutDesc>& descriptors);
 
     // VkPipelineLayout creation, sets and setCount can be null/zero.
-    static VkPipelineLayout CreatePipelineLayout(const DevicePtr& device, const std::vector<VkDescriptorSetLayout>& setLayouts);
+    static VkRAII<VkPipelineLayout> CreatePipelineLayout(const DevicePtr& device, const std::vector<VkDescriptorSetLayout>& setLayouts);
 
     // VkRenderPass creation
-    static VkRenderPass CreateRenderPass(const DevicePtr& device, VkFormat colorFormat, VkFormat depthFormat);
+    static VkRAII<VkRenderPass> CreateRenderPass(const DevicePtr& device, VkFormat colorFormat, VkFormat depthFormat);
+
+    // VkSampler creation
+    static VkRAII<VkSampler> CreateSampler(const DevicePtr& device);
 
     // Updating descriptor sets
     static void UpdateBufferDescriptorSet(const DevicePtr& device, VkDescriptorSet set, VkDescriptorType type, uint32_t binding, VkBuffer buffer, VkDeviceSize size);

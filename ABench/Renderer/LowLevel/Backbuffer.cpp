@@ -20,15 +20,11 @@ Backbuffer::Backbuffer()
     , mPresentMode(VK_PRESENT_MODE_FIFO_KHR)
     , mBufferCount(0)
     , mSwapchain(VK_NULL_HANDLE)
-    , mImageAcquireFence(VK_NULL_HANDLE)
 {
 }
 
 Backbuffer::~Backbuffer()
 {
-    if (mImageAcquireFence != VK_NULL_HANDLE)
-        vkDestroyFence(mDevice->GetDevice(), mImageAcquireFence, nullptr);
-
     if (mSwapchain != VK_NULL_HANDLE)
     {
         for (auto& img: mImages)
@@ -278,18 +274,6 @@ bool Backbuffer::AllocateImageViews()
     return true;
 }
 
-bool Backbuffer::CreateImageAcquireFences()
-{
-    VkFenceCreateInfo info;
-    ZERO_MEMORY(info);
-    info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-
-    VkResult result = vkCreateFence(mDevice->GetDevice(), &info, nullptr, &mImageAcquireFence);
-    RETURN_FALSE_IF_FAILED(result, "Failed to create fences for next Image acquisition");
-
-    return true;
-}
-
 bool Backbuffer::AcquireNextImage(VkSemaphore semaphore)
 {
     VkResult result = vkAcquireNextImageKHR(mDevice->GetDevice(), mSwapchain, UINT64_MAX,
@@ -315,7 +299,6 @@ bool Backbuffer::Init(const DevicePtr& device, const BackbufferDesc& desc)
     SelectBufferCount(desc);
     if (!CreateSwapchain(desc)) return false;
     if (!AllocateImageViews()) return false;
-    if (!CreateImageAcquireFences()) return false;
 
     LOGI("Backbuffer initialized successfully");
     return true;

@@ -3,7 +3,6 @@
 
 #include "Renderer/LowLevel/DescriptorAllocator.hpp"
 #include "Renderer/LowLevel/Extensions.hpp"
-#include "Renderer/LowLevel/Tools.hpp"
 #include "Renderer/LowLevel/Translations.hpp"
 
 #include "Common/Logger.hpp"
@@ -44,11 +43,11 @@ struct MaterialCBuffer
 
 
 Renderer::Renderer()
-    : mRenderPass(VK_NULL_HANDLE)
-    , mPipelineLayout(VK_NULL_HANDLE)
-    , mImageAcquiredSem(VK_NULL_HANDLE)
-    , mRenderFinishedSem(VK_NULL_HANDLE)
-    , mFrameFence(VK_NULL_HANDLE)
+    : mRenderPass()
+    , mPipelineLayout()
+    , mImageAcquiredSem()
+    , mRenderFinishedSem()
+    , mFrameFence()
     , mVertexShaderSet(VK_NULL_HANDLE)
     , mFragmentShaderSet(VK_NULL_HANDLE)
     , mAllShaderSet(VK_NULL_HANDLE)
@@ -57,19 +56,6 @@ Renderer::Renderer()
 
 Renderer::~Renderer()
 {
-    DescriptorLayoutManager::Instance().Release();
-
-    if (mRenderFinishedSem != VK_NULL_HANDLE)
-        vkDestroySemaphore(mDevice->GetDevice(), mRenderFinishedSem, nullptr);
-    if (mImageAcquiredSem != VK_NULL_HANDLE)
-        vkDestroySemaphore(mDevice->GetDevice(), mImageAcquiredSem, nullptr);
-    if (mFrameFence != VK_NULL_HANDLE)
-        vkDestroyFence(mDevice->GetDevice(), mFrameFence, nullptr);
-    if (mRenderPass != VK_NULL_HANDLE)
-        vkDestroyRenderPass(mDevice->GetDevice(), mRenderPass, nullptr);
-    if (mPipelineLayout != VK_NULL_HANDLE)
-        vkDestroyPipelineLayout(mDevice->GetDevice(), mPipelineLayout, nullptr);
-
     glslang::FinalizeProcess();
 }
 
@@ -147,7 +133,7 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
         return false;
 
     mRenderPass = Tools::CreateRenderPass(mDevice, bbDesc.requestedFormat, VK_FORMAT_D32_SFLOAT);
-    if (mRenderPass == VK_NULL_HANDLE)
+    if (!mRenderPass)
         return false;
 
     FramebufferDesc fbDesc;
@@ -288,11 +274,12 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
         return false;
     });
 
-    VkResult result = vkWaitForFences(mDevice->GetDevice(), 1, &mFrameFence, VK_TRUE, UINT64_MAX);
+    VkFence fences[] = { mFrameFence };
+    VkResult result = vkWaitForFences(mDevice->GetDevice(), 1, fences, VK_TRUE, UINT64_MAX);
     if (result != VK_SUCCESS)
         LOGW("Failed to wait for fence: " << result << " (" << TranslateVkResultToString(result) << ")");
 
-    result = vkResetFences(mDevice->GetDevice(), 1, &mFrameFence);
+    result = vkResetFences(mDevice->GetDevice(), 1, fences);
     if (result != VK_SUCCESS)
         LOGW("Failed to reset frame fence: " << result << " (" << TranslateVkResultToString(result) << ")");
 

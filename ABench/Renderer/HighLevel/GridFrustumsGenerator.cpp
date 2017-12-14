@@ -3,8 +3,6 @@
 
 #include "ResourceManager.hpp"
 
-#include "Renderer/LowLevel/Tools.hpp"
-#include "Renderer/LowLevel/Device.hpp"
 #include "Renderer/LowLevel/Extensions.hpp"
 
 #include "Math/Matrix.hpp"
@@ -31,8 +29,6 @@ namespace Renderer {
 
 GridFrustumsGenerator::GridFrustumsGenerator()
     : mGridFrustumsDataSet(VK_NULL_HANDLE)
-    , mGridFrustumsDataSetLayout(VK_NULL_HANDLE)
-    , mPipelineLayout(VK_NULL_HANDLE)
     , mPipeline()
     , mDispatchCommandBuffer()
 {
@@ -40,10 +36,6 @@ GridFrustumsGenerator::GridFrustumsGenerator()
 
 GridFrustumsGenerator::~GridFrustumsGenerator()
 {
-    if (mGridFrustumsDataSetLayout != VK_NULL_HANDLE)
-        vkDestroyDescriptorSetLayout(mDevice->GetDevice(), mGridFrustumsDataSetLayout, nullptr);
-    if (mPipelineLayout != VK_NULL_HANDLE)
-        vkDestroyPipelineLayout(mDevice->GetDevice(), mPipelineLayout, nullptr);
 }
 
 GridFrustumsGenerator& GridFrustumsGenerator::Instance()

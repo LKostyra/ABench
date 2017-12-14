@@ -51,7 +51,6 @@ class Backbuffer: public Texture
     VkSurfaceCapabilitiesKHR mSurfCaps;
     uint32_t mBufferCount;
     VkSwapchainKHR mSwapchain;
-    VkFence mImageAcquireFence;
 
     bool CreateSurface(const BackbufferDesc& desc);
     bool GetPresentQueue();
@@ -61,7 +60,6 @@ class Backbuffer: public Texture
     void SelectBufferCount(const BackbufferDesc& desc);
     bool CreateSwapchain(const BackbufferDesc& desc);
     bool AllocateImageViews();
-    bool CreateImageAcquireFences();
 
 public:
     Backbuffer();

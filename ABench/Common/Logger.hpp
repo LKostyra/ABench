@@ -15,6 +15,7 @@ enum class LogLevel: unsigned char
     WARNING,
     INFO,
     DEBUG,
+    MEMORY,
 };
 
 void Log(LogLevel level, const std::stringstream& msg);
@@ -32,6 +33,12 @@ void Log(LogLevel level, const std::stringstream& msg);
 #define LOGD(msg) LOG(ABench::Logger::LogLevel::DEBUG, msg)
 #else
 #define LOGD(msg) do { } while(0)
+#endif
+
+#ifdef ABENCH_PRINT_MEMORY
+#define LOGM(msg) LOG(ABench::Logger::LogLevel::MEMORY, msg)
+#else
+#define LOGM(msg) do { } while(0)
 #endif
 
 #define LOGI(msg) LOG(ABench::Logger::LogLevel::INFO, msg)
