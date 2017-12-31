@@ -48,7 +48,7 @@ class Tools
 
 public:
     // Fence creation
-    static VkRAII<VkFence> CreateFence(const DevicePtr& device);
+    static VkRAII<VkFence> CreateFence(const DevicePtr& device, bool signaled);
 
     // Semaphore creation (we cannot call this "CreateSemaphore" >:( WinAPI has the same define )
     static VkRAII<VkSemaphore> CreateSem(const DevicePtr& device);

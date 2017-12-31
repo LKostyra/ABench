@@ -3,14 +3,6 @@
 #include "Renderer/LowLevel/Instance.hpp"
 #include "Renderer/LowLevel/Device.hpp"
 #include "Renderer/LowLevel/Backbuffer.hpp"
-#include "Renderer/LowLevel/Texture.hpp"
-#include "Renderer/LowLevel/Framebuffer.hpp"
-#include "Renderer/LowLevel/Buffer.hpp"
-#include "Renderer/LowLevel/Shader.hpp"
-#include "Renderer/LowLevel/CommandBuffer.hpp"
-#include "Renderer/LowLevel/VertexLayout.hpp"
-#include "Renderer/LowLevel/RingBuffer.hpp"
-#include "Renderer/LowLevel/MultiPipeline.hpp"
 #include "Renderer/LowLevel/Tools.hpp"
 
 #include "Common/Window.hpp"
@@ -20,6 +12,7 @@
 #include "Scene/Scene.hpp"
 
 #include "GridFrustumsGenerator.hpp"
+#include "ForwardPass.hpp"
 
 
 namespace ABench {
@@ -31,25 +24,11 @@ class Renderer final
     DevicePtr mDevice;
 
     Backbuffer mBackbuffer;
-
-    Texture mDepthTexture;
-    Framebuffer mFramebuffer;
-    VertexLayout mVertexLayout;
-    MultiPipeline mPipeline;
-    CommandBuffer mCommandBuffer;
-    RingBuffer mRingBuffer;
-
-    VkRAII<VkRenderPass> mRenderPass;
-    VkRAII<VkPipelineLayout> mPipelineLayout;
     VkRAII<VkSemaphore> mImageAcquiredSem;
     VkRAII<VkSemaphore> mRenderFinishedSem;
     VkRAII<VkFence> mFrameFence;
 
-    VkDescriptorSet mVertexShaderSet;
-    VkDescriptorSet mFragmentShaderSet;
-    VkDescriptorSet mAllShaderSet;
-    Buffer mVertexShaderCBuffer;
-    Buffer mAllShaderLightCBuffer;
+    ForwardPass mForwardPass;
 
 public:
     Renderer();

@@ -17,11 +17,14 @@ namespace ABench {
 namespace Renderer {
 
 Texture::Texture()
-    : mWidth(0)
+    : mDevice(nullptr)
+    , mWidth(0)
     , mHeight(0)
     , mFormat(VK_FORMAT_UNDEFINED)
-    , mFromSwapchain(false)
-    , mCurrentBuffer(0)
+    , mImage(VK_NULL_HANDLE)
+    , mImageView(VK_NULL_HANDLE)
+    , mImageMemory(VK_NULL_HANDLE)
+    , mCurrentLayout(VK_IMAGE_LAYOUT_UNDEFINED)
     , mDefaultLayout(VK_IMAGE_LAYOUT_UNDEFINED)
     , mImageDescriptorSet(VK_NULL_HANDLE)
 {
@@ -29,23 +32,17 @@ Texture::Texture()
 
 Texture::~Texture()
 {
-    for (auto& image: mImages)
-    {
-        if (image.memory != VK_NULL_HANDLE)
-            vkFreeMemory(mDevice->GetDevice(), image.memory, nullptr);
-        if (image.view != VK_NULL_HANDLE)
-            vkDestroyImageView(mDevice->GetDevice(), image.view, nullptr);
-        if (!mFromSwapchain && image.image != VK_NULL_HANDLE)
-            vkDestroyImage(mDevice->GetDevice(), image.image, nullptr);
-    }
+    if (mImageMemory != VK_NULL_HANDLE)
+        vkFreeMemory(mDevice->GetDevice(), mImageMemory, nullptr);
+    if (mImageView != VK_NULL_HANDLE)
+        vkDestroyImageView(mDevice->GetDevice(), mImageView, nullptr);
+    if (mImage != VK_NULL_HANDLE)
+        vkDestroyImage(mDevice->GetDevice(), mImage, nullptr);
 }
 
 bool Texture::Init(const DevicePtr& device, const TextureDesc& desc)
 {
     mDevice = device;
-
-    mImages.resize(1);
-    mCurrentBuffer = 0; // since we create a non-backbuffer texture, this should stay that way
 
     VkImageCreateInfo imageInfo;
     ZERO_MEMORY(imageInfo);
@@ -61,22 +58,22 @@ bool Texture::Init(const DevicePtr& device, const TextureDesc& desc)
     imageInfo.usage = desc.usage;
     if (desc.data != nullptr) imageInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    imageInfo.initialLayout = mImages[mCurrentBuffer].currentLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
-    VkResult result = vkCreateImage(mDevice->GetDevice(), &imageInfo, nullptr, &mImages[0].image);
+    imageInfo.initialLayout = mCurrentLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
+    VkResult result = vkCreateImage(mDevice->GetDevice(), &imageInfo, nullptr, &mImage);
     RETURN_FALSE_IF_FAILED(result, "Failed to create Image for texture");
 
     VkMemoryRequirements memReqs;
-    vkGetImageMemoryRequirements(mDevice->GetDevice(), mImages[0].image, &memReqs);
+    vkGetImageMemoryRequirements(mDevice->GetDevice(), mImage, &memReqs);
 
     VkMemoryAllocateInfo memInfo;
     ZERO_MEMORY(memInfo);
     memInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     memInfo.memoryTypeIndex = mDevice->GetMemoryTypeIndex(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     memInfo.allocationSize = memReqs.size;
-    result = vkAllocateMemory(mDevice->GetDevice(), &memInfo, nullptr, &mImages[0].memory);
+    result = vkAllocateMemory(mDevice->GetDevice(), &memInfo, nullptr, &mImageMemory);
     RETURN_FALSE_IF_FAILED(result, "Failed to allocate memory for Image");
 
-    result = vkBindImageMemory(mDevice->GetDevice(), mImages[0].image, mImages[0].memory, 0);
+    result = vkBindImageMemory(mDevice->GetDevice(), mImage, mImageMemory, 0);
     RETURN_FALSE_IF_FAILED(result, "Binding Image memory to Image failed");
 
     if (desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
@@ -154,7 +151,7 @@ bool Texture::Init(const DevicePtr& device, const TextureDesc& desc)
     VkImageViewCreateInfo ivInfo;
     ZERO_MEMORY(ivInfo);
     ivInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    ivInfo.image = mImages[0].image;
+    ivInfo.image = mImage;
     ivInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
     ivInfo.format = desc.format;
     ivInfo.subresourceRange = mSubresourceRange;
@@ -164,7 +161,7 @@ bool Texture::Init(const DevicePtr& device, const TextureDesc& desc)
         VK_COMPONENT_SWIZZLE_B,
         VK_COMPONENT_SWIZZLE_A,
     };
-    result = vkCreateImageView(mDevice->GetDevice(), &ivInfo, nullptr, &mImages[0].view);
+    result = vkCreateImageView(mDevice->GetDevice(), &ivInfo, nullptr, &mImageView);
     RETURN_FALSE_IF_FAILED(result, "Failed to create Image View for Texture");
 
     if (desc.usage & VK_IMAGE_USAGE_SAMPLED_BIT)
@@ -175,7 +172,7 @@ bool Texture::Init(const DevicePtr& device, const TextureDesc& desc)
         if (mImageDescriptorSet == VK_NULL_HANDLE)
             return false;
 
-        Tools::UpdateTextureDescriptorSet(mDevice, mImageDescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 0, mImages[0].view);
+        Tools::UpdateTextureDescriptorSet(mDevice, mImageDescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 0, mImageView);
     }
 
     return true;
@@ -186,20 +183,20 @@ void Texture::Transition(VkCommandBuffer cmdBuffer, VkImageLayout targetLayout)
     if (targetLayout == VK_IMAGE_LAYOUT_UNDEFINED)
         targetLayout = mDefaultLayout;
 
-    if (targetLayout == mImages[mCurrentBuffer].currentLayout)
+    if (targetLayout == mCurrentLayout)
         return; // no need to transition if we already have requested layout
 
     VkImageMemoryBarrier barrier;
     ZERO_MEMORY(barrier);
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-    barrier.image = mImages[mCurrentBuffer].image;
+    barrier.image = mImage;
     barrier.subresourceRange = mSubresourceRange;
-    barrier.oldLayout = mImages[mCurrentBuffer].currentLayout;
+    barrier.oldLayout = mCurrentLayout;
     barrier.newLayout = targetLayout;
     vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0,
                          0, nullptr, 0, nullptr, 1, &barrier);
 
-    mImages[mCurrentBuffer].currentLayout = targetLayout;
+    mCurrentLayout = targetLayout;
 }
 
 } // namespace Renderer

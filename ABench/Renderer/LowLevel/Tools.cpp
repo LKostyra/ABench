@@ -10,14 +10,15 @@
 namespace ABench {
 namespace Renderer {
 
-VkRAII<VkFence> Tools::CreateFence(const DevicePtr& device)
+VkRAII<VkFence> Tools::CreateFence(const DevicePtr& device, bool signaled)
 {
     VkFence fence;
 
     VkFenceCreateInfo info;
     ZERO_MEMORY(info);
     info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+    if (signaled)
+        info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
     VkResult result = vkCreateFence(device->GetDevice(), &info, nullptr, &fence);
     RETURN_EMPTY_VKRAII_IF_FAILED(VkFence, result, "Failed to create fence");

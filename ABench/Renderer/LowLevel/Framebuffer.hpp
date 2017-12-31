@@ -28,7 +28,7 @@ class Framebuffer
 
     DevicePtr mDevice;
 
-    std::vector<VkFramebuffer> mFramebuffers;
+    VkFramebuffer mFramebuffer;
     uint32_t mWidth;
     uint32_t mHeight;
     Texture* mTexturePtr;

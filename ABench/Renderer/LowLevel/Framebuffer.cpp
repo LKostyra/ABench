@@ -12,21 +12,23 @@ namespace ABench {
 namespace Renderer {
 
 Framebuffer::Framebuffer()
+    : mFramebuffer(VK_NULL_HANDLE)
+    , mWidth(0)
+    , mHeight(0)
+    , mTexturePtr(nullptr)
+    , mDepthTexturePtr(nullptr)
 {
 }
 
 Framebuffer::~Framebuffer()
 {
-    if (mFramebuffers.size() > 0)
-        for (auto& fb: mFramebuffers)
-            vkDestroyFramebuffer(mDevice->GetDevice(), fb, nullptr);
+    if (mFramebuffer != VK_NULL_HANDLE)
+        vkDestroyFramebuffer(mDevice->GetDevice(), mFramebuffer, nullptr);
 }
 
 bool Framebuffer::Init(const DevicePtr& device, const FramebufferDesc& desc)
 {
     mDevice = device;
-
-    mFramebuffers.resize(desc.colorTex->mImages.size());
 
     if (!desc.colorTex)
     {
@@ -52,20 +54,17 @@ bool Framebuffer::Init(const DevicePtr& device, const FramebufferDesc& desc)
 
     VkResult result;
     VkImageView fbAtts[2];
-    for (uint32_t i = 0; i < mFramebuffers.size(); ++i)
+    fbAtts[0] = desc.colorTex->mImageView;
+    fbInfo.attachmentCount = 1;
+    if (desc.depthTex)
     {
-        fbAtts[0] = desc.colorTex->mImages[i].view;
-        fbInfo.attachmentCount = 1;
-        if (desc.depthTex)
-        {
-            fbAtts[1] = desc.depthTex->mImages[0].view;
-            fbInfo.attachmentCount++;
-        }
-
-        fbInfo.pAttachments = fbAtts;
-        result = vkCreateFramebuffer(mDevice->GetDevice(), &fbInfo, nullptr, &mFramebuffers[i]);
-        RETURN_FALSE_IF_FAILED(result, "Failed to create Framebuffer #" << i << " for provided Texture");
+        fbAtts[1] = desc.depthTex->mImageView;
+        fbInfo.attachmentCount++;
     }
+
+    fbInfo.pAttachments = fbAtts;
+    result = vkCreateFramebuffer(mDevice->GetDevice(), &fbInfo, nullptr, &mFramebuffer);
+    RETURN_FALSE_IF_FAILED(result, "Failed to create Framebuffer");
 
     mWidth = desc.colorTex->mWidth;
     mHeight = desc.colorTex->mHeight;

@@ -208,6 +208,7 @@ PFN_vkCmdBindVertexBuffers vkCmdBindVertexBuffers = VK_NULL_HANDLE;
 PFN_vkCmdClearAttachments vkCmdClearAttachments = VK_NULL_HANDLE;
 PFN_vkCmdCopyBuffer vkCmdCopyBuffer = VK_NULL_HANDLE;
 PFN_vkCmdCopyBufferToImage vkCmdCopyBufferToImage = VK_NULL_HANDLE;
+PFN_vkCmdCopyImage vkCmdCopyImage = VK_NULL_HANDLE;
 PFN_vkCmdDispatch vkCmdDispatch = VK_NULL_HANDLE;
 PFN_vkCmdDraw vkCmdDraw = VK_NULL_HANDLE;
 PFN_vkCmdDrawIndexed vkCmdDrawIndexed = VK_NULL_HANDLE;
@@ -303,6 +304,7 @@ bool InitDeviceExtensions(const VkDevice& device)
     VK_GET_DEVICEPROC(device, vkCmdClearAttachments);
     VK_GET_DEVICEPROC(device, vkCmdCopyBuffer);
     VK_GET_DEVICEPROC(device, vkCmdCopyBufferToImage);
+    VK_GET_DEVICEPROC(device, vkCmdCopyImage);
     VK_GET_DEVICEPROC(device, vkCmdDispatch);
     VK_GET_DEVICEPROC(device, vkCmdDraw);
     VK_GET_DEVICEPROC(device, vkCmdDrawIndexed);

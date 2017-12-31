@@ -16,6 +16,7 @@ class CommandBuffer
 {
     friend class Device;
     friend class Texture;
+    friend class Backbuffer;
 
     DevicePtr mDevice;
     VkCommandPool mOwningPool;
@@ -41,6 +42,8 @@ public:
     void Clear(ClearType types, float clearValues[4], float depthValue);
     void CopyBuffer(VkBuffer src, VkBuffer dst, VkDeviceSize size);
     void CopyBufferToTexture(Buffer* src, Texture* dst);
+    void CopyTexture(Texture* src, Texture* dst);
+    void CopyTextureToBackbuffer(Texture* src, Backbuffer* dst);
     void Dispatch(uint32_t x, uint32_t y, uint32_t z);
     void Draw(uint32_t vertCount);
     void DrawIndexed(uint32_t vertCount);

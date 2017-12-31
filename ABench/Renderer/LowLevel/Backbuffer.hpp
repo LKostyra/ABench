@@ -3,7 +3,8 @@
 #include "Prerequisites.hpp"
 #include "Instance.hpp"
 #include "Device.hpp"
-#include "Texture.hpp"
+#include "CommandBuffer.hpp"
+#include "Tools.hpp"
 
 #ifdef WIN32
 #include "Win/WinBackbuffer.hpp"
@@ -32,16 +33,38 @@ struct BackbufferDesc
         : requestedFormat(VK_FORMAT_UNDEFINED)
         , vsync(false)
         , bufferCount(2)
-        , width(800)
-        , height(600)
+        , width(0)
+        , height(0)
     {
     }
 };
 
-class Backbuffer: public Texture
+struct BackbufferImageData
 {
+    VkImage image;
+    VkImageLayout currentLayout;
+
+    BackbufferImageData()
+        : image(VK_NULL_HANDLE)
+        , currentLayout(VK_IMAGE_LAYOUT_UNDEFINED)
+    {
+    }
+};
+
+class Backbuffer
+{
+    friend class CommandBuffer;
+
     InstancePtr mInstance;
     DevicePtr mDevice;
+
+    uint32_t mWidth;
+    uint32_t mHeight;
+    VkFormat mFormat;
+    std::vector<BackbufferImageData> mImages;
+    VkImageSubresourceRange mSubresourceRange;
+    VkImageLayout mDefaultLayout;
+    uint32_t mCurrentBuffer;
 
     VkSurfaceKHR mSurface;
     uint32_t mPresentQueueIndex;
@@ -49,8 +72,12 @@ class Backbuffer: public Texture
     VkColorSpaceKHR mColorSpace;
     VkPresentModeKHR mPresentMode;
     VkSurfaceCapabilitiesKHR mSurfCaps;
-    uint32_t mBufferCount;
     VkSwapchainKHR mSwapchain;
+    uint32_t mBufferCount;
+
+    CommandBuffer mCopyCommandBuffer;
+    VkRAII<VkSemaphore> mCopySemaphore;
+    VkRAII<VkFence> mCopyFence;
 
     bool CreateSurface(const BackbufferDesc& desc);
     bool GetPresentQueue();
@@ -61,17 +88,34 @@ class Backbuffer: public Texture
     bool CreateSwapchain(const BackbufferDesc& desc);
     bool AllocateImageViews();
 
+    void Transition(VkCommandBuffer cmdBuffer, VkImageLayout targetLayout = VK_IMAGE_LAYOUT_UNDEFINED);
+
 public:
     Backbuffer();
     ~Backbuffer();
 
     bool Init(const DevicePtr& device, const BackbufferDesc& desc);
 
-    // Present current image on screen. This should be usually called at the end of current frame.
-    bool Present(VkSemaphore waitSemaphore);
-
     // Acquire new image. This should be called at the beginning of the frame.
     bool AcquireNextImage(VkSemaphore semaphore);
+
+    // Present current image on screen. This should be usually called at the end of current frame.
+    bool Present(Texture& texture, VkSemaphore waitSemaphore);
+
+    ABENCH_INLINE uint32_t GetWidth() const
+    {
+        return mWidth;
+    }
+
+    ABENCH_INLINE uint32_t GetHeight() const
+    {
+        return mHeight;
+    }
+
+    ABENCH_INLINE VkFormat GetFormat() const
+    {
+        return mFormat;
+    }
 };
 
 } // namespace Renderer

@@ -26,17 +26,7 @@ Backbuffer::Backbuffer()
 Backbuffer::~Backbuffer()
 {
     if (mSwapchain != VK_NULL_HANDLE)
-    {
-        for (auto& img: mImages)
-        {
-            if (img.view != VK_NULL_HANDLE)
-            {
-                vkDestroyImageView(mDevice->GetDevice(), img.view, nullptr);
-                img.view = VK_NULL_HANDLE;
-            }
-        }
         vkDestroySwapchainKHR(mDevice->GetDevice(), mSwapchain, nullptr);
-    }
     if (mSurface != VK_NULL_HANDLE)
         vkDestroySurfaceKHR(mInstance->GetVkInstance(), mSurface, nullptr);
 
@@ -200,7 +190,7 @@ bool Backbuffer::CreateSwapchain(const BackbufferDesc& desc)
     chainInfo.imageColorSpace = mColorSpace;
     chainInfo.imageExtent.width = desc.width;
     chainInfo.imageExtent.height = desc.height;
-    chainInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    chainInfo.imageUsage = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
     chainInfo.preTransform = mSurfCaps.currentTransform;
     chainInfo.imageArrayLayers = 1;
     chainInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -245,42 +235,30 @@ bool Backbuffer::AllocateImageViews()
     mSubresourceRange.baseArrayLayer = 0;
     mSubresourceRange.layerCount = 1;
 
-    // we need image views to attach them to Render Targets later on
-    VkImageViewCreateInfo ivInfo;
-    for (uint32_t i = 0; i < mBufferCount; ++i)
-    {
-        ZERO_MEMORY(ivInfo);
-        ivInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        ivInfo.image = mImages[i].image;
-        ivInfo.format = mFormat;
-        ivInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        ivInfo.components = {
-            // order of variables in VkComponentMapping is r, g, b, a
-            VK_COMPONENT_SWIZZLE_R,
-            VK_COMPONENT_SWIZZLE_G,
-            VK_COMPONENT_SWIZZLE_B,
-            VK_COMPONENT_SWIZZLE_A,
-        };
-        ivInfo.subresourceRange = mSubresourceRange;
-        result = vkCreateImageView(mDevice->GetDevice(), &ivInfo, nullptr, &mImages[i].view);
-        RETURN_FALSE_IF_FAILED(result, "Failed to generate Image View from Swapchain image");
-
-        mImages[i].currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    }
-
     mDefaultLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-    mFromSwapchain = true;
 
     return true;
 }
 
-bool Backbuffer::AcquireNextImage(VkSemaphore semaphore)
+void Backbuffer::Transition(VkCommandBuffer cmdBuffer, VkImageLayout targetLayout)
 {
-    VkResult result = vkAcquireNextImageKHR(mDevice->GetDevice(), mSwapchain, UINT64_MAX,
-                                            semaphore, VK_NULL_HANDLE, &mCurrentBuffer);
-    RETURN_FALSE_IF_FAILED(result, "Failed to preacquire next image for presenting");
+    if (targetLayout == VK_IMAGE_LAYOUT_UNDEFINED)
+        targetLayout = mDefaultLayout;
 
-    return true;
+    if (targetLayout == mImages[mCurrentBuffer].currentLayout)
+        return; // no need to transition if we already have requested layout
+
+    VkImageMemoryBarrier barrier;
+    ZERO_MEMORY(barrier);
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.image = mImages[mCurrentBuffer].image;
+    barrier.subresourceRange = mSubresourceRange;
+    barrier.oldLayout = mImages[mCurrentBuffer].currentLayout;
+    barrier.newLayout = targetLayout;
+    vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0,
+                         0, nullptr, 0, nullptr, 1, &barrier);
+
+    mImages[mCurrentBuffer].currentLayout = targetLayout;
 }
 
 bool Backbuffer::Init(const DevicePtr& device, const BackbufferDesc& desc)
@@ -300,14 +278,60 @@ bool Backbuffer::Init(const DevicePtr& device, const BackbufferDesc& desc)
     if (!CreateSwapchain(desc)) return false;
     if (!AllocateImageViews()) return false;
 
+    if (!mCopyCommandBuffer.Init(mDevice, DeviceQueueType::TRANSFER))
+        return false;
+
+    mCopySemaphore = Tools::CreateSem(mDevice);
+    if (!mCopySemaphore)
+        return false;
+
+    mCopyFence = Tools::CreateFence(mDevice, true);
+    if (!mCopyFence)
+        return false;
+
     LOGI("Backbuffer initialized successfully");
     return true;
 }
 
-bool Backbuffer::Present(VkSemaphore waitSemaphore)
+bool Backbuffer::AcquireNextImage(VkSemaphore semaphore)
 {
-    VkResult result = VK_SUCCESS;
+    VkResult result = vkAcquireNextImageKHR(mDevice->GetDevice(), mSwapchain, UINT64_MAX,
+                                            semaphore, VK_NULL_HANDLE, &mCurrentBuffer);
+    RETURN_FALSE_IF_FAILED(result, "Failed to preacquire next image for presenting");
 
+    return true;
+}
+
+bool Backbuffer::Present(Texture& texture, VkSemaphore waitSemaphore)
+{
+    // wait until our previous copy finishes
+    VkFence fences[] = { mCopyFence };
+    VkResult result = vkWaitForFences(mDevice->GetDevice(), 1, fences, VK_TRUE, UINT64_MAX);
+    if (result != VK_SUCCESS)
+        LOGW("Failed to wait for Backbuffer fence: " << result << " (" << TranslateVkResultToString(result) << ")");
+
+    result = vkResetFences(mDevice->GetDevice(), 1, fences);
+    if (result != VK_SUCCESS)
+        LOGW("Failed to reset Backbuffer fence: " << result << " (" << TranslateVkResultToString(result) << ")");
+
+
+    // copy provided texture to backbuffer
+    mCopyCommandBuffer.Begin();
+
+    texture.Transition(mCopyCommandBuffer.mCommandBuffer, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    Transition(mCopyCommandBuffer.mCommandBuffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+    mCopyCommandBuffer.CopyTextureToBackbuffer(&texture, this);
+
+    texture.Transition(mCopyCommandBuffer.mCommandBuffer);
+    Transition(mCopyCommandBuffer.mCommandBuffer);
+    if (!mCopyCommandBuffer.End())
+        return false;
+
+    mDevice->Execute(DeviceQueueType::TRANSFER, &mCopyCommandBuffer, waitSemaphore, mCopySemaphore, mCopyFence);
+
+
+    VkSemaphore waitSem[] = { mCopySemaphore };
     // FIXME Closing window with Alt+F4/Close button causes swapchain to go
     //       out of date. Keep that in mind while supporting window resizing.
     VkPresentInfoKHR presentInfo;
@@ -316,7 +340,7 @@ bool Backbuffer::Present(VkSemaphore waitSemaphore)
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = &mSwapchain;
     presentInfo.pImageIndices = &mCurrentBuffer;
-    presentInfo.pWaitSemaphores = &waitSemaphore;
+    presentInfo.pWaitSemaphores = waitSem;
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pResults = &result;
     vkQueuePresentKHR(mPresentQueue, &presentInfo);

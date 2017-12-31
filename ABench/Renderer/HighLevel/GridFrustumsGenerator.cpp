@@ -52,13 +52,13 @@ bool GridFrustumsGenerator::Init(const DevicePtr& device)
     layoutDesc.push_back({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, VK_NULL_HANDLE});
     layoutDesc.push_back({VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, VK_NULL_HANDLE});
     mGridFrustumsDataSetLayout = Tools::CreateDescriptorSetLayout(mDevice, layoutDesc);
-    if (mGridFrustumsDataSetLayout == VK_NULL_HANDLE)
+    if (!mGridFrustumsDataSetLayout)
         return false;
 
     std::vector<VkDescriptorSetLayout> layouts;
     layouts.push_back(mGridFrustumsDataSetLayout);
     mPipelineLayout = Tools::CreatePipelineLayout(mDevice, layouts);
-    if (mPipelineLayout == VK_NULL_HANDLE)
+    if (!mPipelineLayout)
         return false;
 
     mGridFrustumsDataSet = DescriptorAllocator::Instance().AllocateDescriptorSet(mGridFrustumsDataSetLayout);
@@ -80,7 +80,7 @@ bool GridFrustumsGenerator::Init(const DevicePtr& device)
         return false;
 
     Tools::UpdateBufferDescriptorSet(mDevice, mGridFrustumsDataSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0,
-                                     mGridFrustumsInfo.GetVkBuffer(), mGridFrustumsInfo.GetSize());
+                                     mGridFrustumsInfo.GetBuffer(), mGridFrustumsInfo.GetSize());
 
     if (!mDispatchCommandBuffer.Init(mDevice, DeviceQueueType::COMPUTE))
         return false;
@@ -119,7 +119,7 @@ BufferPtr GridFrustumsGenerator::Generate(const GridFrustumsGenerationDesc& desc
         return nullptr;
 
     Tools::UpdateBufferDescriptorSet(mDevice, mGridFrustumsDataSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1,
-                                     frustumData->GetVkBuffer(), frustumData->GetSize());
+                                     frustumData->GetBuffer(), frustumData->GetSize());
 
     uint32_t dispatchThreadsX = frustumsPerWidth / PIXELS_PER_GRID_FRUSTUM;
     uint32_t dispatchThreadsY = frustumsPerHeight / PIXELS_PER_GRID_FRUSTUM;

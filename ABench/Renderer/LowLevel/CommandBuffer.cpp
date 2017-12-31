@@ -48,7 +48,7 @@ void CommandBuffer::BufferBarrier(const Buffer* buffer, VkPipelineStageFlags fro
     VkBufferMemoryBarrier barrier;
     ZERO_MEMORY(barrier);
     barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-    barrier.buffer = buffer->GetVkBuffer();
+    barrier.buffer = buffer->GetBuffer();
     barrier.size = buffer->GetSize();
     barrier.srcAccessMask = accessFrom;
     barrier.dstAccessMask = accessTo;
@@ -96,7 +96,7 @@ void CommandBuffer::BeginRenderPass(VkRenderPass rp, Framebuffer* fb, ClearType 
     rpInfo.renderArea.extent.height = fb->mHeight;
     rpInfo.clearValueCount = clearCount;
     rpInfo.pClearValues = clear;
-    rpInfo.framebuffer = fb->mFramebuffers[fb->mTexturePtr->GetCurrentBuffer()];
+    rpInfo.framebuffer = fb->mFramebuffer;
     vkCmdBeginRenderPass(mCommandBuffer, &rpInfo, VK_SUBPASS_CONTENTS_INLINE);
 
     mCurrentFramebuffer = fb;
@@ -189,7 +189,7 @@ void CommandBuffer::CopyBufferToTexture(Buffer* src, Texture* dst)
     ASSERT(src != nullptr, "Provided source buffer is null");
     ASSERT(src->mBuffer != VK_NULL_HANDLE, "Provided source buffer is not initialized");
     ASSERT(dst != nullptr, "Provided destination texture is null");
-    ASSERT(!dst->mImages.empty(), "Provided destination texture is not initialized");
+    ASSERT(dst->mImage != VK_NULL_HANDLE, "Provided destination texture is not initialized");
 
     std::vector<VkBufferImageCopy> regions;
 
@@ -217,8 +217,58 @@ void CommandBuffer::CopyBufferToTexture(Buffer* src, Texture* dst)
         height >>= 1;
     }
 
-    vkCmdCopyBufferToImage(mCommandBuffer, src->GetVkBuffer(), dst->GetVkImage(0), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+    vkCmdCopyBufferToImage(mCommandBuffer, src->GetBuffer(), dst->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                            static_cast<uint32_t>(regions.size()), regions.data());
+}
+
+void CommandBuffer::CopyTexture(Texture* src, Texture* dst)
+{
+    ASSERT(src->mWidth == dst->mWidth, "Textures must have same dimensions for copy operation");
+    ASSERT(src->mHeight == dst->mHeight, "Textures must have same dimensions for copy operation");
+    ASSERT(src->mFormat == dst->mFormat, "Textures must have same format for copy operation");
+    ASSERT(src->mImage != VK_NULL_HANDLE, "Provided source texture is not initialized");
+    ASSERT(dst->mImage != VK_NULL_HANDLE, "Provided destination texture is not initialized");
+
+    VkImageCopy region;
+    ZERO_MEMORY(region);
+    region.extent.width = src->GetWidth();
+    region.extent.height = src->GetHeight();
+    region.extent.depth = 1;
+    region.srcSubresource.aspectMask = src->mSubresourceRange.aspectMask;
+    region.srcSubresource.baseArrayLayer = src->mSubresourceRange.baseArrayLayer;
+    region.srcSubresource.layerCount = src->mSubresourceRange.layerCount;
+    region.srcSubresource.mipLevel = 0;
+    region.dstSubresource.aspectMask = dst->mSubresourceRange.aspectMask;
+    region.dstSubresource.baseArrayLayer = dst->mSubresourceRange.baseArrayLayer;
+    region.dstSubresource.layerCount = dst->mSubresourceRange.layerCount;
+    region.dstSubresource.mipLevel = 0;
+    vkCmdCopyImage(mCommandBuffer, src->GetImage(), src->GetCurrentLayout(),
+                   dst->GetImage(), dst->GetCurrentLayout(), 1, &region);
+}
+
+void CommandBuffer::CopyTextureToBackbuffer(Texture* src, Backbuffer* dst)
+{
+    ASSERT(src->mWidth == dst->mWidth, "Textures must have same dimensions for copy operation");
+    ASSERT(src->mHeight == dst->mHeight, "Textures must have same dimensions for copy operation");
+    ASSERT(src->mFormat == dst->mFormat, "Textures must have same format for copy operation");
+    ASSERT(src->mImage != VK_NULL_HANDLE, "Provided source texture is not initialized");
+    ASSERT(!dst->mImages.empty(), "Provided Backbuffer is not initialized");
+
+    VkImageCopy region;
+    ZERO_MEMORY(region);
+    region.extent.width = src->GetWidth();
+    region.extent.height = src->GetHeight();
+    region.extent.depth = 1;
+    region.srcSubresource.aspectMask = src->mSubresourceRange.aspectMask;
+    region.srcSubresource.baseArrayLayer = src->mSubresourceRange.baseArrayLayer;
+    region.srcSubresource.layerCount = src->mSubresourceRange.layerCount;
+    region.srcSubresource.mipLevel = 0;
+    region.dstSubresource.aspectMask = dst->mSubresourceRange.aspectMask;
+    region.dstSubresource.baseArrayLayer = dst->mSubresourceRange.baseArrayLayer;
+    region.dstSubresource.layerCount = dst->mSubresourceRange.layerCount;
+    region.dstSubresource.mipLevel = 0;
+    vkCmdCopyImage(mCommandBuffer, src->GetImage(), src->GetCurrentLayout(),
+                   dst->mImages[dst->mCurrentBuffer].image, dst->mImages[dst->mCurrentBuffer].currentLayout, 1, &region);
 }
 
 void CommandBuffer::Dispatch(uint32_t x, uint32_t y, uint32_t z)

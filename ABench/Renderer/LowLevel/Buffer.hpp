@@ -49,12 +49,12 @@ public:
     bool Init(const DevicePtr& device, const BufferDesc& desc);
     void Free();
 
-    ABENCH_INLINE VkBuffer GetVkBuffer() const
+    ABENCH_INLINE VkBuffer GetBuffer() const
     {
         return mBuffer;
     }
 
-    ABENCH_INLINE VkDeviceMemory GetVkMemory() const
+    ABENCH_INLINE VkDeviceMemory GetBufferMemory() const
     {
         return mBufferMemory;
     }

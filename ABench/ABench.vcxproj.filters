@@ -171,6 +171,9 @@
     <ClCompile Include="Math\Interpolation\LinearInterpolator.cpp">
       <Filter>Math\Interpolation</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer\HighLevel\ForwardPass.cpp">
+      <Filter>Renderer\HighLevel</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\Window.hpp">
@@ -334,6 +337,9 @@
     </ClInclude>
     <ClInclude Include="Renderer\LowLevel\VkRAII.hpp">
       <Filter>Renderer\LowLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\HighLevel\ForwardPass.hpp">
+      <Filter>Renderer\HighLevel</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

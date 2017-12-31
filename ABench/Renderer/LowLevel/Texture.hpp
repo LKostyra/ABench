@@ -46,25 +46,8 @@ struct TextureDesc
     }
 };
 
-struct ImageData
-{
-    VkImage image;
-    VkImageView view;
-    VkDeviceMemory memory;
-    VkImageLayout currentLayout;
-
-    ImageData()
-        : image(VK_NULL_HANDLE)
-        , view(VK_NULL_HANDLE)
-        , memory(VK_NULL_HANDLE)
-        , currentLayout(VK_IMAGE_LAYOUT_UNDEFINED)
-    {
-    }
-};
-
 class Texture
 {
-    friend class Backbuffer;
     friend class RenderPass;
     friend class Framebuffer;
     friend class CommandBuffer;
@@ -74,11 +57,10 @@ class Texture
     uint32_t mWidth;
     uint32_t mHeight;
     VkFormat mFormat;
-    std::vector<ImageData> mImages;
-    bool mFromSwapchain;
-
-    uint32_t mCurrentBuffer;
-
+    VkImage mImage;
+    VkImageView mImageView;
+    VkDeviceMemory mImageMemory;
+    VkImageLayout mCurrentLayout;
     VkImageLayout mDefaultLayout;
     VkImageSubresourceRange mSubresourceRange;
     VkDescriptorSet mImageDescriptorSet;
@@ -99,14 +81,19 @@ public:
         return mHeight;
     }
 
-    ABENCH_INLINE uint32_t GetCurrentBuffer() const
+    ABENCH_INLINE VkFormat GetFormat() const
     {
-        return mCurrentBuffer;
+        return mFormat;
     }
 
-    ABENCH_INLINE VkImage GetVkImage(uint32_t i) const
+    ABENCH_INLINE VkImage GetImage() const
     {
-        return mImages[i].image;
+        return mImage;
+    }
+
+    ABENCH_INLINE VkImageLayout GetCurrentLayout() const
+    {
+        return mCurrentLayout;
     }
 
     ABENCH_INLINE const VkDescriptorSet GetDescriptorSet() const

@@ -6,11 +6,9 @@
 #include "Renderer/LowLevel/Translations.hpp"
 
 #include "Common/Logger.hpp"
-#include "Math/Matrix.hpp"
 #include "Math/Plane.hpp"
 
 #include "DescriptorLayoutManager.hpp"
-#include "ShaderMacroDefinitions.hpp"
 
 #include <glslang/Public/ShaderLang.h>
 
@@ -18,39 +16,15 @@
 namespace ABench {
 namespace Renderer {
 
-struct VertexShaderDynamicCBuffer
-{
-    Math::Matrix worldMatrix;
-};
-
-// TODO move to Camera class
-struct VertexShaderCBuffer
-{
-    Math::Matrix viewMatrix;
-    Math::Matrix projMatrix;
-};
-
-struct FragmentShaderLightCBuffer
-{
-    Math::Vector4 pos;
-    Math::Vector4 diffuse;
-};
-
-struct MaterialCBuffer
-{
-    Math::Vector4 color;
-};
-
 
 Renderer::Renderer()
-    : mRenderPass()
-    , mPipelineLayout()
+    : mInstance(nullptr)
+    , mDevice(nullptr)
+    , mBackbuffer()
     , mImageAcquiredSem()
     , mRenderFinishedSem()
     , mFrameFence()
-    , mVertexShaderSet(VK_NULL_HANDLE)
-    , mFragmentShaderSet(VK_NULL_HANDLE)
-    , mAllShaderSet(VK_NULL_HANDLE)
+    , mForwardPass()
 {
 }
 
@@ -97,6 +71,12 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (!ResourceManager::Instance().Init(mDevice))
         return false;
 
+    if (!GridFrustumsGenerator::Instance().Init(mDevice))
+        return false;
+
+    if (!DescriptorLayoutManager::Instance().Init(mDevice))
+        return false;
+
     BackbufferWindowDesc bbWindowDesc;
 #ifdef WIN32
     bbWindowDesc.hInstance = window.GetInstance();
@@ -118,137 +98,25 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (!mBackbuffer.Init(mDevice, bbDesc))
         return false;
 
-    if (!GridFrustumsGenerator::Instance().Init(mDevice))
-        return false;
-
-    TextureDesc depthTexDesc;
-    depthTexDesc.width = window.GetWidth();
-    depthTexDesc.height = window.GetHeight();
-    depthTexDesc.format = VK_FORMAT_D32_SFLOAT;
-    depthTexDesc.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-    if (!mDepthTexture.Init(mDevice, depthTexDesc))
-        return false;
-
-    if (!mRingBuffer.Init(mDevice, 1024*1024))
-        return false;
-
-    mRenderPass = Tools::CreateRenderPass(mDevice, bbDesc.requestedFormat, VK_FORMAT_D32_SFLOAT);
-    if (!mRenderPass)
-        return false;
-
-    FramebufferDesc fbDesc;
-    fbDesc.colorTex = &mBackbuffer;
-    fbDesc.depthTex = &mDepthTexture;
-    fbDesc.renderPass = mRenderPass;
-    if (!mFramebuffer.Init(mDevice, fbDesc))
-        return false;
-
-    VertexLayoutDesc vlDesc;
-
-    std::vector<VertexLayoutEntry> vlEntries;
-    vlEntries.emplace_back(VK_FORMAT_R32G32B32_SFLOAT, 0, 0, 12, false); // vertex position
-    vlEntries.emplace_back(VK_FORMAT_R32G32B32_SFLOAT, 0, 1, 32, false); // vertex normal
-    vlEntries.emplace_back(VK_FORMAT_R32G32_SFLOAT, 12, 1, 32, false); // vertex uv
-    vlEntries.emplace_back(VK_FORMAT_R32G32B32_SFLOAT, 20, 1, 32, false); // vertex tangent
-
-    vlDesc.entryCount = static_cast<uint32_t>(vlEntries.size());
-    vlDesc.entries = vlEntries.data();
-    if (!mVertexLayout.Init(vlDesc))
-        return false;
-
-    if (!DescriptorLayoutManager::Instance().Init(mDevice))
-        return false;
-
-    std::vector<VkDescriptorSetLayout> layouts;
-    layouts.push_back(DescriptorLayoutManager::Instance().GetVertexShaderLayout());
-    layouts.push_back(DescriptorLayoutManager::Instance().GetAllShaderLayout());
-    layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderDiffuseTextureLayout());
-    layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderNormalTextureLayout());
-    layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderMaskTextureLayout());
-    layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderLayout());
-    mPipelineLayout = Tools::CreatePipelineLayout(mDevice, layouts);
-    if (mPipelineLayout == VK_NULL_HANDLE)
-        return false;
-
-    // buffer-related set allocation
-    mVertexShaderSet = DescriptorAllocator::Instance().AllocateDescriptorSet(DescriptorLayoutManager::Instance().GetVertexShaderLayout());
-    if (mVertexShaderSet == VK_NULL_HANDLE)
-        return false;
-
-    mFragmentShaderSet = DescriptorAllocator::Instance().AllocateDescriptorSet(DescriptorLayoutManager::Instance().GetFragmentShaderLayout());
-    if (mFragmentShaderSet == VK_NULL_HANDLE)
-        return false;
-
-    mAllShaderSet = DescriptorAllocator::Instance().AllocateDescriptorSet(DescriptorLayoutManager::Instance().GetAllShaderLayout());
-    if (mAllShaderSet == VK_NULL_HANDLE)
-        return false;
-
-
-    GraphicsPipelineDesc pipeDesc;
-    pipeDesc.vertexLayout = &mVertexLayout;
-    pipeDesc.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    pipeDesc.renderPass = mRenderPass;
-    pipeDesc.pipelineLayout = mPipelineLayout;
-    pipeDesc.enableDepth = true;
-
-    MultiGraphicsPipelineDesc mgpDesc;
-    mgpDesc.vertexShader.path = "ForwardRenderer.vert";
-    mgpDesc.vertexShader.macros = {
-        { ShaderMacro::HAS_NORMAL, 1 },
-    };
-    mgpDesc.fragmentShader.path = "ForwardRenderer.frag";
-    mgpDesc.fragmentShader.macros = {
-        { ShaderMacro::HAS_TEXTURE, 1 },
-        { ShaderMacro::HAS_NORMAL, 1 },
-        { ShaderMacro::HAS_COLOR_MASK, 1 },
-    };
-    mgpDesc.pipelineDesc = pipeDesc;
-
-    if (!mPipeline.Init(mDevice, mgpDesc))
-        return false;
-
-
-    if (!mCommandBuffer.Init(mDevice, DeviceQueueType::GRAPHICS))
-        return false;
-
-
-    BufferDesc vsBufferDesc;
-    vsBufferDesc.data = nullptr;
-    vsBufferDesc.dataSize = sizeof(VertexShaderCBuffer);
-    vsBufferDesc.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-    vsBufferDesc.type = BufferType::Dynamic;
-    if (!mVertexShaderCBuffer.Init(mDevice, vsBufferDesc))
-        return false;
-
-    BufferDesc fsBufferDesc;
-    fsBufferDesc.data = nullptr;
-    fsBufferDesc.dataSize = sizeof(FragmentShaderLightCBuffer);
-    fsBufferDesc.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-    fsBufferDesc.type = BufferType::Dynamic;
-    if (!mAllShaderLightCBuffer.Init(mDevice, vsBufferDesc))
-        return false;
-
-    // Point vertex shader set bindings to our dynamic buffer
-    Tools::UpdateBufferDescriptorSet(mDevice, mVertexShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 0,
-                                     mRingBuffer.GetVkBuffer(), sizeof(VertexShaderDynamicCBuffer));
-    Tools::UpdateBufferDescriptorSet(mDevice, mVertexShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
-                                     mVertexShaderCBuffer.GetVkBuffer(), sizeof(VertexShaderCBuffer));
-    Tools::UpdateBufferDescriptorSet(mDevice, mFragmentShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 0,
-                                     mRingBuffer.GetVkBuffer(), sizeof(MaterialCBuffer));
-    Tools::UpdateBufferDescriptorSet(mDevice, mAllShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0,
-                                     mAllShaderLightCBuffer.GetVkBuffer(), sizeof(FragmentShaderLightCBuffer));
-
     // Synchronization primitives
     mImageAcquiredSem = Tools::CreateSem(mDevice);
-    if (mImageAcquiredSem == VK_NULL_HANDLE)
+    if (!mImageAcquiredSem)
         return false;
 
     mRenderFinishedSem = Tools::CreateSem(mDevice);
-    if (mRenderFinishedSem == VK_NULL_HANDLE)
+    if (!mRenderFinishedSem)
         return false;
 
-    mFrameFence = Tools::CreateFence(mDevice);
-    if (mFrameFence == VK_NULL_HANDLE)
+    mFrameFence = Tools::CreateFence(mDevice, true);
+    if (!mFrameFence)
+        return false;
+
+    // Rendering passes
+    ForwardPassDesc fpDesc;
+    fpDesc.width = mBackbuffer.GetWidth();
+    fpDesc.height = mBackbuffer.GetHeight();
+    fpDesc.outputFormat = mBackbuffer.GetFormat();
+    if (!mForwardPass.Init(mDevice, fpDesc))
         return false;
 
     return true;
@@ -256,24 +124,6 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
 
 void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
 {
-    // Update viewport
-    // TODO view could be pushed to dynamic buffer for optimization
-    VertexShaderCBuffer buf;
-    buf.viewMatrix = camera.GetView();
-    buf.projMatrix = camera.GetProjection();
-
-    FragmentShaderLightCBuffer lightBuf;
-    MaterialCBuffer materialBuf;
-
-    scene.ForEachLight([&lightBuf](const Scene::Object* o) -> bool {
-        // gather only first light's position for now
-        Scene::Light* l = dynamic_cast<Scene::Light*>(o->GetComponent());
-
-        lightBuf.pos = o->GetPosition();
-        lightBuf.diffuse = l->GetDiffuseIntensity();
-        return false;
-    });
-
     VkFence fences[] = { mFrameFence };
     VkResult result = vkWaitForFences(mDevice->GetDevice(), 1, fences, VK_TRUE, UINT64_MAX);
     if (result != VK_SUCCESS)
@@ -283,111 +133,13 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
     if (result != VK_SUCCESS)
         LOGW("Failed to reset frame fence: " << result << " (" << TranslateVkResultToString(result) << ")");
 
-    // updating buffers
-    mVertexShaderCBuffer.Write(&buf, sizeof(VertexShaderCBuffer));
-    mAllShaderLightCBuffer.Write(&lightBuf, sizeof(FragmentShaderLightCBuffer));
-
     // Rendering
     if (!mBackbuffer.AcquireNextImage(mImageAcquiredSem))
         LOGE("Failed to acquire next image for rendering");
 
-    {
-        mCommandBuffer.Begin();
+    mForwardPass.Draw(scene, camera, mImageAcquiredSem, mRenderFinishedSem, mFrameFence);
 
-        mCommandBuffer.SetViewport(0, 0, mBackbuffer.GetWidth(), mBackbuffer.GetHeight(), 0.0f, 1.0f);
-        mCommandBuffer.SetScissor(0, 0, mBackbuffer.GetWidth(), mBackbuffer.GetHeight());
-
-        float clearValue[] = {0.1f, 0.1f, 0.1f, 0.0f};
-        VkPipelineBindPoint bindPoint =  VK_PIPELINE_BIND_POINT_GRAPHICS;
-        mCommandBuffer.BeginRenderPass(mRenderPass, &mFramebuffer, ABENCH_CLEAR_ALL, clearValue, 1.0f);
-        mCommandBuffer.BindDescriptorSet(mAllShaderSet, bindPoint, 1, mPipelineLayout);
-
-        MultiGraphicsPipelineShaderMacros macros;
-        macros.vertexShader = {
-            { ShaderMacro::HAS_NORMAL, 0 },
-        };
-        macros.fragmentShader = {
-            { ShaderMacro::HAS_TEXTURE, 0 },
-            { ShaderMacro::HAS_NORMAL, 0 },
-            { ShaderMacro::HAS_COLOR_MASK, 0 },
-        };
-
-        scene.ForEachObject([&](const Scene::Object* o) -> bool {
-            if (o->GetComponent()->GetType() == Scene::ComponentType::Model)
-            {
-                // world matrix update
-                uint32_t offset = mRingBuffer.Write(&o->GetTransform(), sizeof(ABench::Math::Matrix));
-                mCommandBuffer.BindDescriptorSet(mVertexShaderSet, bindPoint, 0, mPipelineLayout, offset);
-
-                Scene::Model* model = dynamic_cast<Scene::Model*>(o->GetComponent());
-                model->ForEachMesh([&](Scene::Mesh* mesh) {
-                    macros.vertexShader[0].value = 0;
-                    macros.fragmentShader[0].value = 0;
-                    macros.fragmentShader[1].value = 0;
-                    macros.fragmentShader[2].value = 0;
-
-                    const Scene::Material* material = mesh->GetMaterial();
-                    if (material != nullptr)
-                    {
-                        // material data update
-                        materialBuf.color = material->GetColor();
-                        offset = mRingBuffer.Write(&materialBuf, sizeof(materialBuf));
-                        mCommandBuffer.BindDescriptorSet(mFragmentShaderSet, bindPoint, 5, mPipelineLayout, offset);
-
-                        if (material->GetDiffuseDescriptor() != VK_NULL_HANDLE)
-                        {
-                            macros.fragmentShader[0].value = 1;
-                            mCommandBuffer.BindDescriptorSet(material->GetDiffuseDescriptor(), bindPoint, 2, mPipelineLayout);
-                        }
-
-                        if (material->GetNormalDescriptor() != VK_NULL_HANDLE)
-                        {
-                            macros.vertexShader[0].value = 1;
-                            macros.fragmentShader[1].value = 1;
-                            mCommandBuffer.BindDescriptorSet(material->GetNormalDescriptor(), bindPoint, 3, mPipelineLayout);
-                        }
-
-                        if (material->GetMaskDescriptor() != VK_NULL_HANDLE)
-                        {
-                            macros.fragmentShader[2].value = 1;
-                            mCommandBuffer.BindDescriptorSet(material->GetMaskDescriptor(), bindPoint, 4, mPipelineLayout);
-                        }
-                    }
-
-                    mCommandBuffer.BindPipeline(mPipeline.GetGraphicsPipeline(macros), bindPoint);
-                    mCommandBuffer.BindVertexBuffer(mesh->GetVertexBuffer(), 0);
-                    mCommandBuffer.BindVertexBuffer(mesh->GetVertexParamsBuffer(), 1);
-
-                    if (mesh->ByIndices())
-                    {
-                        mCommandBuffer.BindIndexBuffer(mesh->GetIndexBuffer());
-                        mCommandBuffer.DrawIndexed(mesh->GetPointCount());
-                    }
-                    else
-                    {
-                        mCommandBuffer.Draw(mesh->GetPointCount());
-                    }
-                });
-            }
-
-            return true;
-        });
-
-        mCommandBuffer.EndRenderPass();
-
-        if (!mCommandBuffer.End())
-        {
-            LOGE("Failure during Command Buffer recording");
-            return;
-        }
-    }
-
-
-    mDevice->Execute(DeviceQueueType::GRAPHICS, &mCommandBuffer, mImageAcquiredSem, mRenderFinishedSem, mFrameFence);
-
-    mRingBuffer.MarkFinishedFrame();
-
-    if (!mBackbuffer.Present(mRenderFinishedSem))
+    if (!mBackbuffer.Present(mForwardPass.GetTargetTexture(), mRenderFinishedSem))
         LOGE("Error during image presentation");
 }
 
