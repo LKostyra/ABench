@@ -296,6 +296,7 @@ copy /B "$(SolutionDir)Deps\fbxsdk\lib\vs2015\$(PlatformTarget)\$(Configuration)
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebugMemory|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Renderer\HighLevel\DepthPrePass.cpp" />
     <ClCompile Include="Renderer\HighLevel\DescriptorLayoutManager.cpp" />
     <ClCompile Include="Renderer\HighLevel\ForwardPass.cpp" />
     <ClCompile Include="Renderer\HighLevel\GridFrustumsGenerator.cpp" />
@@ -367,6 +368,7 @@ copy /B "$(SolutionDir)Deps\fbxsdk\lib\vs2015\$(PlatformTarget)\$(Configuration)
     <ClInclude Include="Math\Vector.hpp" />
     <ClInclude Include="PCH.hpp" />
     <ClInclude Include="Prerequisites.hpp" />
+    <ClInclude Include="Renderer\HighLevel\DepthPrePass.hpp" />
     <ClInclude Include="Renderer\HighLevel\DescriptorLayoutManager.hpp" />
     <ClInclude Include="Renderer\HighLevel\ForwardPass.hpp" />
     <ClInclude Include="Renderer\HighLevel\GridFrustumsGenerator.hpp" />

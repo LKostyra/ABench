@@ -188,7 +188,6 @@ bool Pipeline::Init(const DevicePtr& device, const GraphicsPipelineDesc& desc)
     ZERO_MEMORY(colorBlendState);
     colorBlendState.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
     colorBlendState.logicOpEnable = VK_FALSE;
-    colorBlendState.attachmentCount = 1;
 
     VkPipelineColorBlendAttachmentState attachment;
     ZERO_MEMORY(attachment);
@@ -201,7 +200,16 @@ bool Pipeline::Init(const DevicePtr& device, const GraphicsPipelineDesc& desc)
     attachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
     attachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 
-    colorBlendState.pAttachments = &attachment;
+    if (desc.enableColor)
+    {
+        colorBlendState.attachmentCount = 1;
+        colorBlendState.pAttachments = &attachment;
+    }
+    else
+    {
+        colorBlendState.attachmentCount = 0;
+        colorBlendState.pAttachments = nullptr;
+    }
 
     // due to pDynamicStates, dynamic state must be built here
     std::vector<VkDynamicState> dynamicStates;

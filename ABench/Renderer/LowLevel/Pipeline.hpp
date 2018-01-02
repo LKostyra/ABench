@@ -26,6 +26,7 @@ struct GraphicsPipelineDesc
     VkPipeline basePipeline;
 
     bool enableDepth;
+    bool enableColor;
 
     GraphicsPipelineDesc()
         : vertexShader(nullptr)
@@ -40,6 +41,7 @@ struct GraphicsPipelineDesc
         , flags(0)
         , basePipeline(VK_NULL_HANDLE)
         , enableDepth(false)
+        , enableColor(false)
     {
     }
 };

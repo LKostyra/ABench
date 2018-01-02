@@ -62,8 +62,8 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     DescriptorAllocatorDesc daDesc;
     ZERO_MEMORY(daDesc);
     daDesc.limits[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER] = 1;
-    daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER] = 3;
-    daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC] = 2;
+    daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER] = 4;
+    daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC] = 3;
     daDesc.limits[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] = 1000;
     if (!DescriptorAllocator::Instance().Init(mDevice, daDesc))
         return false;
@@ -103,6 +103,10 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (!mImageAcquiredSem)
         return false;
 
+    mDepthFinishedSem = Tools::CreateSem(mDevice);
+    if (!mDepthFinishedSem)
+        return false;
+
     mRenderFinishedSem = Tools::CreateSem(mDevice);
     if (!mRenderFinishedSem)
         return false;
@@ -112,6 +116,12 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
         return false;
 
     // Rendering passes
+    DepthPrePassDesc dppDesc;
+    dppDesc.width = mBackbuffer.GetWidth();
+    dppDesc.height = mBackbuffer.GetHeight();
+    if (!mDepthPrePass.Init(mDevice, dppDesc))
+        return false;
+
     ForwardPassDesc fpDesc;
     fpDesc.width = mBackbuffer.GetWidth();
     fpDesc.height = mBackbuffer.GetHeight();
@@ -137,7 +147,8 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
     if (!mBackbuffer.AcquireNextImage(mImageAcquiredSem))
         LOGE("Failed to acquire next image for rendering");
 
-    mForwardPass.Draw(scene, camera, mImageAcquiredSem, mRenderFinishedSem, mFrameFence);
+    mDepthPrePass.Draw(scene, camera, mImageAcquiredSem, mDepthFinishedSem, VK_NULL_HANDLE);
+    mForwardPass.Draw(scene, camera, mDepthFinishedSem, mRenderFinishedSem, mFrameFence);
 
     if (!mBackbuffer.Present(mForwardPass.GetTargetTexture(), mRenderFinishedSem))
         LOGE("Error during image presentation");

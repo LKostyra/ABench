@@ -12,6 +12,7 @@
 #include "Scene/Scene.hpp"
 
 #include "GridFrustumsGenerator.hpp"
+#include "DepthPrePass.hpp"
 #include "ForwardPass.hpp"
 
 
@@ -25,9 +26,11 @@ class Renderer final
 
     Backbuffer mBackbuffer;
     VkRAII<VkSemaphore> mImageAcquiredSem;
+    VkRAII<VkSemaphore> mDepthFinishedSem;
     VkRAII<VkSemaphore> mRenderFinishedSem;
     VkRAII<VkFence> mFrameFence;
 
+    DepthPrePass mDepthPrePass;
     ForwardPass mForwardPass;
 
 public:

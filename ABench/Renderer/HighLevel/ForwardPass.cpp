@@ -157,6 +157,7 @@ bool ForwardPass::Init(const DevicePtr& device, const ForwardPassDesc& desc)
     pipeDesc.renderPass = mRenderPass;
     pipeDesc.pipelineLayout = mPipelineLayout;
     pipeDesc.enableDepth = true;
+    pipeDesc.enableColor = true;
 
     MultiGraphicsPipelineDesc mgpDesc;
     mgpDesc.vertexShader.path = "ForwardPass.vert";

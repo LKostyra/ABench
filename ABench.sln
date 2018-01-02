@@ -15,6 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Data", "Data", "{10964C43-D
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shaders", "Shaders", "{F41931CC-35C5-4C74-A4EC-606A4BA87036}"
 	ProjectSection(SolutionItems) = preProject
+		Data\Shaders\DepthPrePass.vert = Data\Shaders\DepthPrePass.vert
 		Data\Shaders\ForwardPass.frag = Data\Shaders\ForwardPass.frag
 		Data\Shaders\ForwardPass.vert = Data\Shaders\ForwardPass.vert
 		Data\Shaders\GridFrustumsGenerator.comp = Data\Shaders\GridFrustumsGenerator.comp
