@@ -94,89 +94,77 @@ VkRAII<VkPipelineLayout> Tools::CreatePipelineLayout(const DevicePtr& device, co
     });
 }
 
-VkRAII<VkRenderPass> Tools::CreateRenderPass(const DevicePtr& device, VkFormat colorFormat, VkFormat depthFormat)
+VkAttachmentDescription Tools::CreateAttachmentDescription(VkFormat format, VkAttachmentLoadOp loadOp, VkAttachmentStoreOp storeOp,
+                                                           VkImageLayout initialLayout, VkImageLayout finalLayout)
 {
-    VkRenderPass rp = VK_NULL_HANDLE;
+    VkAttachmentDescription att;
 
-    // TODO multiple color attachments
-    std::array<VkAttachmentDescription, 2> atts;
-    uint32_t attCount = 0;
+    ZERO_MEMORY(att);
+    att.format = format;
+    att.samples = VK_SAMPLE_COUNT_1_BIT;
+    att.loadOp = loadOp;
+    att.storeOp = storeOp;
+    att.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    att.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    att.initialLayout = initialLayout;
+    att.finalLayout = finalLayout;
 
-    VkAttachmentReference colorRef;
-    if (colorFormat != VK_FORMAT_UNDEFINED)
-    {
-        ZERO_MEMORY(atts[attCount]);
-        atts[attCount].format = colorFormat;
-        atts[attCount].samples = VK_SAMPLE_COUNT_1_BIT;
-        atts[attCount].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        atts[attCount].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        atts[attCount].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        atts[attCount].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        atts[attCount].initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        atts[attCount].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        attCount++;
+    return att;
+}
 
-        ZERO_MEMORY(colorRef);
-        colorRef.attachment = 0;
-        colorRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    }
+VkAttachmentReference Tools::CreateAttachmentReference(uint32_t attachment, VkImageLayout layout)
+{
+    VkAttachmentReference ref;
 
-    VkAttachmentReference depthRef;
-    if (depthFormat != VK_FORMAT_UNDEFINED)
-    {
-        ZERO_MEMORY(atts[attCount]);
-        atts[attCount].format = depthFormat;
-        atts[attCount].samples = VK_SAMPLE_COUNT_1_BIT;
-        atts[attCount].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        atts[attCount].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        atts[attCount].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        atts[attCount].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        atts[attCount].initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-        atts[attCount].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-        attCount++;
+    ZERO_MEMORY(ref);
+    ref.attachment = attachment;
+    ref.layout = layout;
 
-        depthRef.attachment = 1;
-        depthRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-    }
+    return ref;
+}
 
-    // TODO multiple subpasses
+VkSubpassDescription Tools::CreateSubpass(const std::vector<VkAttachmentReference>& colorAttRefs, VkAttachmentReference* depthAttRef)
+{
     VkSubpassDescription subpass;
+
     ZERO_MEMORY(subpass);
     subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    if (colorFormat != VK_FORMAT_UNDEFINED)
-    {
-        subpass.colorAttachmentCount = 1;
-        subpass.pColorAttachments = &colorRef;
-    }
-    if (depthFormat != VK_FORMAT_UNDEFINED)
-    {
-        subpass.pDepthStencilAttachment = &depthRef;
-    }
+    subpass.colorAttachmentCount = static_cast<uint32_t>(colorAttRefs.size());
+    subpass.pColorAttachments = colorAttRefs.data();
+    subpass.pDepthStencilAttachment = depthAttRef;
 
-    std::array<VkSubpassDependency, 2> subpassDeps;
-    subpassDeps[0].srcSubpass = VK_SUBPASS_EXTERNAL;
-    subpassDeps[0].dstSubpass = 0;
-    subpassDeps[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-    subpassDeps[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    subpassDeps[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-    subpassDeps[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    subpassDeps[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+    return subpass;
+}
 
-    subpassDeps[1].srcSubpass = 0;
-    subpassDeps[1].dstSubpass = VK_SUBPASS_EXTERNAL;
-    subpassDeps[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    subpassDeps[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-    subpassDeps[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    subpassDeps[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-    subpassDeps[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+VkSubpassDependency Tools::CreateSubpassDependency(uint32_t srcSubpass, uint32_t dstSubpass, VkPipelineStageFlags srcStage,
+                                                   VkPipelineStageFlags dstStage, VkAccessFlags srcAccess, VkAccessFlags dstAccess)
+{
+    VkSubpassDependency dep;
+
+    ZERO_MEMORY(dep);
+    dep.srcSubpass = srcSubpass;
+    dep.dstSubpass = dstSubpass;
+    dep.srcStageMask = srcStage;
+    dep.dstStageMask = dstStage;
+    dep.srcAccessMask = srcAccess;
+    dep.dstAccessMask = dstAccess;
+    dep.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+    return dep;
+}
+
+VkRAII<VkRenderPass> Tools::CreateRenderPass(const DevicePtr& device, const std::vector<VkAttachmentDescription>& attachments,
+                                             const std::vector<VkSubpassDescription>& subpasses, const std::vector<VkSubpassDependency>& subpassDeps)
+{
+    VkRenderPass rp = VK_NULL_HANDLE;
 
     VkRenderPassCreateInfo rpInfo;
     ZERO_MEMORY(rpInfo);
     rpInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    rpInfo.attachmentCount = attCount;
-    rpInfo.pAttachments = atts.data();
-    rpInfo.subpassCount = 1;
-    rpInfo.pSubpasses = &subpass;
+    rpInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+    rpInfo.pAttachments = attachments.data();
+    rpInfo.subpassCount = static_cast<uint32_t>(subpasses.size());
+    rpInfo.pSubpasses = subpasses.data();
     rpInfo.dependencyCount = static_cast<uint32_t>(subpassDeps.size());
     rpInfo.pDependencies = subpassDeps.data();
 

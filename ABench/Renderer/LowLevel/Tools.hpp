@@ -60,8 +60,14 @@ public:
     static VkRAII<VkPipelineLayout> CreatePipelineLayout(const DevicePtr& device, const std::vector<VkDescriptorSetLayout>& setLayouts);
 
     // VkRenderPass creation
-    static VkRAII<VkRenderPass> CreateRenderPass(const DevicePtr& device, VkFormat colorFormat, VkFormat depthFormat);
-
+    static VkAttachmentDescription CreateAttachmentDescription(VkFormat format, VkAttachmentLoadOp loadOp, VkAttachmentStoreOp storeOp,
+                                                               VkImageLayout initialLayout, VkImageLayout finalLayout);
+    static VkAttachmentReference CreateAttachmentReference(uint32_t attachment, VkImageLayout layout);
+    static VkSubpassDescription CreateSubpass(const std::vector<VkAttachmentReference>& colorAttRefs, VkAttachmentReference* depthAttRef);
+    static VkSubpassDependency CreateSubpassDependency(uint32_t srcSubpass, uint32_t dstSubpass, VkPipelineStageFlags srcStage,
+                                                       VkPipelineStageFlags dstStage, VkAccessFlags srcAccess, VkAccessFlags dstAccess);
+    static VkRAII<VkRenderPass> CreateRenderPass(const DevicePtr& device, const std::vector<VkAttachmentDescription>& attachments,
+                                                 const std::vector<VkSubpassDescription>& subpasses, const std::vector<VkSubpassDependency>& subpassDeps);
     // VkSampler creation
     static VkRAII<VkSampler> CreateSampler(const DevicePtr& device);
 

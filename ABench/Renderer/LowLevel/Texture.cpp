@@ -32,6 +32,8 @@ Texture::Texture()
 
 Texture::~Texture()
 {
+    LOGM("Destroying Texture (image " << std::hex << mImage << " view " << mImageView << " res " << std::dec << mWidth << "x" << mHeight << ")");
+
     if (mImageMemory != VK_NULL_HANDLE)
         vkFreeMemory(mDevice->GetDevice(), mImageMemory, nullptr);
     if (mImageView != VK_NULL_HANDLE)
@@ -175,6 +177,7 @@ bool Texture::Init(const DevicePtr& device, const TextureDesc& desc)
         Tools::UpdateTextureDescriptorSet(mDevice, mImageDescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 0, mImageView);
     }
 
+    LOGM("Created Texture (image " << std::hex << mImage << " view " << mImageView << " res " << std::dec << mWidth << "x" << mHeight << ")");
     return true;
 }
 

@@ -35,7 +35,7 @@ void Log(LogLevel level, const std::stringstream& msg);
 #define LOGD(msg) do { } while(0)
 #endif
 
-#ifdef ABENCH_PRINT_MEMORY
+#ifdef ABENCH_DEBUG_MEMORY
 #define LOGM(msg) LOG(ABench::Logger::LogLevel::MEMORY, msg)
 #else
 #define LOGM(msg) do { } while(0)

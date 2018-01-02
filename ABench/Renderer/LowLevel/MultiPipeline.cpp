@@ -113,9 +113,9 @@ bool MultiPipeline::Init(const DevicePtr& device, const MultiGraphicsPipelineDes
 
     mGraphicsPipelines.clear();
 
-    if (desc.vertexShader.path.empty() || desc.fragmentShader.path.empty())
+    if (desc.vertexShader.path.empty())
     {
-        LOGE("At least Vertex and Fragment shaders are required to construct a Pipeline");
+        LOGE("At least Vertex Shader is required to construct a Pipeline");
         return false;
     }
 
@@ -152,10 +152,13 @@ bool MultiPipeline::Init(const DevicePtr& device, const MultiGraphicsPipelineDes
         }
     }
 
-    if (!GenerateShaderModules(desc.fragmentShader, ShaderType::FRAGMENT, &mFragmentShaders))
+    if (!desc.fragmentShader.path.empty())
     {
-        LOGE("Failed to generate fragment shader modules for multipipeline");
-        return false;
+        if (!GenerateShaderModules(desc.fragmentShader, ShaderType::FRAGMENT, &mFragmentShaders))
+        {
+            LOGE("Failed to generate fragment shader modules for multipipeline");
+            return false;
+        }
     }
 
     ShaderMacros macros;

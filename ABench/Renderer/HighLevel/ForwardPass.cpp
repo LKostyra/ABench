@@ -16,7 +16,6 @@ struct VertexShaderDynamicCBuffer
     ABench::Math::Matrix worldMatrix;
 };
 
-// TODO move to Camera class
 struct VertexShaderCBuffer
 {
     ABench::Math::Matrix viewMatrix;
@@ -73,7 +72,37 @@ bool ForwardPass::Init(const DevicePtr& device, const ForwardPassDesc& desc)
     if (!mRingBuffer.Init(mDevice, 1024*1024)) // 1M ring buffer should be enough
         return false;
 
-    mRenderPass = Tools::CreateRenderPass(mDevice, desc.outputFormat, VK_FORMAT_D32_SFLOAT);
+    std::vector<VkAttachmentDescription> attachments;
+    attachments.push_back(Tools::CreateAttachmentDescription(
+        desc.outputFormat, VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_STORE,
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+    ));
+    attachments.push_back(Tools::CreateAttachmentDescription(
+        VK_FORMAT_D32_SFLOAT, VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_DONT_CARE,
+        VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+    ));
+
+    std::vector<VkAttachmentReference> colorAttRefs;
+    colorAttRefs.push_back(Tools::CreateAttachmentReference(0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
+
+    VkAttachmentReference depthAttRef = Tools::CreateAttachmentReference(1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+
+    std::vector<VkSubpassDescription> subpasses;
+    subpasses.push_back(Tools::CreateSubpass(colorAttRefs, &depthAttRef));
+
+    std::vector<VkSubpassDependency> subpassDeps;
+    subpassDeps.push_back(Tools::CreateSubpassDependency(
+        VK_SUBPASS_EXTERNAL, 0,
+        VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        VK_ACCESS_MEMORY_READ_BIT, VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
+    ));
+    subpassDeps.push_back(Tools::CreateSubpassDependency(
+        0, VK_SUBPASS_EXTERNAL,
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+        VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_MEMORY_READ_BIT
+    ));
+
+    mRenderPass = Tools::CreateRenderPass(mDevice, attachments, subpasses, subpassDeps);
     if (!mRenderPass)
         return false;
 

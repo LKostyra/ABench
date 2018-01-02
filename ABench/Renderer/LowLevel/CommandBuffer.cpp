@@ -85,8 +85,11 @@ void CommandBuffer::BeginRenderPass(VkRenderPass rp, Framebuffer* fb, ClearType 
     }
 
     // Transition Framebuffer's texture to COLOR_ATTACHMENT layout
-    fb->mTexturePtr->Transition(mCommandBuffer, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-    fb->mDepthTexturePtr->Transition(mCommandBuffer, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+    if (fb->mTexturePtr)
+        fb->mTexturePtr->Transition(mCommandBuffer, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+    if (fb->mDepthTexturePtr)
+        fb->mDepthTexturePtr->Transition(mCommandBuffer, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
     VkRenderPassBeginInfo rpInfo;
     ZERO_MEMORY(rpInfo);
@@ -291,7 +294,11 @@ void CommandBuffer::EndRenderPass()
     vkCmdEndRenderPass(mCommandBuffer);
 
     // revert texture to its default layout
-    mCurrentFramebuffer->mTexturePtr->Transition(mCommandBuffer);
+    if (mCurrentFramebuffer->mTexturePtr)
+        mCurrentFramebuffer->mTexturePtr->Transition(mCommandBuffer);
+    if (mCurrentFramebuffer->mDepthTexturePtr)
+        mCurrentFramebuffer->mDepthTexturePtr->Transition(mCommandBuffer);
+
     mCurrentFramebuffer = nullptr;
 }
 
