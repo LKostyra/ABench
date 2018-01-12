@@ -296,8 +296,8 @@ Matrix CreateRHLookAtMatrix(const Vector4& pos, const Vector4& dir, const Vector
 Matrix CreateRHProjectionMatrix(const float fov, const float aspectRatio,
                                 const float nearDist, const float farDist)
 {
-    float halfFovRad = (MATH_PIF/180.0f) * fov * 0.5f;
-    float yScale = cosf(halfFovRad) / sinf(halfFovRad); // aka. ctg(halfFov)
+    float halfFovRad = MATH_DEG_TO_RAD(fov * 0.5f);
+    float yScale = 1.0f / tanf(halfFovRad); // aka. ctg(halfFov)
     float xScale = yScale / aspectRatio;
 
     float distDiff = nearDist - farDist;

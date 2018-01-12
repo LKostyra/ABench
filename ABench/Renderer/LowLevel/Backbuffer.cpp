@@ -18,8 +18,8 @@ Backbuffer::Backbuffer()
     , mPresentQueue(VK_NULL_HANDLE)
     , mColorSpace(VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
     , mPresentMode(VK_PRESENT_MODE_FIFO_KHR)
-    , mBufferCount(0)
     , mSwapchain(VK_NULL_HANDLE)
+    , mBufferCount(0)
 {
 }
 

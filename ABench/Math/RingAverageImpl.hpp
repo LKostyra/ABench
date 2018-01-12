@@ -5,7 +5,8 @@ namespace Math {
 
 template <typename V, size_t N>
 RingAverage<V,N>::RingAverage()
-    : mCurrentValue(0)
+    : mValues{0}
+    , mCurrentValue(0)
     , mCurrentSize(0)
 {
 }

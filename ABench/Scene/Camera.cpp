@@ -28,7 +28,20 @@ bool Camera::Init(const CameraDesc& desc)
     genDesc.viewportWidth = desc.windowWidth;
     genDesc.viewportHeight = desc.windowHeight;
     mGridFrustums = Renderer::GridFrustumsGenerator::Instance().Generate(genDesc);
-    return (static_cast<bool>(mGridFrustums));
+    if (!mGridFrustums)
+        return false;
+
+    Math::FrustumDesc fdesc;
+    fdesc.pos = desc.view.pos;
+    fdesc.at = desc.view.at;
+    fdesc.up = desc.view.up;
+    fdesc.fov = desc.fov;
+    fdesc.ratio = aspect;
+    fdesc.nearZ = desc.nearZ;
+    fdesc.farZ = desc.farZ;
+    mFrustum.Init(fdesc);
+
+    return true;
 }
 
 void Camera::Update(const CameraUpdateDesc& desc)
@@ -37,6 +50,7 @@ void Camera::Update(const CameraUpdateDesc& desc)
     mPosition = desc.pos;
     mAtPosition = desc.at;
     mUpVector = desc.up;
+    mFrustum.Refresh(desc.pos, desc.at, desc.up);
 }
 
 } // namespace Scene

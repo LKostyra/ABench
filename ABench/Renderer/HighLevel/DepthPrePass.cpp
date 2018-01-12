@@ -168,13 +168,18 @@ void DepthPrePass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, 
 
         MultiGraphicsPipelineShaderMacros emptyMacros;
         scene.ForEachObject([&](const Scene::Object* o) -> bool {
+            if (!o->ToRender())
+                return true;
+
             if (o->GetComponent()->GetType() == Scene::ComponentType::Model)
             {
+                Scene::Model* model = dynamic_cast<Scene::Model*>(o->GetComponent());
+
+
                 // world matrix update
                 uint32_t offset = mRingBuffer.Write(&o->GetTransform(), sizeof(ABench::Math::Matrix));
                 mCommandBuffer.BindDescriptorSet(mVertexShaderSet, bindPoint, 0, mPipelineLayout, offset);
 
-                Scene::Model* model = dynamic_cast<Scene::Model*>(o->GetComponent());
                 model->ForEachMesh([&](Scene::Mesh* mesh) {
                     mCommandBuffer.BindPipeline(mPipeline.GetGraphicsPipeline(emptyMacros), bindPoint);
                     mCommandBuffer.BindVertexBuffer(mesh->GetVertexBuffer(), 0);

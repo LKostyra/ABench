@@ -142,14 +142,14 @@ int main()
     }
 
     ABench::Scene::CameraDesc desc;
-    desc.view.pos = ABench::Math::Vector4(0.0f, 0.0f, 2.0f, 1.0f);
-    desc.view.at = ABench::Math::Vector4(0.0f, 0.0f, 1.0f, 1.0f);
+    desc.view.pos = ABench::Math::Vector4(0.0f, 1.0f,-2.0f, 1.0f);
+    desc.view.at = ABench::Math::Vector4(0.0f, 1.0f, 1.0f, 1.0f);
     desc.view.up = ABench::Math::Vector4(0.0f,-1.0f, 0.0f, 0.0f); // to comply with Vulkan's coord system
     desc.fov = 60.0f;
     desc.windowWidth = window.GetWidth();
     desc.windowHeight = window.GetHeight();
-    desc.nearZ = 0.1f;
-    desc.farZ = 2000.0f;
+    desc.nearZ = 1.0f;
+    desc.farZ = 500.0f;
     window.GetCamera().Init(desc);
 
     ABench::Scene::Scene scene;

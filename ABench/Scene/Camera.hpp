@@ -2,6 +2,7 @@
 
 #include "Math/Vector.hpp"
 #include "Math/Matrix.hpp"
+#include "Math/Frustum.hpp"
 #include "Common/Common.hpp"
 #include "Renderer/HighLevel/ResourceManager.hpp"
 
@@ -42,6 +43,7 @@ class Camera final
     Math::Matrix mView;
     Math::Matrix mProjection;
 
+    Math::Frustum mFrustum;
     Renderer::BufferPtr mGridFrustums;
 
 public:
@@ -79,6 +81,11 @@ public:
     ABENCH_INLINE const Renderer::Buffer* GetGridFrustums() const
     {
         return mGridFrustums.get();
+    }
+
+    ABENCH_INLINE bool Intersects(const Math::AABB& aabb) const
+    {
+        return mFrustum.Intersects(aabb);
     }
 };
 

@@ -134,6 +134,24 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
 
 void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
 {
+    // Perform view frustum culling for next scene
+    scene.ForEachObject([&](const Scene::Object* o) -> bool {
+        if (o->GetComponent()->GetType() == Scene::ComponentType::Model)
+        {
+            Scene::Model* model = dynamic_cast<Scene::Model*>(o->GetComponent());
+
+            // FIXME below assumption is incorrect - Transform should be used to
+            // rotate model's AABB and then it should be re-aligned to axes
+            o->SetToRender(camera.Intersects(Math::AABB(
+                o->GetTransform() * model->GetAABB()[Math::AABB::AABBVert::MIN],
+                o->GetTransform() * model->GetAABB()[Math::AABB::AABBVert::MAX]
+            )));
+        }
+
+        return true;
+    });
+
+    // Wait for previous frame
     VkFence fences[] = { mFrameFence };
     VkResult result = vkWaitForFences(mDevice->GetDevice(), 1, fences, VK_TRUE, UINT64_MAX);
     if (result != VK_SUCCESS)

@@ -139,7 +139,7 @@ bool Mesh::InitFromFBX(FbxMesh* mesh, int materialIndex)
     for (int i = 0; i < mesh->GetPolygonCount(); ++i)
     {
         if (matMapping == FbxLayerElement::EMappingMode::eAllSame ||
-            (matMapping == FbxLayerElement::EMappingMode::eByPolygon && matElement->GetIndexArray()[i] == materialIndex))
+           (matMapping == FbxLayerElement::EMappingMode::eByPolygon && matElement->GetIndexArray()[i] == materialIndex))
         {
             for (int j = 0; j < mesh->GetPolygonSize(i); ++j)
             {

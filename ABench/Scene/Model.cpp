@@ -41,6 +41,27 @@ bool Model::Init(const ModelDesc& modelDesc)
         m.SetMaterial(modelDesc.materials[i]);
     }
 
+    if (modelDesc.mesh)
+    {
+        modelDesc.mesh->ComputeBBox();
+        Math::Vector4 minVert(static_cast<float>(modelDesc.mesh->BBoxMin.Get()[0]),
+                              static_cast<float>(modelDesc.mesh->BBoxMin.Get()[1]),
+                              static_cast<float>(modelDesc.mesh->BBoxMin.Get()[2]),
+                              1.0f);
+        Math::Vector4 maxVert(static_cast<float>(modelDesc.mesh->BBoxMax.Get()[0]),
+                              static_cast<float>(modelDesc.mesh->BBoxMax.Get()[1]),
+                              static_cast<float>(modelDesc.mesh->BBoxMax.Get()[2]),
+                              1.0f);
+        mAABB = Math::AABB(minVert, maxVert);
+    }
+    else
+    {
+        mAABB = Math::AABB(
+            Math::Vector4(-0.5f, -0.5f, -0.5f, 1.0f),
+            Math::Vector4(0.5f, 0.5f, 0.5f, 1.0f)
+        );
+    }
+
     return true;
 }
 

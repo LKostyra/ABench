@@ -204,10 +204,9 @@ Vector3& Vector3::operator^(float value)
 }
 
 // Products
-float Vector3::Dot(const Vector3& other)
+float Vector3::Dot(const Vector3& other) const
 {
-    Vector3 tmp(*this);
-    tmp = tmp * other;
+    Vector3 tmp = *this * other;
 
     float result = 0;
     for (auto i : tmp.f)
@@ -472,7 +471,7 @@ Vector4& Vector4::operator^(float value)
 }
 
 // Products
-float Vector4::Dot(const Vector4& other)
+float Vector4::Dot(const Vector4& other) const
 {
     Vector4 tmp(*this);
     tmp = tmp * other;

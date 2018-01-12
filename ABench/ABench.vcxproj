@@ -262,6 +262,8 @@ copy /B "$(SolutionDir)Deps\fbxsdk\lib\vs2015\$(PlatformTarget)\$(Configuration)
     <ClCompile Include="Common\Win\Timer.cpp" />
     <ClCompile Include="Common\Win\Window.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Math\AABB.cpp" />
+    <ClCompile Include="Math\Frustum.cpp" />
     <ClCompile Include="Math\Interpolation\CubicInterpolator.cpp" />
     <ClCompile Include="Math\Interpolation\Interpolator.cpp" />
     <ClCompile Include="Math\Interpolation\LinearInterpolator.cpp" />
@@ -274,10 +276,14 @@ copy /B "$(SolutionDir)Deps\fbxsdk\lib\vs2015\$(PlatformTarget)\$(Configuration)
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
     </ClCompile>
     <ClInclude Include="Common\Traits.hpp" />
+    <ClInclude Include="Math\AABB.hpp" />
+    <ClInclude Include="Math\Frustum.hpp" />
     <ClInclude Include="Math\Interpolation\CubicInterpolator.hpp" />
     <ClInclude Include="Math\Interpolation\Interpolator.hpp" />
     <ClInclude Include="Math\Interpolation\LinearInterpolator.hpp" />
     <ClInclude Include="Math\Plane.hpp" />
+    <ClInclude Include="Math\RingAverage.hpp" />
+    <ClInclude Include="Math\RingAverageImpl.hpp" />
     <ClInclude Include="Math\SortImpl.hpp" />
     <ClCompile Include="Math\Plane.cpp" />
     <ClCompile Include="Math\Vector.cpp">

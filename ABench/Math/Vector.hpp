@@ -62,7 +62,7 @@ public:
     Vector3& operator^(float value);
 
     // Products
-    float Dot(const Vector3& other);
+    float Dot(const Vector3& other) const;
     Vector3 Cross(const Vector3& other) const;
 
     // Comparison
@@ -130,7 +130,7 @@ public:
     Vector4& operator^(float value);
 
     // Products
-    float Dot(const Vector4& other);
+    float Dot(const Vector4& other) const;
     Vector4 Cross(const Vector4& other) const;
 
     // Comparison

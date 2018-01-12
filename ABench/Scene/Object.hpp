@@ -15,6 +15,7 @@ class Object final
     Math::Vector4 mPosition;
     Math::Vector4 mScale;
     Component* mComponent;
+    mutable bool mToRender;
 
     ABENCH_INLINE void UpdateTransform()
     {
@@ -52,6 +53,11 @@ public:
         UpdateTransform();
     }
 
+    ABENCH_INLINE void SetToRender(bool toRender) const
+    {
+        mToRender = toRender;
+    }
+
     ABENCH_INLINE Component* GetComponent() const
     {
         return mComponent;
@@ -65,6 +71,11 @@ public:
     ABENCH_INLINE const Math::Matrix& GetTransform() const
     {
         return mTransform;
+    }
+
+    ABENCH_INLINE bool ToRender() const
+    {
+        return mToRender;
     }
 };
 

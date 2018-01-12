@@ -5,6 +5,8 @@
 #include "Mesh.hpp"
 #include "Material.hpp"
 
+#include "Math/AABB.hpp"
+
 
 namespace ABench {
 namespace Scene {
@@ -27,6 +29,7 @@ class Model final: public Component
 {
     std::string mName;
     std::vector<Mesh> mMeshes;
+    Math::AABB mAABB;
 
 public:
     Model(const std::string& name);
@@ -43,6 +46,11 @@ public:
     ABENCH_INLINE std::string GetName() const
     {
         return mName;
+    }
+
+    ABENCH_INLINE const Math::AABB& GetAABB() const
+    {
+        return mAABB;
     }
 
     ComponentType GetType() const override

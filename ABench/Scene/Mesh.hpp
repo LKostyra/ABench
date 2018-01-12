@@ -4,6 +4,7 @@
 #include "Component.hpp"
 #include "Material.hpp"
 
+#include "Math/AABB.hpp"
 #include "Renderer/HighLevel/ResourceManager.hpp"
 
 

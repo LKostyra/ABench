@@ -5,9 +5,11 @@ namespace ABench {
 namespace Scene {
 
 Object::Object()
-    : mPosition(0.0f)
+    : mTransform()
+    , mPosition(0.0f)
     , mScale(1.0f)
     , mComponent(nullptr)
+    , mToRender(false)
 {
 }
 
