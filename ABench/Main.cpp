@@ -90,8 +90,8 @@ class ABenchWindow: public ABench::Common::Window
 
         if (IsMouseKeyPressed(0))
         {
-            mAngleX += deltaX * 0.005f;
-            mAngleY += deltaY * 0.005f;
+            mAngleX -= deltaX * 0.005f;
+            mAngleY -= deltaY * 0.005f;
         }
     }
 
@@ -148,7 +148,7 @@ int main()
     desc.fov = 60.0f;
     desc.windowWidth = window.GetWidth();
     desc.windowHeight = window.GetHeight();
-    desc.nearZ = 1.0f;
+    desc.nearZ = 0.2f;
     desc.farZ = 500.0f;
     window.GetCamera().Init(desc);
 
@@ -201,7 +201,7 @@ int main()
 
     ABench::Scene::Object* obj = scene.CreateObject();
     obj->SetComponent(model1);
-    obj->SetPosition(0.0f, 1.0f, 0.0f);
+    obj->SetPosition(-2.0f, 1.0f, 0.0f);
 
     obj = scene.CreateObject();
     obj->SetComponent(model2);

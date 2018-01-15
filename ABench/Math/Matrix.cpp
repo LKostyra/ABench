@@ -270,11 +270,17 @@ Vector4 operator*(const Matrix& a, const Vector4& b)
 
     for (int i = 0; i < 4; ++i)
         for (int j = 0; j < 4; ++j)
-            result[i] += a[i * 4 + j] * b[j];
+            result[i] += a[j * 4 + i] * b[j];
 
     return Vector4(result[0], result[1], result[2], result[3]);
 }
 
+AABB operator*(const Matrix& a, const AABB& b)
+{
+    AABB result(a * b[AABB::AABBVert::MIN], a * b[AABB::AABBVert::MAX]);
+    result.Realign();
+    return result;
+}
 
 Matrix CreateRHLookAtMatrix(const Vector4& pos, const Vector4& dir, const Vector4& up)
 {

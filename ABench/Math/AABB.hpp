@@ -24,17 +24,9 @@ private:
 
 public:
     AABB();
-    AABB(Vector4 min, Vector4 max);
+    AABB(const Vector4& min, const Vector4& max);
 
-    ABENCH_INLINE void SetVert(const Vector4& v, AABBVert type)
-    {
-        mVert[type] = v;
-    }
-
-    ABENCH_INLINE const Vector4& GetVert(AABBVert v) const
-    {
-        return mVert[v];
-    }
+    void Realign();
 
     ABENCH_INLINE const Vector4& operator[](AABBVert v) const
     {

@@ -139,13 +139,7 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
         if (o->GetComponent()->GetType() == Scene::ComponentType::Model)
         {
             Scene::Model* model = dynamic_cast<Scene::Model*>(o->GetComponent());
-
-            // FIXME below assumption is incorrect - Transform should be used to
-            // rotate model's AABB and then it should be re-aligned to axes
-            o->SetToRender(camera.Intersects(Math::AABB(
-                o->GetTransform() * model->GetAABB()[Math::AABB::AABBVert::MIN],
-                o->GetTransform() * model->GetAABB()[Math::AABB::AABBVert::MAX]
-            )));
+            o->SetToRender(camera.Intersects(o->GetTransform() * model->GetAABB()));
         }
 
         return true;

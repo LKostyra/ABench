@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Vector.hpp"
+#include "AABB.hpp"
 
 namespace ABench {
 namespace Math {
@@ -67,6 +68,7 @@ public:
 
     // Friendship
     friend Vector4 operator*(const Matrix& a, const Vector4& b);
+    friend AABB operator*(const Matrix& a, const AABB& b);
     friend Matrix CreateTranslationMatrix(const Vector4& translation);
     friend Matrix CreateScaleMatrix(const float scale);
     friend Matrix CreateScaleMatrix(const float scaleX, const float scaleY, const float scaleZ);
@@ -76,9 +78,9 @@ public:
 
 // External operators (cross-type)
 Vector4 operator*(const Matrix& a, const Vector4& b);
+AABB operator*(const Matrix& a, const AABB& b);
 
 // Matrix creators
-// TODO create LH versions
 Matrix CreateRHLookAtMatrix(const Vector4& pos, const Vector4& dir, const Vector4& up);
 Matrix CreateRHProjectionMatrix(const float fov, const float aspectRatio,
                                 const float nearDist, const float farDist);
