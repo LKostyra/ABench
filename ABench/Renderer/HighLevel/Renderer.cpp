@@ -111,6 +111,10 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (!mRenderFinishedSem)
         return false;
 
+    mDepthFence = Tools::CreateFence(mDevice, true);
+    if (!mDepthFence)
+        return false;
+
     mFrameFence = Tools::CreateFence(mDevice, true);
     if (!mFrameFence)
         return false;
@@ -126,6 +130,7 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     fpDesc.width = mBackbuffer.GetWidth();
     fpDesc.height = mBackbuffer.GetHeight();
     fpDesc.outputFormat = mBackbuffer.GetFormat();
+    fpDesc.depthTexture = mDepthPrePass.GetDepthTexture();
     if (!mForwardPass.Init(mDevice, fpDesc))
         return false;
 
@@ -156,11 +161,14 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
         LOGW("Failed to reset frame fence: " << result << " (" << TranslateVkResultToString(result) << ")");
 
     // Rendering
+    mDepthPrePass.Draw(scene, camera, mDepthFinishedSem, VK_NULL_HANDLE);
+
     if (!mBackbuffer.AcquireNextImage(mImageAcquiredSem))
         LOGE("Failed to acquire next image for rendering");
 
-    mDepthPrePass.Draw(scene, camera, mImageAcquiredSem, mDepthFinishedSem, VK_NULL_HANDLE);
-    mForwardPass.Draw(scene, camera, mDepthFinishedSem, mRenderFinishedSem, mFrameFence);
+    VkPipelineStageFlags waitFlags[] = { VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+    VkSemaphore waitSems[] = { mDepthFinishedSem, mImageAcquiredSem };
+    mForwardPass.Draw(scene, camera, 2, waitFlags, waitSems, mRenderFinishedSem, mFrameFence);
 
     if (!mBackbuffer.Present(mForwardPass.GetTargetTexture(), mRenderFinishedSem))
         LOGE("Error during image presentation");

@@ -45,11 +45,11 @@ public:
     DepthPrePass();
 
     bool Init(const DevicePtr& device, const DepthPrePassDesc& desc);
-    void Draw(const Scene::Scene& scene, const Scene::Camera& camera, VkSemaphore waitSem, VkSemaphore signalSem, VkFence fence);
+    void Draw(const Scene::Scene& scene, const Scene::Camera& camera, VkSemaphore signalSem, VkFence fence);
 
-    ABENCH_INLINE Texture& GetDepthTexture()
+    ABENCH_INLINE Texture* GetDepthTexture()
     {
-        return mDepthTexture;
+        return &mDepthTexture;
     }
 };
 

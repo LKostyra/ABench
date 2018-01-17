@@ -26,6 +26,7 @@ struct GraphicsPipelineDesc
     VkPipeline basePipeline;
 
     bool enableDepth;
+    bool enableDepthWrite;
     bool enableColor;
 
     GraphicsPipelineDesc()
@@ -41,6 +42,7 @@ struct GraphicsPipelineDesc
         , flags(0)
         , basePipeline(VK_NULL_HANDLE)
         , enableDepth(false)
+        , enableDepthWrite(false)
         , enableColor(false)
     {
     }

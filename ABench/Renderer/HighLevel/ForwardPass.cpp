@@ -53,20 +53,27 @@ bool ForwardPass::Init(const DevicePtr& device, const ForwardPassDesc& desc)
 {
     mDevice = device;
 
+    if (desc.depthTexture == nullptr)
+    {
+        LOGE("Forward pass needs a pregenerated depth texture to work.");
+        return false;
+    }
+
+    if (desc.depthTexture->GetWidth() != desc.width ||
+        desc.depthTexture->GetHeight() != desc.height)
+    {
+        LOGE("Depth texture dimensions does not match declared output dimensions.");
+        return false;
+    }
+
+    mDepthTexture = desc.depthTexture;
+
     TextureDesc targetTexDesc;
     targetTexDesc.width = desc.width;
     targetTexDesc.height = desc.height;
     targetTexDesc.format = desc.outputFormat;
     targetTexDesc.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
     if (!mTargetTexture.Init(mDevice, targetTexDesc))
-        return false;
-
-    TextureDesc depthTexDesc;
-    depthTexDesc.width = desc.width;
-    depthTexDesc.height = desc.height;
-    depthTexDesc.format = VK_FORMAT_D32_SFLOAT;
-    depthTexDesc.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-    if (!mDepthTexture.Init(mDevice, depthTexDesc))
         return false;
 
     if (!mRingBuffer.Init(mDevice, 1024*1024)) // 1M ring buffer should be enough
@@ -78,13 +85,12 @@ bool ForwardPass::Init(const DevicePtr& device, const ForwardPassDesc& desc)
         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
     ));
     attachments.push_back(Tools::CreateAttachmentDescription(
-        VK_FORMAT_D32_SFLOAT, VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_DONT_CARE,
+        VK_FORMAT_D32_SFLOAT, VK_ATTACHMENT_LOAD_OP_LOAD, VK_ATTACHMENT_STORE_OP_DONT_CARE,
         VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
     ));
 
     std::vector<VkAttachmentReference> colorAttRefs;
     colorAttRefs.push_back(Tools::CreateAttachmentReference(0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
-
     VkAttachmentReference depthAttRef = Tools::CreateAttachmentReference(1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
     std::vector<VkSubpassDescription> subpasses;
@@ -108,7 +114,7 @@ bool ForwardPass::Init(const DevicePtr& device, const ForwardPassDesc& desc)
 
     FramebufferDesc fbDesc;
     fbDesc.colorTex = &mTargetTexture;
-    fbDesc.depthTex = &mDepthTexture;
+    fbDesc.depthTex = mDepthTexture;
     fbDesc.renderPass = mRenderPass;
     if (!mFramebuffer.Init(mDevice, fbDesc))
         return false;
@@ -157,6 +163,7 @@ bool ForwardPass::Init(const DevicePtr& device, const ForwardPassDesc& desc)
     pipeDesc.renderPass = mRenderPass;
     pipeDesc.pipelineLayout = mPipelineLayout;
     pipeDesc.enableDepth = true;
+    pipeDesc.enableDepthWrite = false;
     pipeDesc.enableColor = true;
 
     MultiGraphicsPipelineDesc mgpDesc;
@@ -209,7 +216,9 @@ bool ForwardPass::Init(const DevicePtr& device, const ForwardPassDesc& desc)
     return true;
 }
 
-void ForwardPass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, VkSemaphore waitSem, VkSemaphore signalSem, VkFence fence)
+void ForwardPass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, uint32_t waitCount,
+                       VkPipelineStageFlags* waitFlags, VkSemaphore* waitSemaphores,
+                       VkSemaphore signalSem, VkFence fence)
 {
     // Update viewport
     // TODO view could be pushed to dynamic buffer for optimization
@@ -241,7 +250,7 @@ void ForwardPass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, V
 
         float clearValue[] = {0.1f, 0.1f, 0.1f, 0.0f};
         VkPipelineBindPoint bindPoint =  VK_PIPELINE_BIND_POINT_GRAPHICS;
-        mCommandBuffer.BeginRenderPass(mRenderPass, &mFramebuffer, ABENCH_CLEAR_ALL, clearValue, 1.0f);
+        mCommandBuffer.BeginRenderPass(mRenderPass, &mFramebuffer, ABENCH_CLEAR_COLOR, clearValue, 0.0f);
         mCommandBuffer.BindDescriptorSet(mAllShaderSet, bindPoint, 1, mPipelineLayout);
 
         MultiGraphicsPipelineShaderMacros macros;
@@ -328,7 +337,8 @@ void ForwardPass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, V
         }
     }
 
-    mDevice->Execute(DeviceQueueType::GRAPHICS, &mCommandBuffer, waitSem, signalSem, fence);
+    mDevice->Execute(DeviceQueueType::GRAPHICS, &mCommandBuffer, waitCount,
+                     waitFlags, waitSemaphores, signalSem, fence);
 
     mRingBuffer.MarkFinishedFrame();
 }

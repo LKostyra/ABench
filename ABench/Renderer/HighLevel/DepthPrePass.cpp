@@ -67,12 +67,12 @@ bool DepthPrePass::Init(const DevicePtr& device, const DepthPrePassDesc& desc)
     std::vector<VkSubpassDependency> subpassDeps;
     subpassDeps.push_back(Tools::CreateSubpassDependency(
         VK_SUBPASS_EXTERNAL, 0,
-        VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
         VK_ACCESS_MEMORY_READ_BIT, VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT
     ));
     subpassDeps.push_back(Tools::CreateSubpassDependency(
         0, VK_SUBPASS_EXTERNAL,
-        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+        VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
         VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT, VK_ACCESS_MEMORY_READ_BIT
     ));
 
@@ -114,6 +114,7 @@ bool DepthPrePass::Init(const DevicePtr& device, const DepthPrePassDesc& desc)
     pipeDesc.renderPass = mRenderPass;
     pipeDesc.pipelineLayout = mPipelineLayout;
     pipeDesc.enableDepth = true;
+    pipeDesc.enableDepthWrite = true;
     pipeDesc.enableColor = false;
 
     MultiGraphicsPipelineDesc mgpDesc;
@@ -145,7 +146,7 @@ bool DepthPrePass::Init(const DevicePtr& device, const DepthPrePassDesc& desc)
     return true;
 }
 
-void DepthPrePass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, VkSemaphore waitSem, VkSemaphore signalSem, VkFence fence)
+void DepthPrePass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, VkSemaphore signalSem, VkFence fence)
 {
     // Update viewport
     // TODO view could be pushed to dynamic buffer for optimization
@@ -162,9 +163,8 @@ void DepthPrePass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, 
         mCommandBuffer.SetViewport(0, 0, mDepthTexture.GetWidth(), mDepthTexture.GetHeight(), 0.0f, 1.0f);
         mCommandBuffer.SetScissor(0, 0, mDepthTexture.GetWidth(), mDepthTexture.GetHeight());
 
-        float clearValue[] = {0.1f, 0.1f, 0.1f, 0.0f};
         VkPipelineBindPoint bindPoint =  VK_PIPELINE_BIND_POINT_GRAPHICS;
-        mCommandBuffer.BeginRenderPass(mRenderPass, &mFramebuffer, ABENCH_CLEAR_ALL, clearValue, 1.0f);
+        mCommandBuffer.BeginRenderPass(mRenderPass, &mFramebuffer, ABENCH_CLEAR_DEPTH, nullptr, 1.0f);
 
         MultiGraphicsPipelineShaderMacros emptyMacros;
         scene.ForEachObject([&](const Scene::Object* o) -> bool {
@@ -208,7 +208,8 @@ void DepthPrePass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, 
         }
     }
 
-    mDevice->Execute(DeviceQueueType::GRAPHICS, &mCommandBuffer, waitSem, signalSem, fence);
+    mDevice->Execute(DeviceQueueType::GRAPHICS, &mCommandBuffer, 0,
+                     nullptr, nullptr, signalSem, fence);
 
     mRingBuffer.MarkFinishedFrame();
 }

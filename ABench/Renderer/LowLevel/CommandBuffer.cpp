@@ -72,8 +72,9 @@ void CommandBuffer::BeginRenderPass(VkRenderPass rp, Framebuffer* fb, ClearType 
     VkClearValue clear[2];
     uint32_t clearCount = 0;
 
-    if (types & ClearType::ABENCH_CLEAR_COLOR)
+    if (types & ABENCH_CLEAR_COLOR)
     {
+        ASSERT(clearValues != nullptr, "clearValues pointer was NULL while attempting to clear color texture!");
         memcpy(clear[clearCount].color.float32, clearValues, 4 * sizeof(float));
         clearCount++;
     }
@@ -84,7 +85,7 @@ void CommandBuffer::BeginRenderPass(VkRenderPass rp, Framebuffer* fb, ClearType 
         clearCount++;
     }
 
-    // Transition Framebuffer's texture to COLOR_ATTACHMENT layout
+    // Transition Framebuffer's textures to their ATTACHMENT layouts
     if (fb->mTexturePtr)
         fb->mTexturePtr->Transition(mCommandBuffer, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 

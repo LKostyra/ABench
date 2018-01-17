@@ -21,6 +21,15 @@ struct ForwardPassDesc
     uint32_t width;
     uint32_t height;
     VkFormat outputFormat;
+    Texture* depthTexture;
+
+    ForwardPassDesc()
+        : width(0)
+        , height(0)
+        , outputFormat(VK_FORMAT_UNDEFINED)
+        , depthTexture(nullptr)
+    {
+    }
 };
 
 class ForwardPass final
@@ -28,7 +37,7 @@ class ForwardPass final
     DevicePtr mDevice;
 
     Texture mTargetTexture;
-    Texture mDepthTexture;
+    Texture* mDepthTexture;
     Framebuffer mFramebuffer;
     VertexLayout mVertexLayout;
     MultiPipeline mPipeline;
@@ -48,7 +57,9 @@ public:
     ForwardPass();
 
     bool Init(const DevicePtr& device, const ForwardPassDesc& desc);
-    void Draw(const Scene::Scene& scene, const Scene::Camera& camera, VkSemaphore waitSem, VkSemaphore signalSem, VkFence fence);
+    void Draw(const Scene::Scene& scene, const Scene::Camera& camera, uint32_t waitCount,
+              VkPipelineStageFlags* waitFlags, VkSemaphore* waitSemaphores,
+              VkSemaphore signalSem, VkFence fence);
 
     ABENCH_INLINE Texture& GetTargetTexture()
     {

@@ -144,9 +144,9 @@ VkPipelineDepthStencilStateCreateInfo Pipeline::BuildDepthStencilStateInfo(const
     ZERO_MEMORY(info);
     info.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
     info.depthTestEnable = desc.enableDepth ? VK_TRUE : VK_FALSE;
-    info.depthWriteEnable = desc.enableDepth ? VK_TRUE : VK_FALSE;
-    info.depthCompareOp = desc.enableDepth ? VK_COMPARE_OP_LESS : VK_COMPARE_OP_ALWAYS;
-    info.depthBoundsTestEnable = false;
+    info.depthWriteEnable = desc.enableDepthWrite ? VK_TRUE : VK_FALSE;
+    info.depthCompareOp = desc.enableDepthWrite ? VK_COMPARE_OP_LESS : VK_COMPARE_OP_EQUAL;
+    info.depthBoundsTestEnable = VK_FALSE;
     info.stencilTestEnable = VK_FALSE;
 
     VkStencilOpState stencil;
@@ -191,7 +191,6 @@ bool Pipeline::Init(const DevicePtr& device, const GraphicsPipelineDesc& desc)
 
     VkPipelineColorBlendAttachmentState attachment;
     ZERO_MEMORY(attachment);
-    attachment.colorWriteMask = 0xF;
     attachment.blendEnable = VK_FALSE;
     attachment.colorBlendOp = VK_BLEND_OP_ADD;
     attachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
@@ -199,6 +198,10 @@ bool Pipeline::Init(const DevicePtr& device, const GraphicsPipelineDesc& desc)
     attachment.alphaBlendOp = VK_BLEND_OP_ADD;
     attachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
     attachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    if (desc.enableColor)
+        attachment.colorWriteMask = 0xF;
+    else
+        attachment.colorWriteMask = 0;
 
     if (desc.enableColor)
     {

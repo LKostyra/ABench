@@ -28,6 +28,7 @@ class Renderer final
     VkRAII<VkSemaphore> mImageAcquiredSem;
     VkRAII<VkSemaphore> mDepthFinishedSem;
     VkRAII<VkSemaphore> mRenderFinishedSem;
+    VkRAII<VkFence> mDepthFence;
     VkRAII<VkFence> mFrameFence;
 
     DepthPrePass mDepthPrePass;

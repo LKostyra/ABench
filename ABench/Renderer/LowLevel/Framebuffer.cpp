@@ -35,6 +35,8 @@ bool Framebuffer::Init(const DevicePtr& device, const FramebufferDesc& desc)
         if (((desc.colorTex->mWidth != desc.depthTex->mWidth) ||
              (desc.colorTex->mHeight != desc.depthTex->mHeight)))
         {
+            LOGD("Color: " << desc.colorTex->mWidth << "x" << desc.colorTex->mHeight);
+            LOGD("Depth: " << desc.depthTex->mWidth << "x" << desc.depthTex->mHeight);
             LOGE("Cannot create framebuffer - provided color and depth textures are incompatible");
             return false;
         }

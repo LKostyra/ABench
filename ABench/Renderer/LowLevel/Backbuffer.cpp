@@ -328,7 +328,10 @@ bool Backbuffer::Present(Texture& texture, VkSemaphore waitSemaphore)
     if (!mCopyCommandBuffer.End())
         return false;
 
-    mDevice->Execute(DeviceQueueType::TRANSFER, &mCopyCommandBuffer, waitSemaphore, mCopySemaphore, mCopyFence);
+    VkPipelineStageFlags waitFlags[] = { VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT };
+    VkSemaphore waitSemaphores[] = { waitSemaphore };
+    mDevice->Execute(DeviceQueueType::TRANSFER, &mCopyCommandBuffer, 1,
+                     waitFlags, waitSemaphores, mCopySemaphore, mCopyFence);
 
 
     VkSemaphore waitSem[] = { mCopySemaphore };

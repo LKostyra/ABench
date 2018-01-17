@@ -174,18 +174,17 @@ bool Device::Execute(DeviceQueueType queueType, CommandBuffer* cmd) const
     return true;
 }
 
-bool Device::Execute(DeviceQueueType queueType, CommandBuffer* cmd, VkSemaphore waitSemaphore,
+bool Device::Execute(DeviceQueueType queueType, CommandBuffer* cmd, uint32_t waitSemaphoresCount,
+                     VkPipelineStageFlags* waitFlags, VkSemaphore* waitSemaphores,
                      VkSemaphore signalSemaphore, VkFence waitFence) const
 {
-    VkPipelineStageFlags waitFlags[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-
     VkSubmitInfo submitInfo;
     ZERO_MEMORY(submitInfo);
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &cmd->mCommandBuffer;
-    submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores = &waitSemaphore;
+    submitInfo.waitSemaphoreCount = waitSemaphoresCount;
+    submitInfo.pWaitSemaphores = waitSemaphores;
     submitInfo.pWaitDstStageMask = waitFlags;
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = &signalSemaphore;
