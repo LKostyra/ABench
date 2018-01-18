@@ -16,6 +16,15 @@ struct GridFrustumsGenerationDesc
     ABench::Math::Matrix projMat;
     uint32_t viewportWidth;
     uint32_t viewportHeight;
+    uint32_t pixelsPerGridFrustum;
+
+    GridFrustumsGenerationDesc()
+        : projMat()
+        , viewportWidth(0)
+        , viewportHeight(0)
+        , pixelsPerGridFrustum(0)
+    {
+    }
 };
 
 class GridFrustumsGenerator
@@ -36,7 +45,7 @@ public:
     bool Init(const DevicePtr& device);
     bool Generate(const GridFrustumsGenerationDesc& desc);
 
-    ABENCH_INLINE const Buffer* GetGridFrustums() const
+    ABENCH_INLINE Buffer* GetGridFrustums()
     {
         return &mGridFrustumsData;
     }

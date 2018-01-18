@@ -10,7 +10,13 @@ namespace ABench {
 namespace Scene {
 
 Model::Model(const std::string& name)
-    : mName(name)
+    : Component(name)
+    , mTransform()
+    , mPosition(0.0f)
+    , mScale(1.0f)
+    , mMeshes()
+    , mAABB()
+    , mToRender(false)
 {
 }
 

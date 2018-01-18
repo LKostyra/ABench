@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2010
+VisualStudioVersion = 15.0.27130.2026
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ABench", "ABench\ABench.vcxproj", "{C8A489CA-E63A-45F4-AE34-8D87D54D9B1A}"
 EndProject
@@ -19,6 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shaders", "Shaders", "{F419
 		Data\Shaders\ForwardPass.frag = Data\Shaders\ForwardPass.frag
 		Data\Shaders\ForwardPass.vert = Data\Shaders\ForwardPass.vert
 		Data\Shaders\GridFrustumsGenerator.comp = Data\Shaders\GridFrustumsGenerator.comp
+		Data\Shaders\LightCuller.comp = Data\Shaders\LightCuller.comp
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deps", "Deps", "{2E116AA0-1F5E-4B04-B0CE-6AD600D95192}"

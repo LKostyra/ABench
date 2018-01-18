@@ -21,6 +21,14 @@ struct DepthPrePassDesc
 {
     uint32_t width;
     uint32_t height;
+    VkDescriptorSetLayout vertexShaderLayout;
+
+    DepthPrePassDesc()
+        : width(0)
+        , height(0)
+        , vertexShaderLayout(VK_NULL_HANDLE)
+    {
+    }
 };
 
 struct DepthPrePassDrawDesc
@@ -28,13 +36,11 @@ struct DepthPrePassDrawDesc
     RingBuffer* ringBufferPtr;
     VkDescriptorSet vertexShaderSet;
     VkSemaphore signalSem;
-    VkFence fence;
 
     DepthPrePassDrawDesc()
         : ringBufferPtr(nullptr)
         , vertexShaderSet(VK_NULL_HANDLE)
         , signalSem(VK_NULL_HANDLE)
-        , fence(VK_NULL_HANDLE)
     {
     }
 };
@@ -54,7 +60,7 @@ class DepthPrePass final
 
 public:
     bool Init(const DevicePtr& device, const DepthPrePassDesc& desc);
-    void Draw(const Scene::Scene& scene, const Scene::Camera& camera, const DepthPrePassDrawDesc& desc);
+    void Draw(const Scene::Scene& scene, const DepthPrePassDrawDesc& desc);
 
     ABENCH_INLINE Texture* GetDepthTexture()
     {

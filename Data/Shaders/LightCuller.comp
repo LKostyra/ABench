@@ -1,0 +1,80 @@
+// structures
+struct Plane
+{
+    vec3 N;
+    float d;
+};
+
+struct Frustum
+{
+    Plane plane[4];
+};
+
+struct LightData
+{
+    vec4 pos;
+    vec4 diffuse;
+};
+
+struct GridLight
+{
+    uint offset;
+    uint count;
+};
+
+
+// shader attachments
+layout (set = 0, binding = 0) uniform _cullingParams
+{
+    uvec2 viewport;
+    uvec2 frustumsCount;
+    uint lightCount;
+} cullingParams;
+
+layout (set = 0, binding = 1) buffer _gridData
+{
+    Frustum frustum[];
+} gridData;
+
+layout (set = 0, binding = 2) buffer _lightData
+{
+    LightData data[];
+} lightData;
+
+layout (set = 0, binding = 3) buffer _culledLights
+{
+    uint data[];
+} culledLights;
+
+layout (set = 0, binding = 4) buffer _gridLightData
+{
+    GridLight data[];
+} gridBuffer;
+
+layout (set = 0, binding = 5) uniform sampler2D depthTexture;
+
+
+// shared variables
+shared uint sCulledLightsCurrentOffset;
+
+
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+void main()
+{
+    if (gl_GlobalInvocationID.xy == uvec2(0, 0))
+    {
+        atomicExchange(sCulledLightsCurrentOffset, 0);
+
+        for (uint i = 0; i < cullingParams.lightCount; ++i)
+            culledLights.data[i] = i;
+    }
+
+    if (gl_GlobalInvocationID.x < cullingParams.frustumsCount.x &&
+        gl_GlobalInvocationID.y < cullingParams.frustumsCount.y)
+    {
+        uint index = gl_GlobalInvocationID.y * cullingParams.frustumsCount.x + gl_GlobalInvocationID.x;
+        gridBuffer.data[index].offset = 0;
+        gridBuffer.data[index].count = cullingParams.lightCount;
+    }
+}

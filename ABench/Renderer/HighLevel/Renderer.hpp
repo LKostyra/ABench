@@ -15,6 +15,7 @@
 
 #include "GridFrustumsGenerator.hpp"
 #include "DepthPrePass.hpp"
+#include "LightCuller.hpp"
 #include "ForwardPass.hpp"
 
 
@@ -38,19 +39,22 @@ class Renderer final
 
     Backbuffer mBackbuffer;
     VkRAII<VkSemaphore> mImageAcquiredSem;
-    VkRAII<VkSemaphore> mDepthFinishedSem;
-    VkRAII<VkSemaphore> mRenderFinishedSem;
-    VkRAII<VkFence> mDepthFence;
+    VkRAII<VkSemaphore> mDepthSem;
+    VkRAII<VkSemaphore> mCullingSem;
+    VkRAII<VkSemaphore> mRenderSem;
     VkRAII<VkFence> mFrameFence;
 
     Math::Matrix mProjection;
     Math::Frustum mViewFrustum;
+    VkRAII<VkDescriptorSetLayout> mVertexShaderLayout;
     VkDescriptorSet mVertexShaderSet;
     Buffer mVertexShaderCBuffer;
     RingBuffer mRingBuffer;
+    Buffer mLightContainer;
 
     GridFrustumsGenerator mGridFrustumsGenerator;
     DepthPrePass mDepthPrePass;
+    LightCuller mLightCuller;
     ForwardPass mForwardPass;
 
 public:

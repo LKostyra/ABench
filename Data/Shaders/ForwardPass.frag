@@ -1,27 +1,61 @@
-// temporarily changed from block because glslang has a bug
 layout (location = 0) in vec3 VertNorm;
 layout (location = 1) in vec2 VertUV;
-layout (location = 2) in vec3 VertLightDir;
-
+layout (location = 2) in vec3 VertPosWorld;
+#if HAS_NORMAL == 1
+layout (location = 3) in vec3 VertTang;
+layout (location = 4) in vec3 VertBitang;
+#endif // HAS_NORMAL == 1
 
 layout (location = 0) out vec4 color;
 
 
-layout (set = 1, binding = 0) uniform lightcb
+// light-related structures
+struct LightData
 {
     vec4 pos;
     vec4 diffuse;
-} lightCBuffer;
+};
 
+struct GridLight
+{
+    uint offset;
+    uint count;
+};
+
+
+// Set numbering starts from 1 because Set binding slots are common with VS
+// light-related buffers
+layout (set = 1, binding = 0) uniform _lightParams
+{
+    uvec2 viewport;
+    uint pixelsPerViewFrustum;
+} lightParams;
+
+layout (set = 1, binding = 1) uniform _materialParams
+{
+    vec4 color;
+} materialParams;
+
+layout (set = 1, binding = 2) buffer _lightData
+{
+    LightData light[];
+} lightData;
+
+layout (set = 1, binding = 3) buffer _culledLights
+{
+    uint data[];
+} culledLights;
+
+layout (set = 1, binding = 4) buffer _gridLightData
+{
+    GridLight data[];
+} gridBuffer;
+
+
+// texture uniforms
 layout (set = 2, binding = 0) uniform sampler2D diffTex;
 layout (set = 3, binding = 0) uniform sampler2D normTex;
 layout (set = 4, binding = 0) uniform sampler2D maskTex;
-
-layout (set = 5, binding = 0) uniform materialcb
-{
-    vec4 color;
-} materialCBuffer;
-
 
 vec4 lightAmbient = vec4(0.2, 0.2, 0.2, 1.0);
 
@@ -35,19 +69,38 @@ void main()
 #endif // HAS_COLOR_MASK == 1
 
     color = lightAmbient;
-    float distance = length(VertLightDir);
-    vec3 lightDir = normalize(VertLightDir);
 
-#if HAS_NORMAL == 1
-    vec3 texNorm = normalize(texture(normTex, VertUV).rgb * 2.0 - 1.0);
-    texNorm.y = -texNorm.y;
-    float coeff = dot(lightDir, texNorm);
-#else // HAS_NORMAL == 1
-    float coeff = dot(lightDir, VertNorm);
-#endif // HAS_NORMAL == 1
+    uvec2 gridCoords = uvec2(gl_FragCoord.x / lightParams.pixelsPerViewFrustum,
+                             gl_FragCoord.y / lightParams.pixelsPerViewFrustum);
+    uint gridID = gridCoords.y * (lightParams.viewport.x / lightParams.pixelsPerViewFrustum)
+                + gridCoords.x;
 
-    color += coeff * lightCBuffer.diffuse * (5.0 / (distance * distance));
-    color *= materialCBuffer.color;
+    #if HAS_NORMAL == 1
+        mat3 TBN = transpose(mat3(VertTang, VertBitang, VertNorm));
+    #endif // HAS_NORMAL == 1
+
+    for (uint i = 0; i < gridBuffer.data[gridID].count; ++i)
+    {
+        uint lightOffset = gridBuffer.data[gridID].offset + i;
+        LightData curLight = lightData.light[culledLights.data[lightOffset]];
+        vec3 lightDir = curLight.pos.xyz - VertPosWorld;
+        float distance = length(lightDir);
+
+        #if HAS_NORMAL == 1
+            lightDir = TBN * normalize(lightDir);
+            vec3 texNorm = normalize(texture(normTex, VertUV).rgb * 2.0 - 1.0);
+            texNorm.y = -texNorm.y;
+            float coeff = dot(lightDir, texNorm);
+        #else // HAS_NORMAL == 1
+            lightDir = normalize(lightDir);
+            float coeff = dot(lightDir, VertNorm);
+        #endif // HAS_NORMAL == 1
+
+        if (coeff < 0.0f) coeff = 0.0f;
+        color += coeff * curLight.diffuse * (5.0 / (distance * distance));
+    }
+
+    color *= materialParams.color;
 
 #if HAS_TEXTURE == 1
     color *= texture(diffTex, VertUV);

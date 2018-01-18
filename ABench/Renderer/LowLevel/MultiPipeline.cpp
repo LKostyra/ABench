@@ -121,7 +121,7 @@ bool MultiPipeline::Init(const DevicePtr& device, const MultiGraphicsPipelineDes
 
     if (!GenerateShaderModules(desc.vertexShader, ShaderType::VERTEX, &mVertexShaders))
     {
-        LOGE("Failed to generate vertex shader modules for multipipeline");
+        LOGE("Failed to generate vertex shader modules for MultiPipeline");
         return false;
     }
 
@@ -129,7 +129,7 @@ bool MultiPipeline::Init(const DevicePtr& device, const MultiGraphicsPipelineDes
     {
         if (!GenerateShaderModules(desc.tessControlShader, ShaderType::TESS_CONTROL, &mTessControlShaders))
         {
-            LOGE("Failed to generate tessellation control shader modules for multipipeline");
+            LOGE("Failed to generate tessellation control shader modules for MultiPipeline");
             return false;
         }
     }
@@ -138,7 +138,7 @@ bool MultiPipeline::Init(const DevicePtr& device, const MultiGraphicsPipelineDes
     {
         if (!GenerateShaderModules(desc.tessEvalShader, ShaderType::TESS_EVAL, &mTessEvalShaders))
         {
-            LOGE("Failed to generate tessellation evaluation shader modules for multipipeline");
+            LOGE("Failed to generate tessellation evaluation shader modules for MultiPipeline");
             return false;
         }
     }
@@ -147,7 +147,7 @@ bool MultiPipeline::Init(const DevicePtr& device, const MultiGraphicsPipelineDes
     {
         if (!GenerateShaderModules(desc.geometryShader, ShaderType::GEOMETRY, &mGeometryShaders))
         {
-            LOGE("Failed to generate geometry shader modules for multipipeline");
+            LOGE("Failed to generate geometry shader modules for MultiPipeline");
             return false;
         }
     }
@@ -156,7 +156,7 @@ bool MultiPipeline::Init(const DevicePtr& device, const MultiGraphicsPipelineDes
     {
         if (!GenerateShaderModules(desc.fragmentShader, ShaderType::FRAGMENT, &mFragmentShaders))
         {
-            LOGE("Failed to generate fragment shader modules for multipipeline");
+            LOGE("Failed to generate fragment shader modules for MultiPipeline");
             return false;
         }
     }
@@ -202,7 +202,7 @@ bool MultiPipeline::Init(const DevicePtr& device, const MultiComputePipelineDesc
 
     if (!GenerateShaderModules(desc.computeShader, ShaderType::COMPUTE, &mComputeShaders))
     {
-        LOGE("Failed to generate vertex shader modules for multipipeline");
+        LOGE("Failed to generate compute shader modules for MultiPipeline");
         return false;
     }
 

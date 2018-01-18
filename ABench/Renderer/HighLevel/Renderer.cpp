@@ -15,6 +15,8 @@
 
 namespace {
 
+const uint32_t PIXELS_PER_GRID_FRUSTUM = 16;
+
 struct VertexShaderCBuffer
 {
     ABench::Math::Matrix viewMatrix;
@@ -38,12 +40,17 @@ Renderer::Renderer()
     , mDevice(nullptr)
     , mBackbuffer()
     , mImageAcquiredSem()
-    , mRenderFinishedSem()
+    , mDepthSem()
+    , mCullingSem()
+    , mRenderSem()
     , mFrameFence()
     , mVertexShaderSet(VK_NULL_HANDLE)
     , mVertexShaderCBuffer()
+    , mRingBuffer()
+    , mLightContainer()
     , mGridFrustumsGenerator()
     , mDepthPrePass()
+    , mLightCuller()
     , mForwardPass()
 {
 }
@@ -81,9 +88,9 @@ bool Renderer::Init(const RendererDesc& desc)
     // initialize Descriptor Allocator
     DescriptorAllocatorDesc daDesc;
     ZERO_MEMORY(daDesc);
-    daDesc.limits[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER] = 1;
-    daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER] = 3;
-    daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC] = 3;
+    daDesc.limits[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER] = 8;
+    daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER] = 5;
+    daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC] = 2;
     daDesc.limits[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] = 1000;
     if (!DescriptorAllocator::Instance().Init(mDevice, daDesc))
         return false;
@@ -123,16 +130,16 @@ bool Renderer::Init(const RendererDesc& desc)
     if (!mImageAcquiredSem)
         return false;
 
-    mDepthFinishedSem = Tools::CreateSem(mDevice);
-    if (!mDepthFinishedSem)
+    mDepthSem = Tools::CreateSem(mDevice);
+    if (!mDepthSem)
         return false;
 
-    mRenderFinishedSem = Tools::CreateSem(mDevice);
-    if (!mRenderFinishedSem)
+    mCullingSem = Tools::CreateSem(mDevice);
+    if (!mCullingSem)
         return false;
 
-    mDepthFence = Tools::CreateFence(mDevice, true);
-    if (!mDepthFence)
+    mRenderSem = Tools::CreateSem(mDevice);
+    if (!mRenderSem)
         return false;
 
     mFrameFence = Tools::CreateFence(mDevice, true);
@@ -149,12 +156,20 @@ bool Renderer::Init(const RendererDesc& desc)
     fdesc.farZ = desc.farZ;
     mViewFrustum.Init(fdesc);
 
-    // Common shader descriptor sets & buffers
-    if (!mRingBuffer.Init(mDevice, 1024 * 1024))
+    // Common shader descriptor sets
+    std::vector<DescriptorSetLayoutDesc> vsLayoutDesc;
+    vsLayoutDesc.push_back({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT, VK_NULL_HANDLE});
+    vsLayoutDesc.push_back({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, VK_NULL_HANDLE});
+    mVertexShaderLayout = Tools::CreateDescriptorSetLayout(mDevice, vsLayoutDesc);
+    if (!mVertexShaderLayout)
         return false;
 
-    mVertexShaderSet = DescriptorAllocator::Instance().AllocateDescriptorSet(DescriptorLayoutManager::Instance().GetVertexShaderLayout());
+    mVertexShaderSet = DescriptorAllocator::Instance().AllocateDescriptorSet(mVertexShaderLayout);
     if (mVertexShaderSet == VK_NULL_HANDLE)
+        return false;
+
+    // Common shader buffers
+    if (!mRingBuffer.Init(mDevice, 1024 * 1024))
         return false;
 
     BufferDesc vsBufferDesc;
@@ -165,33 +180,60 @@ bool Renderer::Init(const RendererDesc& desc)
     if (!mVertexShaderCBuffer.Init(mDevice, vsBufferDesc))
         return false;
 
+    BufferDesc lightBufferDesc;
+    lightBufferDesc.data = nullptr;
+    lightBufferDesc.dataSize = 1024 * 1024;
+    lightBufferDesc.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+    lightBufferDesc.type = BufferType::Dynamic;
+    lightBufferDesc.concurrent = true;
+    if (!mLightContainer.Init(mDevice, lightBufferDesc))
+        return false;
+
 
     // Point vertex shader set bindings to our dynamic buffer
     Tools::UpdateBufferDescriptorSet(mDevice, mVertexShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 0,
-                                     mRingBuffer.GetVkBuffer(), sizeof(VertexShaderDynamicCBuffer));
+                                     mRingBuffer.GetBuffer(), sizeof(VertexShaderDynamicCBuffer));
     Tools::UpdateBufferDescriptorSet(mDevice, mVertexShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
                                      mVertexShaderCBuffer.GetBuffer(), sizeof(VertexShaderCBuffer));
 
-    // Rendering passes
+
+    // Rendering stages
     GridFrustumsGenerationDesc genDesc;
     genDesc.projMat = mProjection;
     genDesc.viewportWidth = desc.window->GetWidth();
     genDesc.viewportHeight = desc.window->GetHeight();
+    genDesc.pixelsPerGridFrustum = PIXELS_PER_GRID_FRUSTUM;
     if (!mGridFrustumsGenerator.Generate(genDesc))
         return false;
 
     DepthPrePassDesc dppDesc;
     dppDesc.width = mBackbuffer.GetWidth();
     dppDesc.height = mBackbuffer.GetHeight();
+    dppDesc.vertexShaderLayout = mVertexShaderLayout;
     if (!mDepthPrePass.Init(mDevice, dppDesc))
+        return false;
+
+    LightCullerDesc lcDesc;
+    lcDesc.viewportWidth = desc.window->GetWidth();
+    lcDesc.viewportHeight = desc.window->GetHeight();
+    lcDesc.pixelsPerGridFrustum = PIXELS_PER_GRID_FRUSTUM;
+    lcDesc.gridFrustums = mGridFrustumsGenerator.GetGridFrustums();
+    lcDesc.lightContainer = &mLightContainer;
+    lcDesc.depthTexture = mDepthPrePass.GetDepthTexture();
+    if (!mLightCuller.Init(mDevice, lcDesc))
         return false;
 
     ForwardPassDesc fpDesc;
     fpDesc.width = mBackbuffer.GetWidth();
     fpDesc.height = mBackbuffer.GetHeight();
     fpDesc.outputFormat = mBackbuffer.GetFormat();
+    fpDesc.vertexShaderLayout = mVertexShaderLayout;
+    fpDesc.pixelsPerGridFrustum = PIXELS_PER_GRID_FRUSTUM;
     fpDesc.depthTexture = mDepthPrePass.GetDepthTexture();
     fpDesc.ringBufferPtr = &mRingBuffer;
+    fpDesc.lightContainerPtr = &mLightContainer;
+    fpDesc.culledLightsPtr = mLightCuller.GetCulledLights();
+    fpDesc.gridLightDataPtr = mLightCuller.GetGridLightData();
     if (!mForwardPass.Init(mDevice, fpDesc))
         return false;
 
@@ -206,7 +248,7 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
         if (o->GetComponent()->GetType() == Scene::ComponentType::Model)
         {
             Scene::Model* model = dynamic_cast<Scene::Model*>(o->GetComponent());
-            o->SetToRender(mViewFrustum.Intersects(o->GetTransform() * model->GetAABB()));
+            model->SetToRender(mViewFrustum.Intersects(model->GetTransform() * model->GetAABB()));
         }
 
         return true;
@@ -222,35 +264,56 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
     if (result != VK_SUCCESS)
         LOGW("Failed to reset frame fence: " << result << " (" << TranslateVkResultToString(result) << ")");
 
-    // Update common descriptor set
+    // Update descriptor set common for Depth and Forward passes
     VertexShaderCBuffer vsBuffer;
     vsBuffer.viewMatrix = camera.GetView();
     vsBuffer.projMatrix = mProjection;
     if (!mVertexShaderCBuffer.Write(&vsBuffer, sizeof(vsBuffer)))
         LOGW("Failed to update Vertex Shader Uniform Buffer");
 
-    // Rendering
+    uint32_t lightCount = 0;
+    scene.ForEachLight([&](const ABench::Scene::Light* l) -> bool {
+        if (!mLightContainer.Write(l->GetData(), sizeof(Scene::LightData), lightCount * sizeof(Scene::LightData)))
+            LOGW("Failed to update Light Container Storage Buffer");
+        lightCount++;
+        return true;
+    });
+
+    ///////////////
+    // Rendering //
+    ///////////////
+
+    // Depth pass
     DepthPrePassDrawDesc depthDesc;
     depthDesc.ringBufferPtr = &mRingBuffer;
     depthDesc.vertexShaderSet = mVertexShaderSet;
-    depthDesc.signalSem = mDepthFinishedSem;
-    mDepthPrePass.Draw(scene, camera, depthDesc);
+    depthDesc.signalSem = mDepthSem;
+    mDepthPrePass.Draw(scene, depthDesc);
 
+    // Light culling dispatch
+    LightCullerDispatchDesc cullingDesc;
+    cullingDesc.lightCount = lightCount;
+    cullingDesc.waitFlags = { VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT };
+    cullingDesc.waitSems = { mDepthSem };
+    cullingDesc.signalSem = mCullingSem;
+    mLightCuller.Dispatch(cullingDesc);
+
+    // Forward pass
     if (!mBackbuffer.AcquireNextImage(mImageAcquiredSem))
         LOGE("Failed to acquire next image for rendering");
 
     ForwardPassDrawDesc forwardDesc;
     forwardDesc.ringBufferPtr = &mRingBuffer;
     forwardDesc.vertexShaderSet = mVertexShaderSet;
-    forwardDesc.waitFlags = { VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-    forwardDesc.waitSems = { mDepthFinishedSem, mImageAcquiredSem };
-    forwardDesc.signalSem = mRenderFinishedSem;
+    forwardDesc.waitFlags = { VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+    forwardDesc.waitSems = { mCullingSem, mImageAcquiredSem };
+    forwardDesc.signalSem = mRenderSem;
     forwardDesc.fence = mFrameFence;
-    mForwardPass.Draw(scene, camera, forwardDesc);
+    mForwardPass.Draw(scene, forwardDesc);
 
     mRingBuffer.MarkFinishedFrame();
 
-    if (!mBackbuffer.Present(mForwardPass.GetTargetTexture(), mRenderFinishedSem))
+    if (!mBackbuffer.Present(mForwardPass.GetTargetTexture(), mRenderSem))
         LOGE("Error during image presentation");
 }
 

@@ -3,11 +3,13 @@ layout (location = 1) in vec3 InNorm;
 layout (location = 2) in vec2 InUV;
 layout (location = 3) in vec3 InTangent;
 
-
-// temporarily changed from block because glslang has a bug
 layout (location = 0) out vec3 VertNorm;
 layout (location = 1) out vec2 VertUV;
-layout (location = 2) out vec3 VertLightDir;
+layout (location = 2) out vec3 VertPosWorld;
+#if HAS_NORMAL == 1
+layout (location = 3) out vec3 VertTang;
+layout (location = 4) out vec3 VertBitang;
+#endif // HAS_NORMAL == 1
 
 
 layout (set = 0, binding = 0) uniform dynamicCb
@@ -27,12 +29,6 @@ out gl_PerVertex
     vec4 gl_Position;
 };
 
-layout (set = 1, binding = 0) uniform lightcb
-{
-    vec4 pos;
-    vec4 diffuse;
-} lightCBuffer;
-
 void main()
 {
     mat4 worldView = CBuffer.viewMatrix * dynamicCBuffer.worldMatrix;
@@ -42,14 +38,10 @@ void main()
     VertUV = InUV;
     gl_Position = worldViewProj * vec4(InPos, 1.0);
 
-    vec3 vertPos = mat3(dynamicCBuffer.worldMatrix) * InPos;
-    VertLightDir = lightCBuffer.pos.xyz - vertPos;
+    VertPosWorld = mat3(dynamicCBuffer.worldMatrix) * InPos;
 
 #if HAS_NORMAL == 1
-    vec3 tangent = normalize(mat3(dynamicCBuffer.worldMatrix) * InTangent);
-    vec3 bitangent = normalize(mat3(dynamicCBuffer.worldMatrix) * cross(tangent, VertNorm));
-
-    mat3 TBN = transpose(mat3(tangent, bitangent, VertNorm));
-    VertLightDir = TBN * VertLightDir;
+    VertTang = normalize(mat3(dynamicCBuffer.worldMatrix) * InTangent);
+    VertBitang = normalize(mat3(dynamicCBuffer.worldMatrix) * cross(VertTang, VertNorm));
 #endif // HAS_NORMAL == 1
 }

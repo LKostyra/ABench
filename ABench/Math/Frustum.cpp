@@ -79,12 +79,10 @@ bool Frustum::Intersects(const AABB& aabb) const
 
         if (pdot < mPlanes[i].d)
         {
-            //LOGD("Failed at plane " << i);
             return false;
         }
     }
 
-    //LOGD("Passed");
     return true;
 }
 

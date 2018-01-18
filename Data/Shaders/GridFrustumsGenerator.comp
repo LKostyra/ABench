@@ -9,14 +9,15 @@ struct Frustum
     Plane plane[4];
 };
 
-layout (std140, set = 0, binding = 0) uniform cb
+layout (set = 0, binding = 0) uniform cb
 {
     mat4 proj;
     uvec2 viewport;
     uvec2 threadLimits;
+    uint pixelsPerFrustum;
 } gridInfoBuffer;
 
-layout (std140, set = 0, binding = 1) buffer sb
+layout (set = 0, binding = 1) buffer sb
 {
     Frustum frustum[];
 } gridData;
@@ -53,11 +54,10 @@ Frustum computeFrustum(uint frustumX, uint frustumY)
     vec3 eye = vec3(0.0f);
     Frustum result;
 
-    const uint PIXELS_PER_FRUSTUM = 16; // TODO deliver as uniform
-    screenSpace[0] = vec4( frustumX * PIXELS_PER_FRUSTUM,       frustumY * PIXELS_PER_FRUSTUM,      -1.0f, 1.0f);
-    screenSpace[1] = vec4((frustumX + 1) * PIXELS_PER_FRUSTUM,  frustumY * PIXELS_PER_FRUSTUM,      -1.0f, 1.0f);
-    screenSpace[2] = vec4( frustumX * PIXELS_PER_FRUSTUM,      (frustumY + 1) * PIXELS_PER_FRUSTUM, -1.0f, 1.0f);
-    screenSpace[3] = vec4((frustumX + 1) * PIXELS_PER_FRUSTUM, (frustumY + 1) * PIXELS_PER_FRUSTUM, -1.0f, 1.0f);
+    screenSpace[0] = vec4( frustumX * gridInfoBuffer.pixelsPerFrustum,       frustumY * gridInfoBuffer.pixelsPerFrustum,      -1.0f, 1.0f);
+    screenSpace[1] = vec4((frustumX + 1) * gridInfoBuffer.pixelsPerFrustum,  frustumY * gridInfoBuffer.pixelsPerFrustum,      -1.0f, 1.0f);
+    screenSpace[2] = vec4( frustumX * gridInfoBuffer.pixelsPerFrustum,      (frustumY + 1) * gridInfoBuffer.pixelsPerFrustum, -1.0f, 1.0f);
+    screenSpace[3] = vec4((frustumX + 1) * gridInfoBuffer.pixelsPerFrustum, (frustumY + 1) * gridInfoBuffer.pixelsPerFrustum, -1.0f, 1.0f);
 
     viewSpace[0] = screenSpaceToViewSpace(screenSpace[0]);
     viewSpace[1] = screenSpaceToViewSpace(screenSpace[1]);

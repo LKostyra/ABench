@@ -21,15 +21,25 @@ struct ForwardPassDesc
     uint32_t width;
     uint32_t height;
     VkFormat outputFormat;
+    VkDescriptorSetLayout vertexShaderLayout;
+    uint32_t pixelsPerGridFrustum;
     Texture* depthTexture;
     RingBuffer* ringBufferPtr;
+    Buffer* lightContainerPtr;
+    Buffer* culledLightsPtr;
+    Buffer* gridLightDataPtr;
 
     ForwardPassDesc()
         : width(0)
         , height(0)
         , outputFormat(VK_FORMAT_UNDEFINED)
+        , vertexShaderLayout(VK_NULL_HANDLE)
+        , pixelsPerGridFrustum(0)
         , depthTexture(nullptr)
         , ringBufferPtr(nullptr)
+        , lightContainerPtr(nullptr)
+        , culledLightsPtr(nullptr)
+        , gridLightDataPtr(nullptr)
     {
     }
 };
@@ -60,23 +70,23 @@ class ForwardPass final
 
     Texture mTargetTexture;
     Texture* mDepthTexture;
+    Buffer mFragmentParams;
     Framebuffer mFramebuffer;
     VertexLayout mVertexLayout;
     MultiPipeline mPipeline;
     CommandBuffer mCommandBuffer;
 
+    VkRAII<VkDescriptorSetLayout> mFragmentShaderLayout;
     VkRAII<VkRenderPass> mRenderPass;
     VkRAII<VkPipelineLayout> mPipelineLayout;
 
     VkDescriptorSet mFragmentShaderSet;
-    VkDescriptorSet mAllShaderSet;
-    Buffer mAllShaderLightCBuffer;
 
 public:
     ForwardPass();
 
     bool Init(const DevicePtr& device, const ForwardPassDesc& desc);
-    void Draw(const Scene::Scene& scene, const Scene::Camera& camera, const ForwardPassDrawDesc& desc);
+    void Draw(const Scene::Scene& scene, const ForwardPassDrawDesc& desc);
 
     ABENCH_INLINE Texture& GetTargetTexture()
     {

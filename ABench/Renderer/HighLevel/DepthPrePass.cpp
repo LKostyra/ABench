@@ -20,7 +20,7 @@ bool DepthPrePass::Init(const DevicePtr& device, const DepthPrePassDesc& desc)
     depthTexDesc.width = desc.width;
     depthTexDesc.height = desc.height;
     depthTexDesc.format = VK_FORMAT_D32_SFLOAT;
-    depthTexDesc.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+    depthTexDesc.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
     if (!mDepthTexture.Init(mDevice, depthTexDesc))
         return false;
 
@@ -69,7 +69,7 @@ bool DepthPrePass::Init(const DevicePtr& device, const DepthPrePassDesc& desc)
         return false;
 
     std::vector<VkDescriptorSetLayout> layouts;
-    layouts.push_back(DescriptorLayoutManager::Instance().GetVertexShaderLayout());
+    layouts.push_back(desc.vertexShaderLayout);
     mPipelineLayout = Tools::CreatePipelineLayout(mDevice, layouts);
     if (!mPipelineLayout)
         return false;
@@ -98,7 +98,7 @@ bool DepthPrePass::Init(const DevicePtr& device, const DepthPrePassDesc& desc)
     return true;
 }
 
-void DepthPrePass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, const DepthPrePassDrawDesc& desc)
+void DepthPrePass::Draw(const Scene::Scene& scene, const DepthPrePassDrawDesc& desc)
 {
     // recording Command Buffer
     {
@@ -112,16 +112,15 @@ void DepthPrePass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, 
 
         MultiGraphicsPipelineShaderMacros emptyMacros;
         scene.ForEachObject([&](const Scene::Object* o) -> bool {
-            if (!o->ToRender())
-                return true;
-
             if (o->GetComponent()->GetType() == Scene::ComponentType::Model)
             {
                 Scene::Model* model = dynamic_cast<Scene::Model*>(o->GetComponent());
 
+                if (!model->ToRender())
+                    return true;
 
                 // world matrix update
-                uint32_t offset = desc.ringBufferPtr->Write(&o->GetTransform(), sizeof(ABench::Math::Matrix));
+                uint32_t offset = desc.ringBufferPtr->Write(&model->GetTransform(), sizeof(ABench::Math::Matrix));
                 mCommandBuffer.BindDescriptorSet(desc.vertexShaderSet, bindPoint, 0, mPipelineLayout, offset);
 
                 model->ForEachMesh([&](Scene::Mesh* mesh) {
@@ -153,7 +152,7 @@ void DepthPrePass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, 
     }
 
     mDevice->Execute(DeviceQueueType::GRAPHICS, &mCommandBuffer, 0,
-                     nullptr, nullptr, desc.signalSem, desc.fence);
+                     nullptr, nullptr, desc.signalSem, VK_NULL_HANDLE);
 }
 
 } // namespace Renderer

@@ -16,7 +16,7 @@ Pipeline::Pipeline()
 
 Pipeline::~Pipeline()
 {
-    LOGD("Destroying Pipeline " << std::hex << mPipeline);
+    LOGM("Destroying Pipeline " << std::hex << mPipeline);
     if (mPipeline != VK_NULL_HANDLE)
         vkDestroyPipeline(mDevice->GetDevice(), mPipeline, nullptr);
 }
@@ -256,7 +256,7 @@ bool Pipeline::Init(const DevicePtr& device, const GraphicsPipelineDesc& desc)
                                                 &pipeInfo, nullptr, &mPipeline);
     RETURN_FALSE_IF_FAILED(result, "Failed to create Graphics Pipeline");
 
-    LOGI("Graphics Pipeline created successfully");
+    LOGM("Graphics Pipeline " << std::hex << mPipeline << " created successfully");
     return true;
 }
 

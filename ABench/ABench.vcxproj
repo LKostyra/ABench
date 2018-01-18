@@ -306,6 +306,7 @@ copy /B "$(SolutionDir)Deps\fbxsdk\lib\vs2015\$(PlatformTarget)\$(Configuration)
     <ClCompile Include="Renderer\HighLevel\DescriptorLayoutManager.cpp" />
     <ClCompile Include="Renderer\HighLevel\ForwardPass.cpp" />
     <ClCompile Include="Renderer\HighLevel\GridFrustumsGenerator.cpp" />
+    <ClCompile Include="Renderer\HighLevel\LightCuller.cpp" />
     <ClCompile Include="Renderer\HighLevel\Renderer.cpp" />
     <ClCompile Include="Renderer\HighLevel\ResourceManager.cpp" />
     <ClCompile Include="Renderer\HighLevel\ShaderMacroDefinitions.cpp" />
@@ -338,6 +339,7 @@ copy /B "$(SolutionDir)Deps\fbxsdk\lib\vs2015\$(PlatformTarget)\$(Configuration)
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='DebugMemory|x64'">PCH.hpp</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.hpp</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="Scene\Component.cpp" />
     <ClCompile Include="Scene\Light.cpp" />
     <ClCompile Include="Scene\Material.cpp" />
     <ClCompile Include="Scene\Mesh.cpp">
@@ -378,6 +380,7 @@ copy /B "$(SolutionDir)Deps\fbxsdk\lib\vs2015\$(PlatformTarget)\$(Configuration)
     <ClInclude Include="Renderer\HighLevel\DescriptorLayoutManager.hpp" />
     <ClInclude Include="Renderer\HighLevel\ForwardPass.hpp" />
     <ClInclude Include="Renderer\HighLevel\GridFrustumsGenerator.hpp" />
+    <ClInclude Include="Renderer\HighLevel\LightCuller.hpp" />
     <ClInclude Include="Renderer\HighLevel\Renderer.hpp" />
     <ClInclude Include="Renderer\HighLevel\ResourceManager.hpp" />
     <ClInclude Include="Renderer\HighLevel\ShaderMacroDefinitions.hpp" />

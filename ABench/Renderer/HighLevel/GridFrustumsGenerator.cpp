@@ -11,8 +11,6 @@
 
 namespace {
 
-const uint32_t PIXELS_PER_GRID_FRUSTUM = 16;
-
 struct GridFrustumsInfoBuffer
 {
     ABench::Math::Matrix proj;
@@ -20,6 +18,7 @@ struct GridFrustumsInfoBuffer
     uint32_t viewportHeight;
     uint32_t threadLimitX;
     uint32_t threadLimitY;
+    uint32_t pixelsPerGridFrustum;
 };
 
 } // namespace
@@ -80,12 +79,12 @@ bool GridFrustumsGenerator::Init(const DevicePtr& device)
 
 bool GridFrustumsGenerator::Generate(const GridFrustumsGenerationDesc& desc)
 {
-    uint32_t frustumsPerWidth = desc.viewportWidth / PIXELS_PER_GRID_FRUSTUM;
-    uint32_t frustumsPerHeight = desc.viewportHeight / PIXELS_PER_GRID_FRUSTUM;
+    uint32_t frustumsPerWidth = desc.viewportWidth / desc.pixelsPerGridFrustum;
+    uint32_t frustumsPerHeight = desc.viewportHeight / desc.pixelsPerGridFrustum;
 
-    if (desc.viewportWidth % PIXELS_PER_GRID_FRUSTUM > 0)
+    if (desc.viewportWidth % desc.pixelsPerGridFrustum > 0)
         frustumsPerWidth++;
-    if (desc.viewportHeight % PIXELS_PER_GRID_FRUSTUM > 0)
+    if (desc.viewportHeight % desc.pixelsPerGridFrustum > 0)
         frustumsPerHeight++;
 
     GridFrustumsInfoBuffer info;
@@ -94,6 +93,7 @@ bool GridFrustumsGenerator::Generate(const GridFrustumsGenerationDesc& desc)
     info.viewportHeight = desc.viewportHeight;
     info.threadLimitX = frustumsPerWidth;
     info.threadLimitY = frustumsPerHeight;
+    info.pixelsPerGridFrustum = desc.pixelsPerGridFrustum;
     if (!mGridFrustumsInfo.Write(&info, sizeof(GridFrustumsInfoBuffer)))
         return false;
 
@@ -111,12 +111,12 @@ bool GridFrustumsGenerator::Generate(const GridFrustumsGenerationDesc& desc)
     Tools::UpdateBufferDescriptorSet(mDevice, mGridFrustumsDataSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1,
                                      mGridFrustumsData.GetBuffer(), mGridFrustumsData.GetSize());
 
-    uint32_t dispatchThreadsX = frustumsPerWidth / PIXELS_PER_GRID_FRUSTUM;
-    uint32_t dispatchThreadsY = frustumsPerHeight / PIXELS_PER_GRID_FRUSTUM;
+    uint32_t dispatchThreadsX = frustumsPerWidth / desc.pixelsPerGridFrustum;
+    uint32_t dispatchThreadsY = frustumsPerHeight / desc.pixelsPerGridFrustum;
 
-    if (frustumsPerWidth % PIXELS_PER_GRID_FRUSTUM > 0)
+    if (frustumsPerWidth % desc.pixelsPerGridFrustum > 0)
         dispatchThreadsX++;
-    if (frustumsPerHeight % PIXELS_PER_GRID_FRUSTUM > 0)
+    if (frustumsPerHeight % desc.pixelsPerGridFrustum > 0)
         dispatchThreadsY++;
 
     {

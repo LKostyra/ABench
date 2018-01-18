@@ -3,6 +3,7 @@
 
 #include "Common/Logger.hpp"
 
+
 namespace ABench {
 namespace Scene {
 
@@ -108,15 +109,17 @@ bool Scene::Init(const std::string& fbxFile)
                     auto mResult = GetComponent(ComponentType::Model, node->GetName());
                     Model* m = dynamic_cast<Model*>(mResult.first);
                     if (mResult.second)
+                    {
                         m->Init(modelDesc);
+                        m->SetScale(static_cast<float>(node->LclScaling.Get()[0]),
+                                    static_cast<float>(node->LclScaling.Get()[1]),
+                                    static_cast<float>(node->LclScaling.Get()[2]));
+                        m->SetPosition(static_cast<float>(node->LclTranslation.Get()[0]),
+                                       static_cast<float>(node->LclTranslation.Get()[1]),
+                                       static_cast<float>(node->LclTranslation.Get()[2]));
+                    }
 
                     o->SetComponent(m);
-                    o->SetScale(static_cast<float>(node->LclScaling.Get()[0]),
-                                static_cast<float>(node->LclScaling.Get()[1]),
-                                static_cast<float>(node->LclScaling.Get()[2]));
-                    o->SetPosition(static_cast<float>(node->LclTranslation.Get()[0]),
-                                   static_cast<float>(node->LclTranslation.Get()[1]),
-                                   static_cast<float>(node->LclTranslation.Get()[2]));
                     counter += matCount;
                 }
             }
@@ -189,12 +192,11 @@ GetResult<Material> Scene::GetMaterial(const std::string& name)
     return std::make_pair(mat->second.get(), created);
 }
 
-void Scene::ForEachLight(Callback<Object> func) const
+void Scene::ForEachLight(Callback<Light> func) const
 {
-    for (auto& l: mObjects)
-        if (l.GetComponent()->GetType() == ComponentType::Light)
-            if (!func(&l))
-                return;
+    for (auto& l: mLightComponents)
+        if (!func(l.second.get()))
+            return;
 }
 
 void Scene::ForEachObject(Callback<Object> func) const

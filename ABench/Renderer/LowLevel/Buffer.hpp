@@ -47,7 +47,9 @@ public:
     ~Buffer();
 
     bool Init(const DevicePtr& device, const BufferDesc& desc);
+    bool Write(const void* data, size_t size, size_t offset = 0);
     void Free();
+    void Dump(); // DEBUGGING FUNCTION ONLY
 
     ABENCH_INLINE VkBuffer GetBuffer() const
     {
@@ -63,8 +65,6 @@ public:
     {
         return mBufferSize;
     }
-
-    bool Write(const void* data, size_t size, size_t offset = 0);
 };
 
 using BufferPtr = std::shared_ptr<Buffer>;

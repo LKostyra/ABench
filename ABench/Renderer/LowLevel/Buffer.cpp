@@ -125,17 +125,6 @@ bool Buffer::Init(const DevicePtr& device, const BufferDesc& desc)
     return true;
 }
 
-void Buffer::Free()
-{
-    if (mBufferMemory != VK_NULL_HANDLE)
-        vkFreeMemory(mDevice->GetDevice(), mBufferMemory, nullptr);
-    if (mBuffer != VK_NULL_HANDLE)
-        vkDestroyBuffer(mDevice->GetDevice(), mBuffer, nullptr);
-
-    mBufferMemory = VK_NULL_HANDLE;
-    mBuffer = VK_NULL_HANDLE;
-}
-
 bool Buffer::Write(const void* data, size_t size, size_t offset)
 {
     if (mType == BufferType::Static)
@@ -152,6 +141,35 @@ bool Buffer::Write(const void* data, size_t size, size_t offset)
     vkUnmapMemory(mDevice->GetDevice(), mBufferMemory);
 
     return true;
+}
+
+void Buffer::Free()
+{
+    if (mBufferMemory != VK_NULL_HANDLE)
+        vkFreeMemory(mDevice->GetDevice(), mBufferMemory, nullptr);
+    if (mBuffer != VK_NULL_HANDLE)
+        vkDestroyBuffer(mDevice->GetDevice(), mBuffer, nullptr);
+
+    mBufferMemory = VK_NULL_HANDLE;
+    mBuffer = VK_NULL_HANDLE;
+}
+
+void Buffer::Dump()
+{
+    ASSERT(mType == BufferType::Dynamic, "Only dynamic buffers can be dumped");
+
+    void* ptr = nullptr;
+    VkResult result = vkMapMemory(mDevice->GetDevice(), mBufferMemory, 0, mBufferSize, 0, &ptr);
+    if (result != VK_SUCCESS)
+    {
+        LOGW("Failed to map buffer's memory for dump");
+        return;
+    }
+
+    LOGD("Buffer " << std::hex << mBuffer << " memory address: " << ptr);
+    ASSERT(false, "Memory dump forced program termination");
+
+    vkUnmapMemory(mDevice->GetDevice(), mBufferMemory);
 }
 
 } // namespace Renderer

@@ -42,7 +42,7 @@ public:
      */
     bool MarkFinishedFrame();
 
-    ABENCH_INLINE VkBuffer GetVkBuffer() const
+    ABENCH_INLINE VkBuffer GetBuffer() const
     {
         return mBuffer;
     }

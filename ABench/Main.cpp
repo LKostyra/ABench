@@ -4,6 +4,7 @@
 #include "Common/Timer.hpp"
 #include "Common/FS.hpp"
 #include "Renderer/HighLevel/Renderer.hpp"
+#include "Math/Common.hpp"
 #include "Math/Matrix.hpp"
 #include "Math/RingAverage.hpp"
 #include "Scene/Camera.hpp"
@@ -17,7 +18,9 @@
 uint32_t windowWidth = 1280;
 uint32_t windowHeight = 720;
 ABench::Scene::Light* gLight;
-ABench::Scene::Object* gLightObj;
+
+const int32_t ANIM_LIGHTS_LIMIT = 7;
+ABench::Scene::Light* gAnimatedLights[ANIM_LIGHTS_LIMIT * 2 + 1];
 
 class ABenchWindow: public ABench::Common::Window
 {
@@ -26,6 +29,8 @@ class ABenchWindow: public ABench::Common::Window
     float mAngleY = 0.0f;
     bool mLightFollowsCamera = false;
     bool mCameraOnRails = false;
+
+    float mLightAnimationMoment = 0.0f;
 
     void OnOpen() override
     {
@@ -68,7 +73,7 @@ class ABenchWindow: public ABench::Common::Window
         if (mLightFollowsCamera)
         {
             lightNewPos = mCamera.GetPosition();
-            gLightObj->SetPosition(lightNewPos);
+            gLight->SetPosition(lightNewPos);
         }
         else
         {
@@ -78,8 +83,19 @@ class ABenchWindow: public ABench::Common::Window
             if (IsKeyPressed(ABench::Common::KeyCode::J)) lightNewPos.Data()[2] -= lightSpeed;
             if (IsKeyPressed(ABench::Common::KeyCode::U)) lightNewPos.Data()[1] += lightSpeed;
             if (IsKeyPressed(ABench::Common::KeyCode::O)) lightNewPos.Data()[1] -= lightSpeed;
-            gLightObj->SetPosition(gLightObj->GetPosition() + (lightNewPos * deltaTime));
+            gLight->SetPosition(gLight->GetPosition() + (lightNewPos * deltaTime));
         }
+
+        // Animated lights
+        for (int32_t i = -ANIM_LIGHTS_LIMIT; i < ANIM_LIGHTS_LIMIT + 1; ++i)
+        {
+            float YPos = 2.0f + sinf(mLightAnimationMoment + (i * 0.5f));
+            gAnimatedLights[i + ANIM_LIGHTS_LIMIT]->SetPosition(i * 2.5f, YPos, 0.0f);
+        }
+
+        mLightAnimationMoment += deltaTime * 2.0f;
+        if (mLightAnimationMoment > 2 * MATH_PIF)
+            mLightAnimationMoment -= 2 * MATH_PIF;
     }
 
     void OnMouseMove(int x, int y, int deltaX, int deltaY) override
@@ -189,7 +205,10 @@ int main()
     auto modelResult = scene.GetComponent(ABench::Scene::ComponentType::Model, "box1");
     ABench::Scene::Model* model1 = dynamic_cast<ABench::Scene::Model*>(modelResult.first);
     if (modelResult.second)
+    {
         model1->Init(modelDesc);
+        model1->SetPosition(-2.0f, 1.0f, 0.0f);
+    }
 
     modelDesc.materials.clear();
     modelDesc.materials.push_back(boxMatNoTex);
@@ -198,23 +217,37 @@ int main()
     modelResult = scene.GetComponent(ABench::Scene::ComponentType::Model, "box2");
     ABench::Scene::Model* model2 = dynamic_cast<ABench::Scene::Model*>(modelResult.first);
     if (modelResult.second)
+    {
         model2->Init(modelDesc);
+        model2->SetPosition(2.0f, 1.0f, 0.0f);
+    }
 
     ABench::Scene::Object* obj = scene.CreateObject();
     obj->SetComponent(model1);
-    obj->SetPosition(-2.0f, 1.0f, 0.0f);
 
     obj = scene.CreateObject();
     obj->SetComponent(model2);
-    obj->SetPosition(2.0f, 1.0f, 0.0f);
 
     auto lightResult = scene.GetComponent(ABench::Scene::ComponentType::Light, "light");
     gLight = dynamic_cast<ABench::Scene::Light*>(lightResult.first);
     gLight->SetDiffuseIntensity(ABench::Math::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+    gLight->SetPosition(3.0f, 5.0f, 0.0f);
 
-    gLightObj = scene.CreateObject();
-    gLightObj->SetComponent(gLight);
-    gLightObj->SetPosition(3.0f, 3.0f, 0.0f);
+    ABench::Scene::Object* lightObj = scene.CreateObject();
+    lightObj->SetComponent(gLight);
+
+    for (int i = -ANIM_LIGHTS_LIMIT; i < ANIM_LIGHTS_LIMIT + 1; ++i)
+    {
+        auto lres = scene.GetComponent(ABench::Scene::ComponentType::Light, "light" + std::to_string(i + ANIM_LIGHTS_LIMIT));
+        gAnimatedLights[i + ANIM_LIGHTS_LIMIT] = dynamic_cast<ABench::Scene::Light*>(lres.first);
+
+        float colorX = static_cast<float>(i + ANIM_LIGHTS_LIMIT) / ((static_cast<float>(ANIM_LIGHTS_LIMIT) * 2.0f) + 1.0f);
+        gAnimatedLights[i + ANIM_LIGHTS_LIMIT]->SetDiffuseIntensity(ABench::Math::Vector4(colorX, 1.0f, 1.0f - colorX, 1.0f));
+        gAnimatedLights[i + ANIM_LIGHTS_LIMIT]->SetPosition(i * 2.5f, 2.0f, 0.0f);
+
+        ABench::Scene::Object* o = scene.CreateObject();
+        o->SetComponent(gAnimatedLights[i + ANIM_LIGHTS_LIMIT]);
+    }
 
     ABench::Common::Timer timer;
     ABench::Math::RingAverage<float, 200> avgTime;

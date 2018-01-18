@@ -10,18 +10,17 @@
 
 namespace {
 
-
-struct FragmentShaderLightCBuffer
+struct FragmentParamsCBuffer
 {
-    ABench::Math::Vector4 pos;
-    ABench::Math::Vector4 diffuse;
+    uint32_t viewportWidth;
+    uint32_t viewportHeight;
+    uint32_t pixelsPerGridFrustum;
 };
 
 struct MaterialCBuffer
 {
     ABench::Math::Vector4 color;
 };
-
 
 } // namespace
 
@@ -30,10 +29,18 @@ namespace ABench {
 namespace Renderer {
 
 ForwardPass::ForwardPass()
-    : mRenderPass()
+    : mDevice()
+    , mTargetTexture()
+    , mDepthTexture(nullptr)
+    , mFragmentParams()
+    , mFramebuffer()
+    , mVertexLayout()
+    , mPipeline()
+    , mCommandBuffer()
+    , mFragmentShaderLayout()
+    , mRenderPass()
     , mPipelineLayout()
     , mFragmentShaderSet(VK_NULL_HANDLE)
-    , mAllShaderSet(VK_NULL_HANDLE)
 {
 }
 
@@ -64,6 +71,22 @@ bool ForwardPass::Init(const DevicePtr& device, const ForwardPassDesc& desc)
     if (!mTargetTexture.Init(mDevice, targetTexDesc))
         return false;
 
+    FragmentParamsCBuffer fpBuf;
+    fpBuf.viewportWidth = desc.width;
+    fpBuf.viewportHeight = desc.height;
+    fpBuf.pixelsPerGridFrustum = desc.pixelsPerGridFrustum;
+
+    BufferDesc bufDesc;
+    bufDesc.data = &fpBuf;
+    bufDesc.dataSize = sizeof(FragmentParamsCBuffer);
+    bufDesc.concurrent = false;
+    bufDesc.type = BufferType::Static;
+    bufDesc.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+    if (!mFragmentParams.Init(mDevice, bufDesc))
+        return false;
+
+
+    // Render pass
     std::vector<VkAttachmentDescription> attachments;
     attachments.push_back(Tools::CreateAttachmentDescription(
         desc.outputFormat, VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_STORE,
@@ -104,8 +127,9 @@ bool ForwardPass::Init(const DevicePtr& device, const ForwardPassDesc& desc)
     if (!mFramebuffer.Init(mDevice, fbDesc))
         return false;
 
-    VertexLayoutDesc vlDesc;
 
+    // Vertex Layout
+    VertexLayoutDesc vlDesc;
     std::vector<VertexLayoutEntry> vlEntries;
     vlEntries.emplace_back(VK_FORMAT_R32G32B32_SFLOAT, 0, 0, 12, false); // vertex position
     vlEntries.emplace_back(VK_FORMAT_R32G32B32_SFLOAT, 0, 1, 32, false); // vertex normal
@@ -117,24 +141,31 @@ bool ForwardPass::Init(const DevicePtr& device, const ForwardPassDesc& desc)
     if (!mVertexLayout.Init(vlDesc))
         return false;
 
-    std::vector<VkDescriptorSetLayout> layouts;
-    layouts.push_back(DescriptorLayoutManager::Instance().GetVertexShaderLayout());
-    layouts.push_back(DescriptorLayoutManager::Instance().GetAllShaderLayout());
-    layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderDiffuseTextureLayout());
-    layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderNormalTextureLayout());
-    layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderMaskTextureLayout());
-    layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderLayout());
-    mPipelineLayout = Tools::CreatePipelineLayout(mDevice, layouts);
-    if (!mPipelineLayout)
+
+    // Shader layouts and sets
+    std::vector<DescriptorSetLayoutDesc> fsLayoutDesc;
+    fsLayoutDesc.push_back({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, VK_NULL_HANDLE});
+    fsLayoutDesc.push_back({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, VK_SHADER_STAGE_FRAGMENT_BIT, VK_NULL_HANDLE});
+    fsLayoutDesc.push_back({VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, VK_NULL_HANDLE});
+    fsLayoutDesc.push_back({VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, VK_NULL_HANDLE});
+    fsLayoutDesc.push_back({VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, VK_NULL_HANDLE});
+    mFragmentShaderLayout = Tools::CreateDescriptorSetLayout(mDevice, fsLayoutDesc);
+    if (!mFragmentShaderLayout)
         return false;
 
-    // buffer-related set allocation
-    mFragmentShaderSet = DescriptorAllocator::Instance().AllocateDescriptorSet(DescriptorLayoutManager::Instance().GetFragmentShaderLayout());
+    mFragmentShaderSet = DescriptorAllocator::Instance().AllocateDescriptorSet(mFragmentShaderLayout);
     if (mFragmentShaderSet == VK_NULL_HANDLE)
         return false;
 
-    mAllShaderSet = DescriptorAllocator::Instance().AllocateDescriptorSet(DescriptorLayoutManager::Instance().GetAllShaderLayout());
-    if (mAllShaderSet == VK_NULL_HANDLE)
+
+    std::vector<VkDescriptorSetLayout> layouts;
+    layouts.push_back(desc.vertexShaderLayout);
+    layouts.push_back(mFragmentShaderLayout);
+    layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderDiffuseTextureLayout());
+    layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderNormalTextureLayout());
+    layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderMaskTextureLayout());
+    mPipelineLayout = Tools::CreatePipelineLayout(mDevice, layouts);
+    if (!mPipelineLayout)
         return false;
 
 
@@ -167,43 +198,27 @@ bool ForwardPass::Init(const DevicePtr& device, const ForwardPassDesc& desc)
     if (!mCommandBuffer.Init(mDevice, DeviceQueueType::GRAPHICS))
         return false;
 
-
-    BufferDesc fsBufferDesc;
-    fsBufferDesc.data = nullptr;
-    fsBufferDesc.dataSize = sizeof(FragmentShaderLightCBuffer);
-    fsBufferDesc.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-    fsBufferDesc.type = BufferType::Dynamic;
-    if (!mAllShaderLightCBuffer.Init(mDevice, fsBufferDesc))
-        return false;
-
-    // Point vertex shader set bindings to our dynamic buffer
-    Tools::UpdateBufferDescriptorSet(mDevice, mFragmentShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 0,
-                                     desc.ringBufferPtr->GetVkBuffer(), sizeof(MaterialCBuffer));
-    Tools::UpdateBufferDescriptorSet(mDevice, mAllShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0,
-                                     mAllShaderLightCBuffer.GetBuffer(), sizeof(FragmentShaderLightCBuffer));
+    Tools::UpdateBufferDescriptorSet(mDevice, mFragmentShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0,
+                                     mFragmentParams.GetBuffer(), mFragmentParams.GetSize());
+    Tools::UpdateBufferDescriptorSet(mDevice, mFragmentShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
+                                     desc.ringBufferPtr->GetBuffer(), sizeof(MaterialCBuffer));
+    Tools::UpdateBufferDescriptorSet(mDevice, mFragmentShaderSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 2,
+                                     desc.lightContainerPtr->GetBuffer(), desc.lightContainerPtr->GetSize());
+    Tools::UpdateBufferDescriptorSet(mDevice, mFragmentShaderSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 3,
+                                     desc.culledLightsPtr->GetBuffer(), desc.culledLightsPtr->GetSize());
+    Tools::UpdateBufferDescriptorSet(mDevice, mFragmentShaderSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 4,
+                                     desc.gridLightDataPtr->GetBuffer(), desc.gridLightDataPtr->GetSize());
 
     return true;
 }
 
-void ForwardPass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, const ForwardPassDrawDesc& desc)
+void ForwardPass::Draw(const Scene::Scene& scene, const ForwardPassDrawDesc& desc)
 {
     ASSERT(desc.waitFlags.size() == desc.waitSems.size(), "Wait semaphores count does not match wait flags count");
 
-    FragmentShaderLightCBuffer lightBuf;
     MaterialCBuffer materialBuf;
 
-    scene.ForEachLight([&lightBuf](const Scene::Object* o) -> bool {
-        // gather only first light's position for now
-        Scene::Light* l = dynamic_cast<Scene::Light*>(o->GetComponent());
-
-        lightBuf.pos = o->GetPosition();
-        lightBuf.diffuse = l->GetDiffuseIntensity();
-        return false;
-    });
-
     // updating buffers
-    mAllShaderLightCBuffer.Write(&lightBuf, sizeof(FragmentShaderLightCBuffer));
-
     {
         mCommandBuffer.Begin();
 
@@ -213,7 +228,6 @@ void ForwardPass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, c
         float clearValue[] = {0.1f, 0.1f, 0.1f, 0.0f};
         VkPipelineBindPoint bindPoint =  VK_PIPELINE_BIND_POINT_GRAPHICS;
         mCommandBuffer.BeginRenderPass(mRenderPass, &mFramebuffer, ABENCH_CLEAR_COLOR, clearValue, 0.0f);
-        mCommandBuffer.BindDescriptorSet(mAllShaderSet, bindPoint, 1, mPipelineLayout);
 
         MultiGraphicsPipelineShaderMacros macros;
         macros.vertexShader = {
@@ -226,15 +240,15 @@ void ForwardPass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, c
         };
 
         scene.ForEachObject([&](const Scene::Object* o) -> bool {
-            if (!o->ToRender())
-                return true;
-
             if (o->GetComponent()->GetType() == Scene::ComponentType::Model)
             {
                 Scene::Model* model = dynamic_cast<Scene::Model*>(o->GetComponent());
 
+                if (!model->ToRender())
+                    return true;
+
                 // world matrix update
-                uint32_t offset = desc.ringBufferPtr->Write(&o->GetTransform(), sizeof(ABench::Math::Matrix));
+                uint32_t offset = desc.ringBufferPtr->Write(&model->GetTransform(), sizeof(ABench::Math::Matrix));
                 mCommandBuffer.BindDescriptorSet(desc.vertexShaderSet, bindPoint, 0, mPipelineLayout, offset);
 
                 model->ForEachMesh([&](Scene::Mesh* mesh) {
@@ -249,7 +263,7 @@ void ForwardPass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, c
                         // material data update
                         materialBuf.color = material->GetColor();
                         offset = desc.ringBufferPtr->Write(&materialBuf, sizeof(materialBuf));
-                        mCommandBuffer.BindDescriptorSet(mFragmentShaderSet, bindPoint, 5, mPipelineLayout, offset);
+                        mCommandBuffer.BindDescriptorSet(mFragmentShaderSet, bindPoint, 1, mPipelineLayout, offset);
 
                         if (material->GetDiffuseDescriptor() != VK_NULL_HANDLE)
                         {

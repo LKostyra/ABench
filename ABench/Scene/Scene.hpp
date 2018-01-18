@@ -45,7 +45,7 @@ public:
     Object* CreateObject();
     GetResult<Component> GetComponent(ComponentType type, const std::string& name);
     GetResult<Material> GetMaterial(const std::string& name);
-    void ForEachLight(Callback<Object> func) const;
+    void ForEachLight(Callback<Light> func) const;
     void ForEachObject(Callback<Object> func) const;
 };
 

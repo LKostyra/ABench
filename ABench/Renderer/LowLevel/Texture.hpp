@@ -91,6 +91,11 @@ public:
         return mImage;
     }
 
+    ABENCH_INLINE VkImageView GetView() const
+    {
+        return mImageView;
+    }
+
     ABENCH_INLINE VkImageLayout GetCurrentLayout() const
     {
         return mCurrentLayout;
