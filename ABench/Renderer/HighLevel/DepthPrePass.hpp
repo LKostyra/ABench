@@ -23,6 +23,22 @@ struct DepthPrePassDesc
     uint32_t height;
 };
 
+struct DepthPrePassDrawDesc
+{
+    RingBuffer* ringBufferPtr;
+    VkDescriptorSet vertexShaderSet;
+    VkSemaphore signalSem;
+    VkFence fence;
+
+    DepthPrePassDrawDesc()
+        : ringBufferPtr(nullptr)
+        , vertexShaderSet(VK_NULL_HANDLE)
+        , signalSem(VK_NULL_HANDLE)
+        , fence(VK_NULL_HANDLE)
+    {
+    }
+};
+
 class DepthPrePass final
 {
     DevicePtr mDevice;
@@ -32,20 +48,13 @@ class DepthPrePass final
     VertexLayout mVertexLayout;
     MultiPipeline mPipeline;
     CommandBuffer mCommandBuffer;
-    RingBuffer mRingBuffer;
 
     VkRAII<VkRenderPass> mRenderPass;
     VkRAII<VkPipelineLayout> mPipelineLayout;
 
-    // TODO this descriptor set could be common with ForwardPass
-    VkDescriptorSet mVertexShaderSet;
-    Buffer mVertexShaderCBuffer;
-
 public:
-    DepthPrePass();
-
     bool Init(const DevicePtr& device, const DepthPrePassDesc& desc);
-    void Draw(const Scene::Scene& scene, const Scene::Camera& camera, VkSemaphore signalSem, VkFence fence);
+    void Draw(const Scene::Scene& scene, const Scene::Camera& camera, const DepthPrePassDrawDesc& desc);
 
     ABENCH_INLINE Texture* GetDepthTexture()
     {

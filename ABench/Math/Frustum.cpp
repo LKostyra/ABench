@@ -24,8 +24,6 @@ void Frustum::Init(const FrustumDesc& desc)
     mScreenRatio = desc.ratio;
     mNearZ = desc.nearZ;
     mFarZ = desc.farZ;
-
-    Refresh(desc.pos, desc.at, desc.up);
 }
 
 void Frustum::Refresh(const Vector3& pos, const Vector3& at, const Vector3& up)

@@ -23,25 +23,23 @@ class GridFrustumsGenerator
     DevicePtr mDevice;
 
     Buffer mGridFrustumsInfo;
+    Buffer mGridFrustumsData;
     VkDescriptorSet mGridFrustumsDataSet;
     VkRAII<VkDescriptorSetLayout> mGridFrustumsDataSetLayout;
     VkRAII<VkPipelineLayout> mPipelineLayout;
     MultiPipeline mPipeline;
     CommandBuffer mDispatchCommandBuffer;
 
-    GridFrustumsGenerator();
-    GridFrustumsGenerator(const GridFrustumsGenerator&) = delete;
-    GridFrustumsGenerator(GridFrustumsGenerator&&) = delete;
-    GridFrustumsGenerator& operator=(const GridFrustumsGenerator&) = delete;
-    GridFrustumsGenerator& operator=(GridFrustumsGenerator&&) = delete;
-    ~GridFrustumsGenerator();
-
-
 public:
-    static GridFrustumsGenerator& Instance();
+    GridFrustumsGenerator();
 
     bool Init(const DevicePtr& device);
-    BufferPtr Generate(const GridFrustumsGenerationDesc& desc);
+    bool Generate(const GridFrustumsGenerationDesc& desc);
+
+    ABENCH_INLINE const Buffer* GetGridFrustums() const
+    {
+        return &mGridFrustumsData;
+    }
 };
 
 } // namespace Renderer

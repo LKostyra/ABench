@@ -22,12 +22,34 @@ struct ForwardPassDesc
     uint32_t height;
     VkFormat outputFormat;
     Texture* depthTexture;
+    RingBuffer* ringBufferPtr;
 
     ForwardPassDesc()
         : width(0)
         , height(0)
         , outputFormat(VK_FORMAT_UNDEFINED)
         , depthTexture(nullptr)
+        , ringBufferPtr(nullptr)
+    {
+    }
+};
+
+struct ForwardPassDrawDesc
+{
+    RingBuffer* ringBufferPtr;
+    VkDescriptorSet vertexShaderSet;
+    std::vector<VkPipelineStageFlags> waitFlags;
+    std::vector<VkSemaphore> waitSems;
+    VkSemaphore signalSem;
+    VkFence fence;
+
+    ForwardPassDrawDesc()
+        : ringBufferPtr(nullptr)
+        , vertexShaderSet(VK_NULL_HANDLE)
+        , waitFlags()
+        , waitSems()
+        , signalSem(VK_NULL_HANDLE)
+        , fence(VK_NULL_HANDLE)
     {
     }
 };
@@ -42,24 +64,19 @@ class ForwardPass final
     VertexLayout mVertexLayout;
     MultiPipeline mPipeline;
     CommandBuffer mCommandBuffer;
-    RingBuffer mRingBuffer;
 
     VkRAII<VkRenderPass> mRenderPass;
     VkRAII<VkPipelineLayout> mPipelineLayout;
 
-    VkDescriptorSet mVertexShaderSet;
     VkDescriptorSet mFragmentShaderSet;
     VkDescriptorSet mAllShaderSet;
-    Buffer mVertexShaderCBuffer;
     Buffer mAllShaderLightCBuffer;
 
 public:
     ForwardPass();
 
     bool Init(const DevicePtr& device, const ForwardPassDesc& desc);
-    void Draw(const Scene::Scene& scene, const Scene::Camera& camera, uint32_t waitCount,
-              VkPipelineStageFlags* waitFlags, VkSemaphore* waitSemaphores,
-              VkSemaphore signalSem, VkFence fence);
+    void Draw(const Scene::Scene& scene, const Scene::Camera& camera, const ForwardPassDrawDesc& desc);
 
     ABENCH_INLINE Texture& GetTargetTexture()
     {

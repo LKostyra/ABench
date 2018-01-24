@@ -4,7 +4,6 @@
 #include "Math/Matrix.hpp"
 #include "Math/Frustum.hpp"
 #include "Common/Common.hpp"
-#include "Renderer/HighLevel/ResourceManager.hpp"
 
 
 namespace ABench {
@@ -16,22 +15,11 @@ enum class CameraMode: unsigned char
     TRACED
 };
 
-struct CameraUpdateDesc
+struct CameraDesc
 {
     Math::Vector4 pos;
     Math::Vector4 at;
     Math::Vector4 up;
-};
-
-struct CameraDesc
-{
-    CameraUpdateDesc view;
-
-    float fov;
-    float nearZ;
-    float farZ;
-    uint32_t windowWidth;
-    uint32_t windowHeight;
 };
 
 class Camera final
@@ -39,19 +27,10 @@ class Camera final
     Math::Vector4 mPosition;
     Math::Vector4 mAtPosition;
     Math::Vector4 mUpVector;
-
     Math::Matrix mView;
-    Math::Matrix mProjection;
-
-    Math::Frustum mFrustum;
-    Renderer::BufferPtr mGridFrustums;
 
 public:
-    Camera();
-    ~Camera();
-
-    bool Init(const CameraDesc& desc);
-    void Update(const CameraUpdateDesc& desc);
+    void Update(const CameraDesc& desc);
 
     ABENCH_INLINE const Math::Vector4& GetPosition() const
     {
@@ -71,21 +50,6 @@ public:
     ABENCH_INLINE const Math::Matrix& GetView() const
     {
         return mView;
-    }
-
-    ABENCH_INLINE const Math::Matrix& GetProjection() const
-    {
-        return mProjection;
-    }
-
-    ABENCH_INLINE const Renderer::Buffer* GetGridFrustums() const
-    {
-        return mGridFrustums.get();
-    }
-
-    ABENCH_INLINE bool Intersects(const Math::AABB& aabb) const
-    {
-        return mFrustum.Intersects(aabb);
     }
 };
 

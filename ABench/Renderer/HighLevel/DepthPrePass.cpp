@@ -9,33 +9,8 @@
 #include "ShaderMacroDefinitions.hpp"
 
 
-namespace {
-
-
-struct VertexShaderDynamicCBuffer
-{
-    ABench::Math::Matrix worldMatrix;
-};
-
-struct VertexShaderCBuffer
-{
-    ABench::Math::Matrix viewMatrix;
-    ABench::Math::Matrix projMatrix;
-};
-
-
-} // namespace
-
-
 namespace ABench {
 namespace Renderer {
-
-DepthPrePass::DepthPrePass()
-    : mRenderPass()
-    , mPipelineLayout()
-    , mVertexShaderSet(VK_NULL_HANDLE)
-{
-}
 
 bool DepthPrePass::Init(const DevicePtr& device, const DepthPrePassDesc& desc)
 {
@@ -47,9 +22,6 @@ bool DepthPrePass::Init(const DevicePtr& device, const DepthPrePassDesc& desc)
     depthTexDesc.format = VK_FORMAT_D32_SFLOAT;
     depthTexDesc.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
     if (!mDepthTexture.Init(mDevice, depthTexDesc))
-        return false;
-
-    if (!mRingBuffer.Init(mDevice, 1024*1024)) // 1M ring buffer should be enough
         return false;
 
     std::vector<VkAttachmentDescription> attachments;
@@ -102,11 +74,6 @@ bool DepthPrePass::Init(const DevicePtr& device, const DepthPrePassDesc& desc)
     if (!mPipelineLayout)
         return false;
 
-    // buffer-related set allocation
-    mVertexShaderSet = DescriptorAllocator::Instance().AllocateDescriptorSet(DescriptorLayoutManager::Instance().GetVertexShaderLayout());
-    if (mVertexShaderSet == VK_NULL_HANDLE)
-        return false;
-
 
     GraphicsPipelineDesc pipeDesc;
     pipeDesc.vertexLayout = &mVertexLayout;
@@ -128,35 +95,12 @@ bool DepthPrePass::Init(const DevicePtr& device, const DepthPrePassDesc& desc)
         return false;
 
 
-    BufferDesc vsBufferDesc;
-    vsBufferDesc.data = nullptr;
-    vsBufferDesc.dataSize = sizeof(VertexShaderCBuffer);
-    vsBufferDesc.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-    vsBufferDesc.type = BufferType::Dynamic;
-    if (!mVertexShaderCBuffer.Init(mDevice, vsBufferDesc))
-        return false;
-
-
-    // Point vertex shader set bindings to our dynamic buffer
-    Tools::UpdateBufferDescriptorSet(mDevice, mVertexShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 0,
-                                     mRingBuffer.GetVkBuffer(), sizeof(VertexShaderDynamicCBuffer));
-    Tools::UpdateBufferDescriptorSet(mDevice, mVertexShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
-                                     mVertexShaderCBuffer.GetBuffer(), sizeof(VertexShaderCBuffer));
-
     return true;
 }
 
-void DepthPrePass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, VkSemaphore signalSem, VkFence fence)
+void DepthPrePass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, const DepthPrePassDrawDesc& desc)
 {
-    // Update viewport
-    // TODO view could be pushed to dynamic buffer for optimization
-    VertexShaderCBuffer buf;
-    buf.viewMatrix = camera.GetView();
-    buf.projMatrix = camera.GetProjection();
-
-    // updating buffers
-    mVertexShaderCBuffer.Write(&buf, sizeof(VertexShaderCBuffer));
-
+    // recording Command Buffer
     {
         mCommandBuffer.Begin();
 
@@ -177,8 +121,8 @@ void DepthPrePass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, 
 
 
                 // world matrix update
-                uint32_t offset = mRingBuffer.Write(&o->GetTransform(), sizeof(ABench::Math::Matrix));
-                mCommandBuffer.BindDescriptorSet(mVertexShaderSet, bindPoint, 0, mPipelineLayout, offset);
+                uint32_t offset = desc.ringBufferPtr->Write(&o->GetTransform(), sizeof(ABench::Math::Matrix));
+                mCommandBuffer.BindDescriptorSet(desc.vertexShaderSet, bindPoint, 0, mPipelineLayout, offset);
 
                 model->ForEachMesh([&](Scene::Mesh* mesh) {
                     mCommandBuffer.BindPipeline(mPipeline.GetGraphicsPipeline(emptyMacros), bindPoint);
@@ -209,9 +153,7 @@ void DepthPrePass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, 
     }
 
     mDevice->Execute(DeviceQueueType::GRAPHICS, &mCommandBuffer, 0,
-                     nullptr, nullptr, signalSem, fence);
-
-    mRingBuffer.MarkFinishedFrame();
+                     nullptr, nullptr, desc.signalSem, desc.fence);
 }
 
 } // namespace Renderer

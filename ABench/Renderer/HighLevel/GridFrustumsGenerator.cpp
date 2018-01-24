@@ -34,16 +34,6 @@ GridFrustumsGenerator::GridFrustumsGenerator()
 {
 }
 
-GridFrustumsGenerator::~GridFrustumsGenerator()
-{
-}
-
-GridFrustumsGenerator& GridFrustumsGenerator::Instance()
-{
-    static GridFrustumsGenerator instance;
-    return instance;
-}
-
 bool GridFrustumsGenerator::Init(const DevicePtr& device)
 {
     mDevice = device;
@@ -88,7 +78,7 @@ bool GridFrustumsGenerator::Init(const DevicePtr& device)
     return true;
 }
 
-BufferPtr GridFrustumsGenerator::Generate(const GridFrustumsGenerationDesc& desc)
+bool GridFrustumsGenerator::Generate(const GridFrustumsGenerationDesc& desc)
 {
     uint32_t frustumsPerWidth = desc.viewportWidth / PIXELS_PER_GRID_FRUSTUM;
     uint32_t frustumsPerHeight = desc.viewportHeight / PIXELS_PER_GRID_FRUSTUM;
@@ -105,21 +95,21 @@ BufferPtr GridFrustumsGenerator::Generate(const GridFrustumsGenerationDesc& desc
     info.threadLimitX = frustumsPerWidth;
     info.threadLimitY = frustumsPerHeight;
     if (!mGridFrustumsInfo.Write(&info, sizeof(GridFrustumsInfoBuffer)))
-        return nullptr;
+        return false;
 
-    // allocate buffer for output data
+    // allocate new buffer for output data
     // size includes 4 planes per each frustum in the grid
+    mGridFrustumsData.Free();
     BufferDesc gridFrustumsDataDesc;
     gridFrustumsDataDesc.data = nullptr;
     gridFrustumsDataDesc.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
     gridFrustumsDataDesc.type = BufferType::Dynamic;
     gridFrustumsDataDesc.dataSize = sizeof(Math::Plane) * 4 * frustumsPerWidth * frustumsPerHeight;
-    BufferPtr frustumData = ResourceManager::Instance().GetBuffer(gridFrustumsDataDesc);
-    if (!frustumData)
-        return nullptr;
+    if (!mGridFrustumsData.Init(mDevice, gridFrustumsDataDesc))
+        return false;
 
     Tools::UpdateBufferDescriptorSet(mDevice, mGridFrustumsDataSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1,
-                                     frustumData->GetBuffer(), frustumData->GetSize());
+                                     mGridFrustumsData.GetBuffer(), mGridFrustumsData.GetSize());
 
     uint32_t dispatchThreadsX = frustumsPerWidth / PIXELS_PER_GRID_FRUSTUM;
     uint32_t dispatchThreadsY = frustumsPerHeight / PIXELS_PER_GRID_FRUSTUM;
@@ -134,23 +124,23 @@ BufferPtr GridFrustumsGenerator::Generate(const GridFrustumsGenerationDesc& desc
 
         mDispatchCommandBuffer.Begin();
         // TODO Buffer::Transition might be a better choice here, like in Texture
-        mDispatchCommandBuffer.BufferBarrier(frustumData.get(), VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+        mDispatchCommandBuffer.BufferBarrier(&mGridFrustumsData, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
                                              0, VK_ACCESS_SHADER_WRITE_BIT,
                                              mDevice->GetQueueIndex(DeviceQueueType::COMPUTE), mDevice->GetQueueIndex(DeviceQueueType::COMPUTE));
         mDispatchCommandBuffer.BindPipeline(mPipeline.GetComputePipeline(emptyMacros), VK_PIPELINE_BIND_POINT_COMPUTE);
         mDispatchCommandBuffer.BindDescriptorSet(mGridFrustumsDataSet, VK_PIPELINE_BIND_POINT_COMPUTE, 0, mPipelineLayout);
         mDispatchCommandBuffer.Dispatch(dispatchThreadsX, dispatchThreadsY, 1);
-        mDispatchCommandBuffer.BufferBarrier(frustumData.get(), VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+        mDispatchCommandBuffer.BufferBarrier(&mGridFrustumsData, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
                                              VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
                                              mDevice->GetQueueIndex(DeviceQueueType::COMPUTE), mDevice->GetQueueIndex(DeviceQueueType::COMPUTE));
         if (!mDispatchCommandBuffer.End())
-            return nullptr;
+            return false;
 
         mDevice->Execute(DeviceQueueType::COMPUTE, &mDispatchCommandBuffer);
         mDevice->Wait(DeviceQueueType::COMPUTE);
     }
 
-    return frustumData;
+    return true;
 }
 
 } // namespace Renderer

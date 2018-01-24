@@ -9,19 +9,13 @@ namespace Math {
 
 struct FrustumDesc
 {
-    Math::Vector3 pos;
-    Math::Vector3 at;
-    Math::Vector3 up;
     float ratio;
     float fov;
     float nearZ;
     float farZ;
 
     FrustumDesc()
-        : pos()
-        , at()
-        , up()
-        , ratio(0.0f)
+        : ratio(0.0f)
         , fov(0.0f)
         , nearZ(0.0f)
         , farZ(0.0f)

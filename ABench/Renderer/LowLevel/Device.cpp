@@ -175,7 +175,7 @@ bool Device::Execute(DeviceQueueType queueType, CommandBuffer* cmd) const
 }
 
 bool Device::Execute(DeviceQueueType queueType, CommandBuffer* cmd, uint32_t waitSemaphoresCount,
-                     VkPipelineStageFlags* waitFlags, VkSemaphore* waitSemaphores,
+                     const VkPipelineStageFlags* waitFlags, const VkSemaphore* waitSemaphores,
                      VkSemaphore signalSemaphore, VkFence waitFence) const
 {
     VkSubmitInfo submitInfo;

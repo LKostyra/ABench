@@ -11,17 +11,6 @@
 namespace {
 
 
-struct VertexShaderDynamicCBuffer
-{
-    ABench::Math::Matrix worldMatrix;
-};
-
-struct VertexShaderCBuffer
-{
-    ABench::Math::Matrix viewMatrix;
-    ABench::Math::Matrix projMatrix;
-};
-
 struct FragmentShaderLightCBuffer
 {
     ABench::Math::Vector4 pos;
@@ -43,7 +32,6 @@ namespace Renderer {
 ForwardPass::ForwardPass()
     : mRenderPass()
     , mPipelineLayout()
-    , mVertexShaderSet(VK_NULL_HANDLE)
     , mFragmentShaderSet(VK_NULL_HANDLE)
     , mAllShaderSet(VK_NULL_HANDLE)
 {
@@ -74,9 +62,6 @@ bool ForwardPass::Init(const DevicePtr& device, const ForwardPassDesc& desc)
     targetTexDesc.format = desc.outputFormat;
     targetTexDesc.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
     if (!mTargetTexture.Init(mDevice, targetTexDesc))
-        return false;
-
-    if (!mRingBuffer.Init(mDevice, 1024*1024)) // 1M ring buffer should be enough
         return false;
 
     std::vector<VkAttachmentDescription> attachments;
@@ -144,10 +129,6 @@ bool ForwardPass::Init(const DevicePtr& device, const ForwardPassDesc& desc)
         return false;
 
     // buffer-related set allocation
-    mVertexShaderSet = DescriptorAllocator::Instance().AllocateDescriptorSet(DescriptorLayoutManager::Instance().GetVertexShaderLayout());
-    if (mVertexShaderSet == VK_NULL_HANDLE)
-        return false;
-
     mFragmentShaderSet = DescriptorAllocator::Instance().AllocateDescriptorSet(DescriptorLayoutManager::Instance().GetFragmentShaderLayout());
     if (mFragmentShaderSet == VK_NULL_HANDLE)
         return false;
@@ -187,44 +168,26 @@ bool ForwardPass::Init(const DevicePtr& device, const ForwardPassDesc& desc)
         return false;
 
 
-    BufferDesc vsBufferDesc;
-    vsBufferDesc.data = nullptr;
-    vsBufferDesc.dataSize = sizeof(VertexShaderCBuffer);
-    vsBufferDesc.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-    vsBufferDesc.type = BufferType::Dynamic;
-    if (!mVertexShaderCBuffer.Init(mDevice, vsBufferDesc))
-        return false;
-
     BufferDesc fsBufferDesc;
     fsBufferDesc.data = nullptr;
     fsBufferDesc.dataSize = sizeof(FragmentShaderLightCBuffer);
     fsBufferDesc.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
     fsBufferDesc.type = BufferType::Dynamic;
-    if (!mAllShaderLightCBuffer.Init(mDevice, vsBufferDesc))
+    if (!mAllShaderLightCBuffer.Init(mDevice, fsBufferDesc))
         return false;
 
     // Point vertex shader set bindings to our dynamic buffer
-    Tools::UpdateBufferDescriptorSet(mDevice, mVertexShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 0,
-                                     mRingBuffer.GetVkBuffer(), sizeof(VertexShaderDynamicCBuffer));
-    Tools::UpdateBufferDescriptorSet(mDevice, mVertexShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
-                                     mVertexShaderCBuffer.GetBuffer(), sizeof(VertexShaderCBuffer));
     Tools::UpdateBufferDescriptorSet(mDevice, mFragmentShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 0,
-                                     mRingBuffer.GetVkBuffer(), sizeof(MaterialCBuffer));
+                                     desc.ringBufferPtr->GetVkBuffer(), sizeof(MaterialCBuffer));
     Tools::UpdateBufferDescriptorSet(mDevice, mAllShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0,
                                      mAllShaderLightCBuffer.GetBuffer(), sizeof(FragmentShaderLightCBuffer));
 
     return true;
 }
 
-void ForwardPass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, uint32_t waitCount,
-                       VkPipelineStageFlags* waitFlags, VkSemaphore* waitSemaphores,
-                       VkSemaphore signalSem, VkFence fence)
+void ForwardPass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, const ForwardPassDrawDesc& desc)
 {
-    // Update viewport
-    // TODO view could be pushed to dynamic buffer for optimization
-    VertexShaderCBuffer buf;
-    buf.viewMatrix = camera.GetView();
-    buf.projMatrix = camera.GetProjection();
+    ASSERT(desc.waitFlags.size() == desc.waitSems.size(), "Wait semaphores count does not match wait flags count");
 
     FragmentShaderLightCBuffer lightBuf;
     MaterialCBuffer materialBuf;
@@ -239,7 +202,6 @@ void ForwardPass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, u
     });
 
     // updating buffers
-    mVertexShaderCBuffer.Write(&buf, sizeof(VertexShaderCBuffer));
     mAllShaderLightCBuffer.Write(&lightBuf, sizeof(FragmentShaderLightCBuffer));
 
     {
@@ -272,8 +234,8 @@ void ForwardPass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, u
                 Scene::Model* model = dynamic_cast<Scene::Model*>(o->GetComponent());
 
                 // world matrix update
-                uint32_t offset = mRingBuffer.Write(&o->GetTransform(), sizeof(ABench::Math::Matrix));
-                mCommandBuffer.BindDescriptorSet(mVertexShaderSet, bindPoint, 0, mPipelineLayout, offset);
+                uint32_t offset = desc.ringBufferPtr->Write(&o->GetTransform(), sizeof(ABench::Math::Matrix));
+                mCommandBuffer.BindDescriptorSet(desc.vertexShaderSet, bindPoint, 0, mPipelineLayout, offset);
 
                 model->ForEachMesh([&](Scene::Mesh* mesh) {
                     macros.vertexShader[0].value = 0;
@@ -286,7 +248,7 @@ void ForwardPass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, u
                     {
                         // material data update
                         materialBuf.color = material->GetColor();
-                        offset = mRingBuffer.Write(&materialBuf, sizeof(materialBuf));
+                        offset = desc.ringBufferPtr->Write(&materialBuf, sizeof(materialBuf));
                         mCommandBuffer.BindDescriptorSet(mFragmentShaderSet, bindPoint, 5, mPipelineLayout, offset);
 
                         if (material->GetDiffuseDescriptor() != VK_NULL_HANDLE)
@@ -337,10 +299,9 @@ void ForwardPass::Draw(const Scene::Scene& scene, const Scene::Camera& camera, u
         }
     }
 
-    mDevice->Execute(DeviceQueueType::GRAPHICS, &mCommandBuffer, waitCount,
-                     waitFlags, waitSemaphores, signalSem, fence);
-
-    mRingBuffer.MarkFinishedFrame();
+    mDevice->Execute(DeviceQueueType::GRAPHICS, &mCommandBuffer,
+                     static_cast<uint32_t>(desc.waitSems.size()),
+                     desc.waitFlags.data(), desc.waitSems.data(), desc.signalSem, desc.fence);
 }
 
 } // namespace Renderer

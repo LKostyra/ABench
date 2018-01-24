@@ -13,6 +13,22 @@
 #include <glslang/Public/ShaderLang.h>
 
 
+namespace {
+
+struct VertexShaderCBuffer
+{
+    ABench::Math::Matrix viewMatrix;
+    ABench::Math::Matrix projMatrix;
+};
+
+struct VertexShaderDynamicCBuffer
+{
+    ABench::Math::Matrix worldMatrix;
+};
+
+} // namespace
+
+
 namespace ABench {
 namespace Renderer {
 
@@ -24,6 +40,10 @@ Renderer::Renderer()
     , mImageAcquiredSem()
     , mRenderFinishedSem()
     , mFrameFence()
+    , mVertexShaderSet(VK_NULL_HANDLE)
+    , mVertexShaderCBuffer()
+    , mGridFrustumsGenerator()
+    , mDepthPrePass()
     , mForwardPass()
 {
 }
@@ -33,7 +53,7 @@ Renderer::~Renderer()
     glslang::FinalizeProcess();
 }
 
-bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVerbose)
+bool Renderer::Init(const RendererDesc& desc)
 {
     if (!glslang::InitializeProcess())
     {
@@ -43,10 +63,10 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
 
     VkDebugReportFlagsEXT debugFlags = 0;
 
-    if (debugEnable)
+    if (desc.debugEnable)
     {
         debugFlags = VK_DEBUG_REPORT_ERROR_BIT_EXT;
-        if (debugVerbose)
+        if (desc.debugVerbose)
             debugFlags = VK_DEBUG_REPORT_FLAG_BITS_MAX_ENUM_EXT;
     }
 
@@ -62,7 +82,7 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     DescriptorAllocatorDesc daDesc;
     ZERO_MEMORY(daDesc);
     daDesc.limits[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER] = 1;
-    daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER] = 4;
+    daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER] = 3;
     daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC] = 3;
     daDesc.limits[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] = 1000;
     if (!DescriptorAllocator::Instance().Init(mDevice, daDesc))
@@ -71,7 +91,7 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (!ResourceManager::Instance().Init(mDevice))
         return false;
 
-    if (!GridFrustumsGenerator::Instance().Init(mDevice))
+    if (!mGridFrustumsGenerator.Init(mDevice))
         return false;
 
     if (!DescriptorLayoutManager::Instance().Init(mDevice))
@@ -79,11 +99,11 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
 
     BackbufferWindowDesc bbWindowDesc;
 #ifdef WIN32
-    bbWindowDesc.hInstance = window.GetInstance();
-    bbWindowDesc.hWnd = window.GetHandle();
+    bbWindowDesc.hInstance = desc.window->GetInstance();
+    bbWindowDesc.hWnd = desc.window->GetHandle();
 #elif defined(__linux__) | defined(__LINUX__)
-    bbWindowDesc.connection = window.GetConnection();
-    bbWindowDesc.window = window.GetWindow();
+    bbWindowDesc.connection = desc.window->GetConnection();
+    bbWindowDesc.window = desc.window->GetWindow();
 #else
 #error "Target platform not supported"
 #endif
@@ -92,8 +112,8 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     bbDesc.instancePtr = mInstance;
     bbDesc.windowDesc = bbWindowDesc;
     bbDesc.requestedFormat = VK_FORMAT_B8G8R8A8_UNORM;
-    bbDesc.width = window.GetWidth();
-    bbDesc.height = window.GetHeight();
+    bbDesc.width = desc.window->GetWidth();
+    bbDesc.height = desc.window->GetHeight();
     bbDesc.vsync = false;
     if (!mBackbuffer.Init(mDevice, bbDesc))
         return false;
@@ -119,7 +139,47 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     if (!mFrameFence)
         return false;
 
+    // View frustum definition
+    float aspect = static_cast<float>(desc.window->GetWidth()) / static_cast<float>(desc.window->GetHeight());
+    mProjection = Math::CreateRHProjectionMatrix(desc.fov, aspect, desc.nearZ, desc.farZ);
+    Math::FrustumDesc fdesc;
+    fdesc.fov = desc.fov;
+    fdesc.ratio = aspect;
+    fdesc.nearZ = desc.nearZ;
+    fdesc.farZ = desc.farZ;
+    mViewFrustum.Init(fdesc);
+
+    // Common shader descriptor sets & buffers
+    if (!mRingBuffer.Init(mDevice, 1024 * 1024))
+        return false;
+
+    mVertexShaderSet = DescriptorAllocator::Instance().AllocateDescriptorSet(DescriptorLayoutManager::Instance().GetVertexShaderLayout());
+    if (mVertexShaderSet == VK_NULL_HANDLE)
+        return false;
+
+    BufferDesc vsBufferDesc;
+    vsBufferDesc.data = nullptr;
+    vsBufferDesc.dataSize = sizeof(VertexShaderCBuffer);
+    vsBufferDesc.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+    vsBufferDesc.type = BufferType::Dynamic;
+    if (!mVertexShaderCBuffer.Init(mDevice, vsBufferDesc))
+        return false;
+
+
+    // Point vertex shader set bindings to our dynamic buffer
+    Tools::UpdateBufferDescriptorSet(mDevice, mVertexShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 0,
+                                     mRingBuffer.GetVkBuffer(), sizeof(VertexShaderDynamicCBuffer));
+    Tools::UpdateBufferDescriptorSet(mDevice, mVertexShaderSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
+                                     mVertexShaderCBuffer.GetBuffer(), sizeof(VertexShaderCBuffer));
+
     // Rendering passes
+    GridFrustumsGenerationDesc genDesc;
+    genDesc.projMat = mProjection;
+    genDesc.viewportWidth = desc.window->GetWidth();
+    genDesc.viewportHeight = desc.window->GetHeight();
+    if (!mGridFrustumsGenerator.Generate(genDesc))
+        return false;
+
     DepthPrePassDesc dppDesc;
     dppDesc.width = mBackbuffer.GetWidth();
     dppDesc.height = mBackbuffer.GetHeight();
@@ -131,6 +191,7 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
     fpDesc.height = mBackbuffer.GetHeight();
     fpDesc.outputFormat = mBackbuffer.GetFormat();
     fpDesc.depthTexture = mDepthPrePass.GetDepthTexture();
+    fpDesc.ringBufferPtr = &mRingBuffer;
     if (!mForwardPass.Init(mDevice, fpDesc))
         return false;
 
@@ -140,11 +201,12 @@ bool Renderer::Init(const Common::Window& window, bool debugEnable, bool debugVe
 void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
 {
     // Perform view frustum culling for next scene
+    mViewFrustum.Refresh(camera.GetPosition(), camera.GetAtPosition(), camera.GetUpVector());
     scene.ForEachObject([&](const Scene::Object* o) -> bool {
         if (o->GetComponent()->GetType() == Scene::ComponentType::Model)
         {
             Scene::Model* model = dynamic_cast<Scene::Model*>(o->GetComponent());
-            o->SetToRender(camera.Intersects(o->GetTransform() * model->GetAABB()));
+            o->SetToRender(mViewFrustum.Intersects(o->GetTransform() * model->GetAABB()));
         }
 
         return true;
@@ -160,15 +222,33 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
     if (result != VK_SUCCESS)
         LOGW("Failed to reset frame fence: " << result << " (" << TranslateVkResultToString(result) << ")");
 
+    // Update common descriptor set
+    VertexShaderCBuffer vsBuffer;
+    vsBuffer.viewMatrix = camera.GetView();
+    vsBuffer.projMatrix = mProjection;
+    if (!mVertexShaderCBuffer.Write(&vsBuffer, sizeof(vsBuffer)))
+        LOGW("Failed to update Vertex Shader Uniform Buffer");
+
     // Rendering
-    mDepthPrePass.Draw(scene, camera, mDepthFinishedSem, VK_NULL_HANDLE);
+    DepthPrePassDrawDesc depthDesc;
+    depthDesc.ringBufferPtr = &mRingBuffer;
+    depthDesc.vertexShaderSet = mVertexShaderSet;
+    depthDesc.signalSem = mDepthFinishedSem;
+    mDepthPrePass.Draw(scene, camera, depthDesc);
 
     if (!mBackbuffer.AcquireNextImage(mImageAcquiredSem))
         LOGE("Failed to acquire next image for rendering");
 
-    VkPipelineStageFlags waitFlags[] = { VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-    VkSemaphore waitSems[] = { mDepthFinishedSem, mImageAcquiredSem };
-    mForwardPass.Draw(scene, camera, 2, waitFlags, waitSems, mRenderFinishedSem, mFrameFence);
+    ForwardPassDrawDesc forwardDesc;
+    forwardDesc.ringBufferPtr = &mRingBuffer;
+    forwardDesc.vertexShaderSet = mVertexShaderSet;
+    forwardDesc.waitFlags = { VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+    forwardDesc.waitSems = { mDepthFinishedSem, mImageAcquiredSem };
+    forwardDesc.signalSem = mRenderFinishedSem;
+    forwardDesc.fence = mFrameFence;
+    mForwardPass.Draw(scene, camera, forwardDesc);
+
+    mRingBuffer.MarkFinishedFrame();
 
     if (!mBackbuffer.Present(mForwardPass.GetTargetTexture(), mRenderFinishedSem))
         LOGE("Error during image presentation");

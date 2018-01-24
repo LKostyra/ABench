@@ -55,8 +55,7 @@ class ABenchWindow: public ABench::Common::Window
 
         float speed = 5.0f;
 
-        // TODO it would be better to update the position in a more friendly way
-        ABench::Scene::CameraUpdateDesc desc;
+        ABench::Scene::CameraDesc desc;
         desc.pos = mCamera.GetPosition() + (newPos * speed * deltaTime);
         desc.at = desc.pos + updateDir;
         desc.up = mCamera.GetUpVector();
@@ -135,22 +134,24 @@ int main()
 #endif
 
     ABench::Renderer::Renderer rend;
-    if (!rend.Init(window, debug, false))
+    ABench::Renderer::RendererDesc rendDesc;
+    rendDesc.debugEnable = debug;
+    rendDesc.debugVerbose = false;
+    rendDesc.window = &window;
+    rendDesc.fov = 60.0f;
+    rendDesc.nearZ = 0.2f;
+    rendDesc.farZ = 500.0f;
+    if (!rend.Init(rendDesc))
     {
         LOGE("Failed to initialize Renderer");
         return -1;
     }
 
     ABench::Scene::CameraDesc desc;
-    desc.view.pos = ABench::Math::Vector4(0.0f, 1.0f,-2.0f, 1.0f);
-    desc.view.at = ABench::Math::Vector4(0.0f, 1.0f, 1.0f, 1.0f);
-    desc.view.up = ABench::Math::Vector4(0.0f,-1.0f, 0.0f, 0.0f); // to comply with Vulkan's coord system
-    desc.fov = 60.0f;
-    desc.windowWidth = window.GetWidth();
-    desc.windowHeight = window.GetHeight();
-    desc.nearZ = 0.2f;
-    desc.farZ = 500.0f;
-    window.GetCamera().Init(desc);
+    desc.pos = ABench::Math::Vector4(0.0f, 1.0f,-2.0f, 1.0f);
+    desc.at = ABench::Math::Vector4(0.0f, 1.0f, 1.0f, 1.0f);
+    desc.up = ABench::Math::Vector4(0.0f,-1.0f, 0.0f, 0.0f); // to comply with Vulkan's coord system
+    window.GetCamera().Update(desc);
 
     ABench::Scene::Scene scene;
     scene.Init(ABench::Common::FS::JoinPaths(ABench::ResourceDir::SCENES, "sponza.fbx"));

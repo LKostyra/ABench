@@ -34,7 +34,7 @@ public:
     void Wait(DeviceQueueType queueType) const;
     bool Execute(DeviceQueueType queueType, CommandBuffer* cmd) const;
     bool Execute(DeviceQueueType queueType, CommandBuffer* cmd, uint32_t waitSemaphoresCount,
-                 VkPipelineStageFlags* waitFlags, VkSemaphore* waitSemaphores,
+                 const VkPipelineStageFlags* waitFlags, const VkSemaphore* waitSemaphores,
                  VkSemaphore signalSemaphore, VkFence waitFence) const;
 
     ABENCH_INLINE VkDevice GetDevice() const
