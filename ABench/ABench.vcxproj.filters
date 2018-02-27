@@ -87,9 +87,6 @@
     <ClCompile Include="Math\Plane.cpp">
       <Filter>Math</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\HighLevel\DescriptorLayoutManager.cpp">
-      <Filter>Renderer\HighLevel</Filter>
-    </ClCompile>
     <ClCompile Include="Renderer\HighLevel\GridFrustumsGenerator.cpp">
       <Filter>Renderer\HighLevel</Filter>
     </ClCompile>
@@ -189,6 +186,15 @@
     <ClCompile Include="Renderer\HighLevel\LightCuller.cpp">
       <Filter>Renderer\HighLevel</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer\HighLevel\ParticlePass.cpp">
+      <Filter>Renderer\HighLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Emitter.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\HighLevel\ParticleEngine.cpp">
+      <Filter>Renderer\HighLevel</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\Window.hpp">
@@ -234,7 +240,6 @@
     <ClInclude Include="Scene\Scene.hpp">
       <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="Prerequisites.hpp" />
     <ClInclude Include="Scene\Material.hpp">
       <Filter>Scene</Filter>
     </ClInclude>
@@ -259,9 +264,6 @@
     </ClInclude>
     <ClInclude Include="Math\Plane.hpp">
       <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\HighLevel\DescriptorLayoutManager.hpp">
-      <Filter>Renderer\HighLevel</Filter>
     </ClInclude>
     <ClInclude Include="Renderer\HighLevel\GridFrustumsGenerator.hpp">
       <Filter>Renderer\HighLevel</Filter>
@@ -374,5 +376,15 @@
     <ClInclude Include="Renderer\HighLevel\LightCuller.hpp">
       <Filter>Renderer\HighLevel</Filter>
     </ClInclude>
+    <ClInclude Include="Renderer\HighLevel\ParticlePass.hpp">
+      <Filter>Renderer\HighLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Emitter.hpp">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\HighLevel\ParticleEngine.hpp">
+      <Filter>Renderer\HighLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="Prerequisites.hpp" />
   </ItemGroup>
 </Project>

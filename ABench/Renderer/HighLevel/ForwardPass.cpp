@@ -4,7 +4,6 @@
 #include "Renderer/LowLevel/DescriptorAllocator.hpp"
 #include "Math/Matrix.hpp"
 
-#include "DescriptorLayoutManager.hpp"
 #include "ShaderMacroDefinitions.hpp"
 
 
@@ -37,11 +36,25 @@ ForwardPass::ForwardPass()
     , mVertexLayout()
     , mPipeline()
     , mCommandBuffer()
+    , mSampler()
     , mFragmentShaderLayout()
+    , mFragmentShaderTextureLayout()
     , mRenderPass()
     , mPipelineLayout()
     , mFragmentShaderSet(VK_NULL_HANDLE)
 {
+}
+
+VkDescriptorSet ForwardPass::AcquireDescriptorSetFromTexture(const TexturePtr& tex)
+{
+    VkDescriptorSet set = tex->GetDescriptorSet();
+    if (set == VK_NULL_HANDLE)
+    {
+        tex->AllocateDescriptorSet(mFragmentShaderTextureLayout);
+        set = tex->GetDescriptorSet();
+    }
+
+    return set;
 }
 
 bool ForwardPass::Init(const DevicePtr& device, const ForwardPassDesc& desc)
@@ -153,6 +166,16 @@ bool ForwardPass::Init(const DevicePtr& device, const ForwardPassDesc& desc)
     if (!mFragmentShaderLayout)
         return false;
 
+    mSampler = Tools::CreateSampler(mDevice);
+    if (!mSampler)
+        return false;
+
+    mFragmentShaderTextureLayout = Tools::CreateDescriptorSetLayout(mDevice,
+        { {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, mSampler} });
+    if (!mFragmentShaderTextureLayout)
+        return false;
+
+
     mFragmentShaderSet = DescriptorAllocator::Instance().AllocateDescriptorSet(mFragmentShaderLayout);
     if (mFragmentShaderSet == VK_NULL_HANDLE)
         return false;
@@ -161,9 +184,9 @@ bool ForwardPass::Init(const DevicePtr& device, const ForwardPassDesc& desc)
     std::vector<VkDescriptorSetLayout> layouts;
     layouts.push_back(desc.vertexShaderLayout);
     layouts.push_back(mFragmentShaderLayout);
-    layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderDiffuseTextureLayout());
-    layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderNormalTextureLayout());
-    layouts.push_back(DescriptorLayoutManager::Instance().GetFragmentShaderMaskTextureLayout());
+    layouts.push_back(mFragmentShaderTextureLayout);
+    layouts.push_back(mFragmentShaderTextureLayout);
+    layouts.push_back(mFragmentShaderTextureLayout);
     mPipelineLayout = Tools::CreatePipelineLayout(mDevice, layouts);
     if (!mPipelineLayout)
         return false;
@@ -265,29 +288,29 @@ void ForwardPass::Draw(const Scene::Scene& scene, const ForwardPassDrawDesc& des
                         offset = desc.ringBufferPtr->Write(&materialBuf, sizeof(materialBuf));
                         mCommandBuffer.BindDescriptorSet(mFragmentShaderSet, bindPoint, 1, mPipelineLayout, offset);
 
-                        if (material->GetDiffuseDescriptor() != VK_NULL_HANDLE)
+                        if (material->GetDiffuse())
                         {
                             macros.fragmentShader[0].value = 1;
-                            mCommandBuffer.BindDescriptorSet(material->GetDiffuseDescriptor(), bindPoint, 2, mPipelineLayout);
+                            mCommandBuffer.BindDescriptorSet(AcquireDescriptorSetFromTexture(material->GetDiffuse()), bindPoint, 2, mPipelineLayout);
                         }
 
-                        if (material->GetNormalDescriptor() != VK_NULL_HANDLE)
+                        if (material->GetNormal())
                         {
                             macros.vertexShader[0].value = 1;
                             macros.fragmentShader[1].value = 1;
-                            mCommandBuffer.BindDescriptorSet(material->GetNormalDescriptor(), bindPoint, 3, mPipelineLayout);
+                            mCommandBuffer.BindDescriptorSet(AcquireDescriptorSetFromTexture(material->GetNormal()), bindPoint, 3, mPipelineLayout);
                         }
 
-                        if (material->GetMaskDescriptor() != VK_NULL_HANDLE)
+                        if (material->GetMask())
                         {
                             macros.fragmentShader[2].value = 1;
-                            mCommandBuffer.BindDescriptorSet(material->GetMaskDescriptor(), bindPoint, 4, mPipelineLayout);
+                            mCommandBuffer.BindDescriptorSet(AcquireDescriptorSetFromTexture(material->GetMask()), bindPoint, 4, mPipelineLayout);
                         }
                     }
 
                     mCommandBuffer.BindPipeline(mPipeline.GetGraphicsPipeline(macros), bindPoint);
-                    mCommandBuffer.BindVertexBuffer(mesh->GetVertexBuffer(), 0);
-                    mCommandBuffer.BindVertexBuffer(mesh->GetVertexParamsBuffer(), 1);
+                    mCommandBuffer.BindVertexBuffer(mesh->GetVertexBuffer(), 0, 0);
+                    mCommandBuffer.BindVertexBuffer(mesh->GetVertexParamsBuffer(), 1, 0);
 
                     if (mesh->ByIndices())
                     {
@@ -296,7 +319,7 @@ void ForwardPass::Draw(const Scene::Scene& scene, const ForwardPassDrawDesc& des
                     }
                     else
                     {
-                        mCommandBuffer.Draw(mesh->GetPointCount());
+                        mCommandBuffer.Draw(mesh->GetPointCount(), 1);
                     }
                 });
             }

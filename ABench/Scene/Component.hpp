@@ -11,6 +11,7 @@ enum class ComponentType: unsigned char
     Invalid = 0,
     Model,
     Light,
+    Emitter,
 };
 
 class Component

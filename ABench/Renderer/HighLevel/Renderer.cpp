@@ -5,10 +5,10 @@
 #include "Renderer/LowLevel/Extensions.hpp"
 #include "Renderer/LowLevel/Translations.hpp"
 
+#include "ResourceDir.hpp"
+#include "Common/FS.hpp"
 #include "Common/Logger.hpp"
 #include "Math/Plane.hpp"
-
-#include "DescriptorLayoutManager.hpp"
 
 #include <glslang/Public/ShaderLang.h>
 
@@ -40,6 +40,7 @@ Renderer::Renderer()
     , mDevice(nullptr)
     , mBackbuffer()
     , mImageAcquiredSem()
+    , mParticleEngineSem()
     , mDepthSem()
     , mCullingSem()
     , mRenderSem()
@@ -88,9 +89,9 @@ bool Renderer::Init(const RendererDesc& desc)
     // initialize Descriptor Allocator
     DescriptorAllocatorDesc daDesc;
     ZERO_MEMORY(daDesc);
-    daDesc.limits[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER] = 8;
-    daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER] = 5;
-    daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC] = 2;
+    daDesc.limits[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER] = 11;
+    daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER] = 7;
+    daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC] = 3;
     daDesc.limits[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] = 1000;
     if (!DescriptorAllocator::Instance().Init(mDevice, daDesc))
         return false;
@@ -101,8 +102,6 @@ bool Renderer::Init(const RendererDesc& desc)
     if (!mGridFrustumsGenerator.Init(mDevice))
         return false;
 
-    if (!DescriptorLayoutManager::Instance().Init(mDevice))
-        return false;
 
     BackbufferWindowDesc bbWindowDesc;
 #ifdef WIN32
@@ -130,6 +129,10 @@ bool Renderer::Init(const RendererDesc& desc)
     if (!mImageAcquiredSem)
         return false;
 
+    mParticleEngineSem = Tools::CreateSem(mDevice);
+    if (!mParticleEngineSem)
+        return false;
+
     mDepthSem = Tools::CreateSem(mDevice);
     if (!mDepthSem)
         return false;
@@ -140,6 +143,14 @@ bool Renderer::Init(const RendererDesc& desc)
 
     mRenderSem = Tools::CreateSem(mDevice);
     if (!mRenderSem)
+        return false;
+
+    mParticlePassSem = Tools::CreateSem(mDevice);
+    if (!mParticlePassSem)
+        return false;
+
+    mParticleEngineFence = Tools::CreateFence(mDevice, false);
+    if (!mParticleEngineFence)
         return false;
 
     mFrameFence = Tools::CreateFence(mDevice, true);
@@ -206,6 +217,9 @@ bool Renderer::Init(const RendererDesc& desc)
     if (!mGridFrustumsGenerator.Generate(genDesc))
         return false;
 
+    if (!mParticleEngine.Init(mDevice))
+        return false;
+
     DepthPrePassDesc dppDesc;
     dppDesc.width = mBackbuffer.GetWidth();
     dppDesc.height = mBackbuffer.GetHeight();
@@ -237,10 +251,20 @@ bool Renderer::Init(const RendererDesc& desc)
     if (!mForwardPass.Init(mDevice, fpDesc))
         return false;
 
+    ParticlePassDesc ppDesc;
+    ppDesc.targetTexture = &mForwardPass.GetTargetTexture();
+    ppDesc.depthTexture = mDepthPrePass.GetDepthTexture();
+    ppDesc.vertexShaderBuffer = &mVertexShaderCBuffer;
+    ppDesc.outputFormat = mBackbuffer.GetFormat();
+    ppDesc.particleTexturePath = Common::FS::JoinPaths(
+        Common::FS::JoinPaths(ResourceDir::DATA_ROOT, ResourceDir::TEXTURES), "particle.png");
+    if (!mParticlePass.Init(mDevice, ppDesc))
+        return false;
+
     return true;
 }
 
-void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
+void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera, float deltaTime)
 {
     // Perform view frustum culling for next scene
     mViewFrustum.Refresh(camera.GetPosition(), camera.GetAtPosition(), camera.GetUpVector());
@@ -264,7 +288,22 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
     if (result != VK_SUCCESS)
         LOGW("Failed to reset frame fence: " << result << " (" << TranslateVkResultToString(result) << ")");
 
-    // Update descriptor set common for Depth and Forward passes
+
+    ////////////////////////////
+    // Particle Engine update //
+    ////////////////////////////
+    mParticleEngine.UpdateEmitters(scene);
+    ParticleEngineDispatchDesc peDesc;
+    peDesc.cameraPos = camera.GetPosition();
+    peDesc.deltaTime = deltaTime;
+    peDesc.signalSem = mParticleEngineSem;
+    peDesc.simulationFence = mParticleEngineFence;
+    mParticleEngine.Dispatch(peDesc);
+
+
+    //////////////////////////////////
+    // Rendering descriptors update //
+    //////////////////////////////////
     VertexShaderCBuffer vsBuffer;
     vsBuffer.viewMatrix = camera.GetView();
     vsBuffer.projMatrix = mProjection;
@@ -278,6 +317,8 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
         lightCount++;
         return true;
     });
+
+
 
     ///////////////
     // Rendering //
@@ -308,12 +349,24 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera)
     forwardDesc.waitFlags = { VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     forwardDesc.waitSems = { mCullingSem, mImageAcquiredSem };
     forwardDesc.signalSem = mRenderSem;
-    forwardDesc.fence = mFrameFence;
     mForwardPass.Draw(scene, forwardDesc);
+
+    // Particle pass
+    ParticlePassDrawDesc particleDesc;
+    particleDesc.cameraPos = camera.GetPosition();
+    particleDesc.particleDataBuffer = mParticleEngine.GetParticleDataBuffer();
+    particleDesc.emitterDataBuffer = mParticleEngine.GetEmitterDataBuffer();
+    particleDesc.emitterCount = scene.GetEmitterCount();
+    particleDesc.simulationFinishedFence = mParticleEngineFence;
+    particleDesc.waitFlags = { VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+    particleDesc.waitSems = { mParticleEngineSem, mRenderSem };
+    particleDesc.signalSem = mParticlePassSem;
+    particleDesc.fence = mFrameFence;
+    mParticlePass.Draw(particleDesc);
 
     mRingBuffer.MarkFinishedFrame();
 
-    if (!mBackbuffer.Present(mForwardPass.GetTargetTexture(), mRenderSem))
+    if (!mBackbuffer.Present(mForwardPass.GetTargetTexture(), mParticlePassSem))
         LOGE("Error during image presentation");
 }
 

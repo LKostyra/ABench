@@ -108,9 +108,8 @@ public:
 
     // Records a layout transition in given command buffer. UNDEFINED layout reverts to default.
     void Transition(VkCommandBuffer cmdBuffer, VkImageLayout targetLayout = VK_IMAGE_LAYOUT_UNDEFINED);
+    bool AllocateDescriptorSet(VkDescriptorSetLayout layout);
 };
-
-using TexturePtr = std::shared_ptr<Texture>;
 
 } // namespace Renderer
 } // namespace ABench

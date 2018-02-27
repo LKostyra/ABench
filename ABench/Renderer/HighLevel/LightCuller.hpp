@@ -71,6 +71,7 @@ class LightCuller final
     Buffer mGridLightData;
 
     VkDescriptorSet mLightCullerSet;
+    VkRAII<VkSampler> mSampler;
     VkRAII<VkDescriptorSetLayout> mDescriptorSetLayout;
     VkRAII<VkPipelineLayout> mPipelineLayout;
     MultiPipeline mPipeline;

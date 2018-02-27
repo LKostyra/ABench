@@ -1,8 +1,6 @@
 #include "PCH.hpp"
 #include "GridFrustumsGenerator.hpp"
 
-#include "ResourceManager.hpp"
-
 #include "Renderer/LowLevel/Extensions.hpp"
 
 #include "Math/Matrix.hpp"

@@ -26,5 +26,7 @@ public:
     bool IsDebuggingEnabled() const;
 };
 
+using InstancePtr = std::shared_ptr<Instance>;
+
 } // namespace Renderer
 } // namespace ABench

@@ -1,3 +1,6 @@
+layout (early_fragment_tests) in;
+
+
 layout (location = 0) in vec3 VertNorm;
 layout (location = 1) in vec2 VertUV;
 layout (location = 2) in vec3 VertPosWorld;

@@ -19,7 +19,10 @@ uint32_t windowWidth = 1280;
 uint32_t windowHeight = 720;
 ABench::Scene::Light* gLight;
 
-const int32_t ANIM_LIGHTS_LIMIT = 7;
+const int32_t EMITTERS_LIMIT = 1;
+ABench::Scene::Emitter* gEmitters[EMITTERS_LIMIT * 2 + 1];
+
+const int32_t ANIM_LIGHTS_LIMIT = 100;
 ABench::Scene::Light* gAnimatedLights[ANIM_LIGHTS_LIMIT * 2 + 1];
 
 class ABenchWindow: public ABench::Common::Window
@@ -249,8 +252,22 @@ int main()
         o->SetComponent(gAnimatedLights[i + ANIM_LIGHTS_LIMIT]);
     }
 
+    for (int i = -EMITTERS_LIMIT; i < EMITTERS_LIMIT + 1; ++i)
+    {
+        auto emitterResult = scene.GetComponent(ABench::Scene::ComponentType::Emitter, "emitter" + std::to_string(i + EMITTERS_LIMIT));
+        gEmitters[i + EMITTERS_LIMIT] = dynamic_cast<ABench::Scene::Emitter*>(emitterResult.first);
+
+        gEmitters[i + EMITTERS_LIMIT]->SetParticleLimit(1024);
+        gEmitters[i + EMITTERS_LIMIT]->SetSpawnPeriod(1.0f / 200.0f);
+        gEmitters[i + EMITTERS_LIMIT]->SetLifeTime(4.0f);
+        gEmitters[i + EMITTERS_LIMIT]->SetPosition(ABench::Math::Vector4(i * 6.0f, 10.0f, -0.25f, 1.0f));
+
+        ABench::Scene::Object* o = scene.CreateObject();
+        o->SetComponent(gEmitters[i + EMITTERS_LIMIT]);
+    }
+
     ABench::Common::Timer timer;
-    ABench::Math::RingAverage<float, 200> avgTime;
+    ABench::Math::RingAverage<float, 30> avgTime;
     timer.Start();
 
     while(window.IsOpen())
@@ -263,7 +280,7 @@ int main()
 
         window.SetTitle("ABench - " + std::to_string(fps) + " FPS (" + std::to_string(time * 1000.0f) + " ms)");
         window.Update(frameTime);
-        rend.Draw(scene, window.GetCamera());
+        rend.Draw(scene, window.GetCamera(), frameTime);
     }
 
 #if defined(_DEBUG) && defined(WIN32)

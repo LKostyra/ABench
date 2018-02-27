@@ -3,6 +3,7 @@
 #include "Prerequisites.hpp"
 #include "Device.hpp"
 #include "Texture.hpp"
+#include "Common/Common.hpp"
 
 
 namespace ABench {
@@ -39,6 +40,16 @@ public:
     ~Framebuffer();
 
     bool Init(const DevicePtr& device, const FramebufferDesc& desc);
+
+    ABENCH_INLINE uint32_t GetWidth() const
+    {
+        return mWidth;
+    }
+
+    ABENCH_INLINE uint32_t GetHeight() const
+    {
+        return mHeight;
+    }
 };
 
 } // namespace Renderer

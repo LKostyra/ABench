@@ -2,7 +2,6 @@
 #include "LightCuller.hpp"
 
 #include "Renderer/LowLevel/DescriptorAllocator.hpp"
-#include "DescriptorLayoutManager.hpp"
 
 
 namespace {
@@ -25,6 +24,7 @@ LightCuller::LightCuller()
     , mCulledLights()
     , mGridLightData()
     , mLightCullerSet(VK_NULL_HANDLE)
+    , mSampler()
     , mDescriptorSetLayout()
     , mPipelineLayout()
     , mPipeline()
@@ -65,6 +65,10 @@ bool LightCuller::Init(const DevicePtr& device, const LightCullerDesc& desc)
     if (!mCullingParams.Init(mDevice, bufDesc))
         return false;
 
+    mSampler = Tools::CreateSampler(mDevice);
+    if (!mSampler)
+        return false;
+
 
     std::vector<DescriptorSetLayoutDesc> layoutDesc;
     layoutDesc.push_back({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, VK_NULL_HANDLE});
@@ -72,7 +76,7 @@ bool LightCuller::Init(const DevicePtr& device, const LightCullerDesc& desc)
     layoutDesc.push_back({VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, VK_NULL_HANDLE});
     layoutDesc.push_back({VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, VK_NULL_HANDLE});
     layoutDesc.push_back({VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, VK_NULL_HANDLE});
-    layoutDesc.push_back({VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_COMPUTE_BIT, DescriptorLayoutManager::Instance().GetSampler()});
+    layoutDesc.push_back({VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_COMPUTE_BIT, mSampler});
     mDescriptorSetLayout = Tools::CreateDescriptorSetLayout(mDevice, layoutDesc);
     if (!mDescriptorSetLayout)
         return false;

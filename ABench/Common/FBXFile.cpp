@@ -168,7 +168,7 @@ bool FBXFile::Open(const std::string& path)
 
     LOGD(path.substr(filenameStart + 1, filenameLength));
     mFbxScene->SetName(path.substr(filenameStart + 1, filenameLength).c_str());
-    
+
     // scale to meter units
     if(mFbxScene->GetGlobalSettings().GetSystemUnit() == FbxSystemUnit::cm)
     {

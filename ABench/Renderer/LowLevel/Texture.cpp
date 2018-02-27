@@ -4,11 +4,8 @@
 #include "Util.hpp"
 #include "Extensions.hpp"
 #include "CommandBuffer.hpp"
+#include "DescriptorAllocator.hpp"
 #include "Tools.hpp"
-
-// TODO remove these dependencies
-#include "Renderer/HighLevel/Renderer.hpp"
-#include "Renderer/HighLevel/DescriptorLayoutManager.hpp"
 
 #include "Common/Common.hpp"
 
@@ -166,17 +163,6 @@ bool Texture::Init(const DevicePtr& device, const TextureDesc& desc)
     result = vkCreateImageView(mDevice->GetDevice(), &ivInfo, nullptr, &mImageView);
     RETURN_FALSE_IF_FAILED(result, "Failed to create Image View for Texture");
 
-    if (desc.usage & VK_IMAGE_USAGE_SAMPLED_BIT)
-    {
-        mImageDescriptorSet = DescriptorAllocator::Instance().AllocateDescriptorSet(
-            DescriptorLayoutManager::Instance().GetFragmentShaderDiffuseTextureLayout()
-        );
-        if (mImageDescriptorSet == VK_NULL_HANDLE)
-            return false;
-
-        Tools::UpdateTextureDescriptorSet(mDevice, mImageDescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 0, mImageView);
-    }
-
     LOGM("Created Texture (image " << std::hex << mImage << " view " << mImageView << " res " << std::dec << mWidth << "x" << mHeight << ")");
     return true;
 }
@@ -200,6 +186,16 @@ void Texture::Transition(VkCommandBuffer cmdBuffer, VkImageLayout targetLayout)
                          0, nullptr, 0, nullptr, 1, &barrier);
 
     mCurrentLayout = targetLayout;
+}
+
+bool Texture::AllocateDescriptorSet(VkDescriptorSetLayout layout)
+{
+    mImageDescriptorSet = DescriptorAllocator::Instance().AllocateDescriptorSet(layout);
+    if (mImageDescriptorSet == VK_NULL_HANDLE)
+        return false;
+
+    Tools::UpdateTextureDescriptorSet(mDevice, mImageDescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 0, mImageView);
+    return true;
 }
 
 } // namespace Renderer

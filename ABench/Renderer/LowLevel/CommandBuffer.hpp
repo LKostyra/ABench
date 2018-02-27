@@ -3,8 +3,8 @@
 #include "Prerequisites.hpp"
 #include "Device.hpp"
 #include "Framebuffer.hpp"
-#include "Pipeline.hpp"
 #include "Buffer.hpp"
+#include "Texture.hpp"
 #include "Device.hpp"
 #include "Types.hpp"
 
@@ -34,7 +34,7 @@ public:
                        uint32_t fromQueueFamily, uint32_t toQueueFamily);
     void Begin();
     void BeginRenderPass(VkRenderPass rp, Framebuffer* fb, ClearType types, float clearValues[4], float depthValue = 0.0f);
-    void BindVertexBuffer(const Buffer* buffer, uint32_t binding);
+    void BindVertexBuffer(const Buffer* buffer, uint32_t binding, VkDeviceSize offset);
     void BindIndexBuffer(const Buffer* buffer);
     void BindPipeline(VkPipeline pipeline, VkPipelineBindPoint point);
     void BindDescriptorSet(VkDescriptorSet set, VkPipelineBindPoint point, uint32_t setSlot, VkPipelineLayout layout);
@@ -45,7 +45,7 @@ public:
     void CopyTexture(Texture* src, Texture* dst);
     void CopyTextureToBackbuffer(Texture* src, Backbuffer* dst);
     void Dispatch(uint32_t x, uint32_t y, uint32_t z);
-    void Draw(uint32_t vertCount);
+    void Draw(uint32_t vertCount, uint32_t instanceCount);
     void DrawIndexed(uint32_t vertCount);
     void EndRenderPass();
     bool End();

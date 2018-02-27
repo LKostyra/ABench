@@ -63,5 +63,7 @@ public:
     }
 };
 
+using DevicePtr = std::shared_ptr<Device>;
+
 } // namespace Renderer
 } // namespace ABench

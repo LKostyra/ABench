@@ -5,7 +5,6 @@
 
 #include "Math/Matrix.hpp"
 
-#include "DescriptorLayoutManager.hpp"
 #include "ShaderMacroDefinitions.hpp"
 
 
@@ -125,7 +124,7 @@ void DepthPrePass::Draw(const Scene::Scene& scene, const DepthPrePassDrawDesc& d
 
                 model->ForEachMesh([&](Scene::Mesh* mesh) {
                     mCommandBuffer.BindPipeline(mPipeline.GetGraphicsPipeline(emptyMacros), bindPoint);
-                    mCommandBuffer.BindVertexBuffer(mesh->GetVertexBuffer(), 0);
+                    mCommandBuffer.BindVertexBuffer(mesh->GetVertexBuffer(), 0, 0);
 
                     if (mesh->ByIndices())
                     {
@@ -134,7 +133,7 @@ void DepthPrePass::Draw(const Scene::Scene& scene, const DepthPrePassDrawDesc& d
                     }
                     else
                     {
-                        mCommandBuffer.Draw(mesh->GetPointCount());
+                        mCommandBuffer.Draw(mesh->GetPointCount(), 1);
                     }
                 });
             }

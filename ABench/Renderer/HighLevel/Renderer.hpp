@@ -14,9 +14,11 @@
 #include "Scene/Scene.hpp"
 
 #include "GridFrustumsGenerator.hpp"
+#include "ParticleEngine.hpp"
 #include "DepthPrePass.hpp"
 #include "LightCuller.hpp"
 #include "ForwardPass.hpp"
+#include "ParticlePass.hpp"
 
 
 namespace ABench {
@@ -39,9 +41,12 @@ class Renderer final
 
     Backbuffer mBackbuffer;
     VkRAII<VkSemaphore> mImageAcquiredSem;
+    VkRAII<VkSemaphore> mParticleEngineSem;
     VkRAII<VkSemaphore> mDepthSem;
     VkRAII<VkSemaphore> mCullingSem;
     VkRAII<VkSemaphore> mRenderSem;
+    VkRAII<VkSemaphore> mParticlePassSem;
+    VkRAII<VkFence> mParticleEngineFence;
     VkRAII<VkFence> mFrameFence;
 
     Math::Matrix mProjection;
@@ -53,16 +58,18 @@ class Renderer final
     Buffer mLightContainer;
 
     GridFrustumsGenerator mGridFrustumsGenerator;
+    ParticleEngine mParticleEngine;
     DepthPrePass mDepthPrePass;
     LightCuller mLightCuller;
     ForwardPass mForwardPass;
+    ParticlePass mParticlePass;
 
 public:
     Renderer();
     ~Renderer();
 
     bool Init(const RendererDesc& desc);
-    void Draw(const Scene::Scene& scene, const Scene::Camera& camera);
+    void Draw(const Scene::Scene& scene, const Scene::Camera& camera, float deltaTime);
 
     // this function should be used only when application finishes
     void WaitForAll() const;

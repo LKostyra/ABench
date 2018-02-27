@@ -5,6 +5,7 @@
 #include "Object.hpp"
 #include "Model.hpp"
 #include "Light.hpp"
+#include "Emitter.hpp"
 #include "Material.hpp"
 
 
@@ -27,11 +28,13 @@ class Scene
     std::vector<Object> mObjects;
     ResourceMap<Model> mModelComponents;
     ResourceMap<Light> mLightComponents;
+    ResourceMap<Emitter> mEmitterComponents;
     ResourceMap<Material> mMaterials;
 
     // getters per each component type
     GetResult<Component> GetModelComponent(const std::string& name);
     GetResult<Component> GetLightComponent(const std::string& name);
+    GetResult<Component> GetEmitterComponent(const std::string& name);
 
     // helpers
     FbxFileTexture* FileTextureFromMaterial(FbxSurfaceMaterial* material, const std::string& propertyName);
@@ -46,7 +49,13 @@ public:
     GetResult<Component> GetComponent(ComponentType type, const std::string& name);
     GetResult<Material> GetMaterial(const std::string& name);
     void ForEachLight(Callback<Light> func) const;
+    void ForEachEmitter(Callback<Emitter> func) const;
     void ForEachObject(Callback<Object> func) const;
+
+    ABENCH_INLINE uint32_t GetEmitterCount() const
+    {
+        return static_cast<uint32_t>(mEmitterComponents.size());
+    }
 };
 
 } // namespace Scene

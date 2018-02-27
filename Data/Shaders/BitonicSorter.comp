@@ -1,0 +1,73 @@
+// structures
+struct Particle
+{
+    vec4 pos;
+    vec3 color;
+    float lifeTimer;
+    vec4 newpos;
+    vec3 vel;
+    float cameraDistance;
+};
+
+
+// shader attachments
+layout (set = 0, binding = 0) uniform _params
+{
+    uint sortSpace;
+    uint offset;
+    uint boxSize;
+    uint compareDist;
+} params;
+
+layout (set = 0, binding = 1) buffer _particles
+{
+    Particle data[];
+} particles;
+
+
+layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+const uint BLOCK_SIZE = 256;
+
+void swap(inout Particle a, inout Particle b)
+{
+    Particle temp;
+
+    temp = a;
+    a = b;
+    b = temp;
+}
+
+
+void main()
+{
+    uint offset = params.offset / 64;
+
+    for (uint n = gl_GlobalInvocationID.x; n < params.sortSpace; n += BLOCK_SIZE)
+    {
+        // determines which number we'll compare to
+        uint x = n ^ params.compareDist;
+
+        // only do comparsion and swap once
+        if (n < x)
+        {
+            // n & boxSize determine which direction we take
+            if ((n & params.boxSize) == 0)
+            {
+                if (particles.data[offset + n].cameraDistance < particles.data[offset + x].cameraDistance)
+                {
+                    swap(particles.data[offset + n], particles.data[offset + x]);
+                }
+            }
+            else
+            {
+                if (particles.data[offset + n].cameraDistance > particles.data[offset + x].cameraDistance)
+                {
+                    swap(particles.data[offset + n], particles.data[offset + x]);
+                }
+            }
+        }
+
+        groupMemoryBarrier();
+    }
+}

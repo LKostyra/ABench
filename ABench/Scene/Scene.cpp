@@ -165,6 +165,19 @@ GetResult<Component> Scene::GetLightComponent(const std::string& name)
     return std::make_pair(light->second.get(), created);
 }
 
+GetResult<Component> Scene::GetEmitterComponent(const std::string& name)
+{
+    bool created = false;
+    auto emitter = mEmitterComponents.find(name);
+    if (emitter == mEmitterComponents.end())
+    {
+        emitter = mEmitterComponents.insert(std::make_pair(name, std::make_unique<Emitter>(name))).first;
+        created = true;
+    }
+
+    return std::make_pair(emitter->second.get(), created);
+}
+
 GetResult<Component> Scene::GetComponent(ComponentType type, const std::string& name)
 {
     switch (type)
@@ -173,6 +186,8 @@ GetResult<Component> Scene::GetComponent(ComponentType type, const std::string& 
         return GetModelComponent(name);
     case ComponentType::Light:
         return GetLightComponent(name);
+    case ComponentType::Emitter:
+        return GetEmitterComponent(name);
     default:
         LOGE("Unknown component type provided to get");
         return std::make_pair(nullptr, false);
@@ -203,6 +218,13 @@ void Scene::ForEachObject(Callback<Object> func) const
 {
     for (auto& o: mObjects)
         if (!func(&o))
+            return;
+}
+
+void Scene::ForEachEmitter(Callback<Emitter> func) const
+{
+    for (auto& e: mEmitterComponents)
+        if (!func(e.second.get()))
             return;
 }
 

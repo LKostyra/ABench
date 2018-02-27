@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Object.hpp"
-#include "Component.hpp"
 #include "Material.hpp"
 
 #include "Math/AABB.hpp"

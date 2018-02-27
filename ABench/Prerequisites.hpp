@@ -39,6 +39,10 @@ class VertexLayout;
 
 using InstancePtr = std::shared_ptr<Instance>;
 using DevicePtr = std::shared_ptr<Device>;
+using TexturePtr = std::shared_ptr<Texture>;
+using BufferPtr = std::shared_ptr<Buffer>;
+
+class ParticleEngine;
 
 } // namespace Renderer
 

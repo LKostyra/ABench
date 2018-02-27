@@ -76,11 +76,15 @@ class ForwardPass final
     MultiPipeline mPipeline;
     CommandBuffer mCommandBuffer;
 
+    VkRAII<VkSampler> mSampler;
     VkRAII<VkDescriptorSetLayout> mFragmentShaderLayout;
+    VkRAII<VkDescriptorSetLayout> mFragmentShaderTextureLayout;
     VkRAII<VkRenderPass> mRenderPass;
     VkRAII<VkPipelineLayout> mPipelineLayout;
 
     VkDescriptorSet mFragmentShaderSet;
+
+    VkDescriptorSet AcquireDescriptorSetFromTexture(const TexturePtr& tex);
 
 public:
     ForwardPass();

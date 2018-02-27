@@ -133,11 +133,41 @@ bool Buffer::Write(const void* data, size_t size, size_t offset)
         return false;
     }
 
+    if (offset + size > mBufferSize)
+    {
+        LOGE("Write operation extends buffer size (offset + size > bufferSize): " << offset + size << " > " << mBufferSize);
+        return false;
+    }
+
     void* memory;
     VkResult result = vkMapMemory(mDevice->GetDevice(), mBufferMemory, static_cast<VkDeviceSize>(offset),
                                   static_cast<VkDeviceSize>(size), 0, &memory);
     RETURN_FALSE_IF_FAILED(result, "Failed to map memory for writing");
     memcpy(memory, data, size);
+    vkUnmapMemory(mDevice->GetDevice(), mBufferMemory);
+
+    return true;
+}
+
+bool Buffer::Read(void* data, size_t size, size_t offset)
+{
+    if (mType == BufferType::Static)
+    {
+        LOGE("Cannot read from static buffer.");
+        return false;
+    }
+
+    if (offset + size > mBufferSize)
+    {
+        LOGE("Read operation extends buffer size (offset + size > bufferSize): " << offset + size << " > " << mBufferSize);
+        return false;
+    }
+
+    void* memory;
+    VkResult result = vkMapMemory(mDevice->GetDevice(), mBufferMemory, static_cast<VkDeviceSize>(offset),
+                                  static_cast<VkDeviceSize>(size), 0, &memory);
+    RETURN_FALSE_IF_FAILED(result, "Failed to map memory for reading");
+    memcpy(data, memory, size);
     vkUnmapMemory(mDevice->GetDevice(), mBufferMemory);
 
     return true;

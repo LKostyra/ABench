@@ -76,7 +76,7 @@ uint32_t RingBuffer::Write(const void* data, size_t dataSize)
     if (dataHead + dataSize > mBufferSize)
         dataHead = 0; // exceeded buffer's capacity, go back to front
 
-    if (dataHead + dataSize == mStartOffset)
+    if (dataHead < mStartOffset && dataHead + dataSize > mStartOffset)
         return UINT32_MAX; // filled and cannot write.
 
     memcpy(mMemoryPointer + dataHead, data, dataSize);

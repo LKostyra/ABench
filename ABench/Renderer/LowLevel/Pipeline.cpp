@@ -191,12 +191,12 @@ bool Pipeline::Init(const DevicePtr& device, const GraphicsPipelineDesc& desc)
 
     VkPipelineColorBlendAttachmentState attachment;
     ZERO_MEMORY(attachment);
-    attachment.blendEnable = VK_FALSE;
+    attachment.blendEnable = desc.enableColorBlend ? VK_TRUE : VK_FALSE;
     attachment.colorBlendOp = VK_BLEND_OP_ADD;
-    attachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+    attachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
     attachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
     attachment.alphaBlendOp = VK_BLEND_OP_ADD;
-    attachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+    attachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
     attachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
     if (desc.enableColor)
         attachment.colorWriteMask = 0xF;

@@ -1,0 +1,161 @@
+// structures
+struct Emitter
+{
+    vec4 pos;
+    uint limit;
+    float spawnPeriod;
+    float spawnTimer;
+    float lifeTime;
+    uint lastSpawned;
+    uint offset;
+};
+
+struct Particle
+{
+    vec4 pos;
+    vec3 color;
+    float lifeTimer;
+    vec4 newpos;
+    vec3 vel;
+    float cameraDistance;
+};
+
+
+// shader attachments
+layout (set = 0, binding = 0) uniform _params
+{
+    vec4 cameraPos;
+    float deltaTime;
+    uint emitterCount;
+    vec2 randomSeed;
+} params;
+
+layout (set = 0, binding = 1) buffer _emitters
+{
+    Emitter data[];
+} emitters;
+
+layout (set = 0, binding = 2) buffer _particles
+{
+    Particle data[];
+} particles;
+
+
+layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+const vec3 ACCELERATION = vec3(0.0f, -5.0f, 0.0f);
+const uint BLOCK_SIZE = 256;
+
+float rand(vec2 seed)
+{
+    return fract(sin(dot(seed, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+Particle spawn(Emitter e, inout vec2 seed)
+{
+    Particle p;
+
+    float x = rand(seed);
+    seed.x = x;
+    float z = rand(seed);
+    seed.y = z;
+    x *= 0.8;
+    z *= 0.8;
+    p.vel = vec3(x * 2.0f - 1.0f, 2.0f, z * 2.0f - 1.0f);
+    p.pos = e.pos;
+    p.newpos = e.pos;
+
+    float r = rand(seed);
+    seed.x = r;
+    float g = rand(seed);
+    seed.y = g;
+    p.color = vec3(r * 0.2 + 0.2, g * 0.2 + 0.5, 1.0);
+    p.lifeTimer = e.lifeTime;
+
+    return p;
+}
+
+void simulate(inout Particle p, in float time)
+{
+    p.newpos = vec4(p.pos.xyz + p.vel * time + ACCELERATION * time * time * 0.5f, p.pos.w);
+    p.vel += ACCELERATION * time;
+    p.lifeTimer -= time;
+    p.cameraDistance = length(params.cameraPos.xyz - p.newpos.xyz);
+}
+
+void main()
+{
+    // update emitter
+    uint offset = emitters.data[gl_WorkGroupID.x].offset / 64;
+
+    if (gl_LocalInvocationID.x == 0)
+    {
+        vec2 seed = params.randomSeed;
+
+        emitters.data[gl_WorkGroupID.x].spawnTimer -= params.deltaTime;
+
+        while (emitters.data[gl_WorkGroupID.x].spawnTimer <= 0.0f)
+        {
+            uint i = emitters.data[gl_WorkGroupID.x].lastSpawned;
+            if (i < emitters.data[gl_WorkGroupID.x].limit)
+            {
+                particles.data[i + offset] = spawn(emitters.data[gl_WorkGroupID.x], seed);
+
+                // do backwards simulation so that our later step will be able to put the particle in right place
+                simulate(particles.data[i + offset], emitters.data[gl_WorkGroupID.x].spawnTimer);
+                particles.data[i + offset].pos = particles.data[i + offset].newpos;
+
+                emitters.data[gl_WorkGroupID.x].lastSpawned += 1;
+            }
+
+            emitters.data[gl_WorkGroupID.x].spawnTimer += emitters.data[gl_WorkGroupID.x].spawnPeriod;
+        }
+    }
+
+    groupMemoryBarrier();
+
+    // update particles
+    for (uint index = gl_LocalInvocationID.x; index < emitters.data[gl_WorkGroupID.x].limit; index += BLOCK_SIZE)
+    {
+        if (index < emitters.data[gl_WorkGroupID.x].lastSpawned)
+            simulate(particles.data[index + offset], params.deltaTime);
+        else
+            particles.data[index + offset].cameraDistance = 0.0f;
+    }
+
+    memoryBarrier();
+
+    // apply new position
+    for (uint index = gl_LocalInvocationID.x; index < emitters.data[gl_WorkGroupID.x].lastSpawned; index += BLOCK_SIZE)
+    {
+        particles.data[index + offset].pos = particles.data[index + offset].newpos;
+    }
+
+    memoryBarrier();
+
+    // remove dead particles
+    if (gl_LocalInvocationID.x == 0)
+    {
+        uint i = 0;
+        for (i; i < (emitters.data[gl_WorkGroupID.x].lastSpawned - 1); i++)
+        {
+            if (particles.data[offset + i].lifeTimer <= 0.0f)
+            {
+                // replace dead particle with the last one from pool
+                particles.data[offset + i] = particles.data[offset + emitters.data[gl_WorkGroupID.x].lastSpawned - 1];
+
+                // zeroing cameraDistance will help us prevent spurious particles getting back to life
+                particles.data[offset + emitters.data[gl_WorkGroupID.x].lastSpawned - 1].cameraDistance = 0.0f;
+                particles.data[offset + emitters.data[gl_WorkGroupID.x].lastSpawned - 1].lifeTimer = 0.0f;
+                emitters.data[gl_WorkGroupID.x].lastSpawned -= 1;
+            }
+        }
+
+        if (particles.data[i + offset].lifeTimer <= 0.0f)
+        {
+            particles.data[offset + emitters.data[gl_WorkGroupID.x].lastSpawned - 1].cameraDistance = 0.0f;
+            particles.data[offset + emitters.data[gl_WorkGroupID.x].lastSpawned - 1].lifeTimer = 0.0f;
+            emitters.data[gl_WorkGroupID.x].lastSpawned -= 1;
+        }
+    }
+}

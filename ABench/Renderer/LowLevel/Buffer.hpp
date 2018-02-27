@@ -48,6 +48,7 @@ public:
 
     bool Init(const DevicePtr& device, const BufferDesc& desc);
     bool Write(const void* data, size_t size, size_t offset = 0);
+    bool Read(void* data, size_t size, size_t offset = 0);
     void Free();
     void Dump(); // DEBUGGING FUNCTION ONLY
 
@@ -66,8 +67,6 @@ public:
         return mBufferSize;
     }
 };
-
-using BufferPtr = std::shared_ptr<Buffer>;
 
 } // namespace Renderer
 } // namespace ABench

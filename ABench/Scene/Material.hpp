@@ -3,7 +3,6 @@
 #include "Common/Image.hpp"
 #include "Math/Vector.hpp"
 
-#include "Renderer/LowLevel/Texture.hpp"
 #include "Renderer/HighLevel/ResourceManager.hpp"
 
 
@@ -53,28 +52,19 @@ public:
         return mColor;
     }
 
-    ABENCH_INLINE const VkDescriptorSet GetDiffuseDescriptor() const
+    ABENCH_INLINE const Renderer::TexturePtr& GetDiffuse() const
     {
-        if (mDiffuseTexture)
-            return mDiffuseTexture->GetDescriptorSet();
-        else
-            return VK_NULL_HANDLE;
+        return mDiffuseTexture;
     }
 
-    ABENCH_INLINE const VkDescriptorSet GetNormalDescriptor() const
+    ABENCH_INLINE const Renderer::TexturePtr& GetNormal() const
     {
-        if (mNormalTexture)
-            return mNormalTexture->GetDescriptorSet();
-        else
-            return VK_NULL_HANDLE;
+        return mNormalTexture;
     }
 
-    ABENCH_INLINE const VkDescriptorSet GetMaskDescriptor() const
+    ABENCH_INLINE const Renderer::TexturePtr& GetMask() const
     {
-        if (mMaskTexture)
-            return mMaskTexture->GetDescriptorSet();
-        else
-            return VK_NULL_HANDLE;
+        return mMaskTexture;
     }
 };
 

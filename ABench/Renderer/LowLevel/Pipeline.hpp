@@ -28,6 +28,7 @@ struct GraphicsPipelineDesc
     bool enableDepth;
     bool enableDepthWrite;
     bool enableColor;
+    bool enableColorBlend;
 
     GraphicsPipelineDesc()
         : vertexShader(nullptr)
@@ -44,6 +45,7 @@ struct GraphicsPipelineDesc
         , enableDepth(false)
         , enableDepthWrite(false)
         , enableColor(false)
+        , enableColorBlend(false)
     {
     }
 };
