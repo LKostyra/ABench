@@ -114,12 +114,6 @@ bool Window::Init()
         return false;
     }
 
-#ifndef _DEBUG
-    // hide console on non-debug modes
-    HWND mConsole = GetConsoleWindow();
-    ShowWindow(mConsole, SW_HIDE);
-#endif
-
     OnInit();
 
     return true;

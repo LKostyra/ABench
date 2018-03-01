@@ -85,7 +85,7 @@ VkPhysicalDevice Device::SelectPhysicalDevice()
     return VK_NULL_HANDLE;
 }
 
-bool Device::Init(const InstancePtr& inst)
+bool Device::Init(const InstancePtr& inst, bool noAsync)
 {
     mInstance = inst;
     mPhysicalDevice = SelectPhysicalDevice();
@@ -93,7 +93,7 @@ bool Device::Init(const InstancePtr& inst)
     // Memory properties (for further use)
     vkGetPhysicalDeviceMemoryProperties(mPhysicalDevice, &mMemoryProperties);
 
-    if (!mQueueManager.Init(mPhysicalDevice, true))
+    if (!mQueueManager.Init(mPhysicalDevice, !noAsync))
     {
         LOGE("Failed to initialize Queue Manager");
         return false;

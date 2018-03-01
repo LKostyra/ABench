@@ -112,7 +112,7 @@ void main()
         }
     }
 
-    groupMemoryBarrier();
+    barrier();
 
     // update particles
     for (uint index = gl_LocalInvocationID.x; index < emitters.data[gl_WorkGroupID.x].limit; index += BLOCK_SIZE)
@@ -123,7 +123,7 @@ void main()
             particles.data[index + offset].cameraDistance = 0.0f;
     }
 
-    memoryBarrier();
+    barrier();
 
     // apply new position
     for (uint index = gl_LocalInvocationID.x; index < emitters.data[gl_WorkGroupID.x].lastSpawned; index += BLOCK_SIZE)
@@ -131,7 +131,7 @@ void main()
         particles.data[index + offset].pos = particles.data[index + offset].newpos;
     }
 
-    memoryBarrier();
+    barrier();
 
     // remove dead particles
     if (gl_LocalInvocationID.x == 0)

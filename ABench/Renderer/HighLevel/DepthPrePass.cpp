@@ -20,6 +20,7 @@ bool DepthPrePass::Init(const DevicePtr& device, const DepthPrePassDesc& desc)
     depthTexDesc.height = desc.height;
     depthTexDesc.format = VK_FORMAT_D32_SFLOAT;
     depthTexDesc.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    depthTexDesc.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     if (!mDepthTexture.Init(mDevice, depthTexDesc))
         return false;
 

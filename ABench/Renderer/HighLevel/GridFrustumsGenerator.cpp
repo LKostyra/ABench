@@ -9,6 +9,7 @@
 
 namespace {
 
+ABENCH_ALIGN(16)
 struct GridFrustumsInfoBuffer
 {
     ABench::Math::Matrix proj;

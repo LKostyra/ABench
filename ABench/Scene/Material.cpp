@@ -36,6 +36,7 @@ bool Material::CreateRendererTexture(const std::string& imagePath, VkImageUsageF
     texDesc.usage = usage;
     texDesc.data = textures.data();
     texDesc.mipmapCount = static_cast<uint32_t>(textures.size());
+    texDesc.layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
     switch (image.GetColorType())
     {

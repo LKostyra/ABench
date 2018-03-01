@@ -32,6 +32,7 @@ struct TextureDesc
     uint32_t width;
     uint32_t height;
     VkImageUsageFlags usage;
+    VkImageLayout layout;
     uint32_t mipmapCount;
     TextureDataDesc* data;
 
@@ -40,6 +41,7 @@ struct TextureDesc
         , width(0)
         , height(0)
         , usage(0)
+        , layout(VK_IMAGE_LAYOUT_UNDEFINED)
         , mipmapCount(1)
         , data(nullptr)
     {
@@ -60,8 +62,7 @@ class Texture
     VkImage mImage;
     VkImageView mImageView;
     VkDeviceMemory mImageMemory;
-    VkImageLayout mCurrentLayout;
-    VkImageLayout mDefaultLayout;
+    VkImageLayout mImageLayout;
     VkImageSubresourceRange mSubresourceRange;
     VkDescriptorSet mImageDescriptorSet;
 
@@ -96,9 +97,9 @@ public:
         return mImageView;
     }
 
-    ABENCH_INLINE VkImageLayout GetCurrentLayout() const
+    ABENCH_INLINE VkImageLayout GetImageLayout() const
     {
-        return mCurrentLayout;
+        return mImageLayout;
     }
 
     ABENCH_INLINE const VkDescriptorSet GetDescriptorSet() const
@@ -106,8 +107,10 @@ public:
         return mImageDescriptorSet;
     }
 
-    // Records a layout transition in given command buffer. UNDEFINED layout reverts to default.
-    void Transition(VkCommandBuffer cmdBuffer, VkImageLayout targetLayout = VK_IMAGE_LAYOUT_UNDEFINED);
+    void Transition(CommandBuffer* cmdBuffer, VkPipelineStageFlags fromStage, VkPipelineStageFlags toStage,
+                    VkAccessFlags fromAccess, VkAccessFlags toAccess,
+                    uint32_t fromQueueFamily, uint32_t toQueueFamily,
+                    VkImageLayout targetLayout);
     bool AllocateDescriptorSet(VkDescriptorSetLayout layout);
 };
 

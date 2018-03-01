@@ -42,11 +42,11 @@ struct BackbufferDesc
 struct BackbufferImageData
 {
     VkImage image;
-    VkImageLayout currentLayout;
+    VkImageLayout layout;
 
     BackbufferImageData()
         : image(VK_NULL_HANDLE)
-        , currentLayout(VK_IMAGE_LAYOUT_UNDEFINED)
+        , layout(VK_IMAGE_LAYOUT_UNDEFINED)
     {
     }
 };
@@ -88,7 +88,10 @@ class Backbuffer
     bool CreateSwapchain(const BackbufferDesc& desc);
     bool AllocateImageViews();
 
-    void Transition(VkCommandBuffer cmdBuffer, VkImageLayout targetLayout = VK_IMAGE_LAYOUT_UNDEFINED);
+    void Transition(CommandBuffer* cmdBuffer, VkPipelineStageFlags fromStage, VkPipelineStageFlags toStage,
+                    VkAccessFlags fromAccess, VkAccessFlags toAccess,
+                    uint32_t fromQueueFamily, uint32_t toQueueFamily,
+                    VkImageLayout targetLayout);
 
 public:
     Backbuffer();

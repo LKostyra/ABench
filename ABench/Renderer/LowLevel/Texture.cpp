@@ -21,8 +21,7 @@ Texture::Texture()
     , mImage(VK_NULL_HANDLE)
     , mImageView(VK_NULL_HANDLE)
     , mImageMemory(VK_NULL_HANDLE)
-    , mCurrentLayout(VK_IMAGE_LAYOUT_UNDEFINED)
-    , mDefaultLayout(VK_IMAGE_LAYOUT_UNDEFINED)
+    , mImageLayout(VK_IMAGE_LAYOUT_UNDEFINED)
     , mImageDescriptorSet(VK_NULL_HANDLE)
 {
 }
@@ -57,7 +56,7 @@ bool Texture::Init(const DevicePtr& device, const TextureDesc& desc)
     imageInfo.usage = desc.usage;
     if (desc.data != nullptr) imageInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    imageInfo.initialLayout = mCurrentLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
+    imageInfo.initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
     VkResult result = vkCreateImage(mDevice->GetDevice(), &imageInfo, nullptr, &mImage);
     RETURN_FALSE_IF_FAILED(result, "Failed to create Image for texture");
 
@@ -74,13 +73,6 @@ bool Texture::Init(const DevicePtr& device, const TextureDesc& desc)
 
     result = vkBindImageMemory(mDevice->GetDevice(), mImage, mImageMemory, 0);
     RETURN_FALSE_IF_FAILED(result, "Binding Image memory to Image failed");
-
-    if (desc.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-        mDefaultLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    else if (desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
-        mDefaultLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-    else if (desc.usage & VK_IMAGE_USAGE_SAMPLED_BIT)
-        mDefaultLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
     ZERO_MEMORY(mSubresourceRange);
     if (desc.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
@@ -135,11 +127,23 @@ bool Texture::Init(const DevicePtr& device, const TextureDesc& desc)
 
     if (desc.data != nullptr)
     {
-        Transition(transitionCmdBuffer.mCommandBuffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        Transition(&transitionCmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                   0, VK_ACCESS_TRANSFER_WRITE_BIT,
+                   VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
+                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
         transitionCmdBuffer.CopyBufferToTexture(&tempBuffer, this);
+        Transition(&transitionCmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                   VK_ACCESS_TRANSFER_WRITE_BIT, 0,
+                   VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
+                   desc.layout);
     }
-
-    Transition(transitionCmdBuffer.mCommandBuffer);
+    else
+    {
+        Transition(&transitionCmdBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                   0, 0,
+                   VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
+                   desc.layout);
+    }
     transitionCmdBuffer.End();
 
     // TODO this should happen on Transfer Queue (might involve copying which takes time)
@@ -167,12 +171,12 @@ bool Texture::Init(const DevicePtr& device, const TextureDesc& desc)
     return true;
 }
 
-void Texture::Transition(VkCommandBuffer cmdBuffer, VkImageLayout targetLayout)
+void Texture::Transition(CommandBuffer* cmdBuffer, VkPipelineStageFlags fromStage, VkPipelineStageFlags toStage,
+                         VkAccessFlags fromAccess, VkAccessFlags toAccess,
+                         uint32_t fromQueueFamily, uint32_t toQueueFamily,
+                         VkImageLayout targetLayout)
 {
-    if (targetLayout == VK_IMAGE_LAYOUT_UNDEFINED)
-        targetLayout = mDefaultLayout;
-
-    if (targetLayout == mCurrentLayout)
+    if (targetLayout == mImageLayout)
         return; // no need to transition if we already have requested layout
 
     VkImageMemoryBarrier barrier;
@@ -180,12 +184,16 @@ void Texture::Transition(VkCommandBuffer cmdBuffer, VkImageLayout targetLayout)
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     barrier.image = mImage;
     barrier.subresourceRange = mSubresourceRange;
-    barrier.oldLayout = mCurrentLayout;
+    barrier.oldLayout = mImageLayout;
     barrier.newLayout = targetLayout;
-    vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0,
-                         0, nullptr, 0, nullptr, 1, &barrier);
+    barrier.srcAccessMask = fromAccess;
+    barrier.dstAccessMask = toAccess;
+    barrier.srcQueueFamilyIndex = fromQueueFamily;
+    barrier.dstQueueFamilyIndex = toQueueFamily;
 
-    mCurrentLayout = targetLayout;
+    vkCmdPipelineBarrier(cmdBuffer->mCommandBuffer, fromStage, toStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+    mImageLayout = targetLayout;
 }
 
 bool Texture::AllocateDescriptorSet(VkDescriptorSetLayout layout)

@@ -29,9 +29,15 @@ public:
 
     bool Init(const DevicePtr& device, DeviceQueueType queueType);
 
+    void Barrier(VkPipelineStageFlags fromStage, VkPipelineStageFlags toStage,
+                 VkAccessFlags accessFrom, VkAccessFlags accessTo);
     void BufferBarrier(const Buffer* buffer, VkPipelineStageFlags fromStage, VkPipelineStageFlags toStage,
                        VkAccessFlags accessFrom, VkAccessFlags accessTo,
                        uint32_t fromQueueFamily, uint32_t toQueueFamily);
+    void ImageBarrier(const Texture* texture, VkPipelineStageFlags fromStage, VkPipelineStageFlags toStage,
+                      VkAccessFlags accessFrom, VkAccessFlags accessTo,
+                      VkImageLayout fromLayout, VkImageLayout toLayout,
+                      uint32_t fromQueueFamily, uint32_t toQueueFamily);
     void Begin();
     void BeginRenderPass(VkRenderPass rp, Framebuffer* fb, ClearType types, float clearValues[4], float depthValue = 0.0f);
     void BindVertexBuffer(const Buffer* buffer, uint32_t binding, VkDeviceSize offset);

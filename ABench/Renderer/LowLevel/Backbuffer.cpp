@@ -240,12 +240,12 @@ bool Backbuffer::AllocateImageViews()
     return true;
 }
 
-void Backbuffer::Transition(VkCommandBuffer cmdBuffer, VkImageLayout targetLayout)
+void Backbuffer::Transition(CommandBuffer* cmdBuffer, VkPipelineStageFlags fromStage, VkPipelineStageFlags toStage,
+                            VkAccessFlags fromAccess, VkAccessFlags toAccess,
+                            uint32_t fromQueueFamily, uint32_t toQueueFamily,
+                            VkImageLayout targetLayout)
 {
-    if (targetLayout == VK_IMAGE_LAYOUT_UNDEFINED)
-        targetLayout = mDefaultLayout;
-
-    if (targetLayout == mImages[mCurrentBuffer].currentLayout)
+    if (targetLayout == mImages[mCurrentBuffer].layout)
         return; // no need to transition if we already have requested layout
 
     VkImageMemoryBarrier barrier;
@@ -253,12 +253,16 @@ void Backbuffer::Transition(VkCommandBuffer cmdBuffer, VkImageLayout targetLayou
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     barrier.image = mImages[mCurrentBuffer].image;
     barrier.subresourceRange = mSubresourceRange;
-    barrier.oldLayout = mImages[mCurrentBuffer].currentLayout;
+    barrier.oldLayout = mImages[mCurrentBuffer].layout;
     barrier.newLayout = targetLayout;
-    vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0,
-                         0, nullptr, 0, nullptr, 1, &barrier);
+    barrier.srcAccessMask = fromAccess;
+    barrier.dstAccessMask = toAccess;
+    barrier.srcQueueFamilyIndex = fromQueueFamily;
+    barrier.dstQueueFamilyIndex = toQueueFamily;
 
-    mImages[mCurrentBuffer].currentLayout = targetLayout;
+    vkCmdPipelineBarrier(cmdBuffer->mCommandBuffer, fromStage, toStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+    mImages[mCurrentBuffer].layout = targetLayout;
 }
 
 bool Backbuffer::Init(const DevicePtr& device, const BackbufferDesc& desc)
@@ -314,17 +318,28 @@ bool Backbuffer::Present(Texture& texture, VkSemaphore waitSemaphore)
     if (result != VK_SUCCESS)
         LOGW("Failed to reset Backbuffer fence: " << result << " (" << TranslateVkResultToString(result) << ")");
 
-
     // copy provided texture to backbuffer
     mCopyCommandBuffer.Begin();
 
-    texture.Transition(mCopyCommandBuffer.mCommandBuffer, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    Transition(mCopyCommandBuffer.mCommandBuffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    texture.Transition(&mCopyCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                       0, VK_ACCESS_TRANSFER_READ_BIT,
+                       VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
+                       VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    Transition(&mCopyCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                       0, VK_ACCESS_TRANSFER_WRITE_BIT,
+                       VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
+                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
     mCopyCommandBuffer.CopyTextureToBackbuffer(&texture, this);
 
-    texture.Transition(mCopyCommandBuffer.mCommandBuffer);
-    Transition(mCopyCommandBuffer.mCommandBuffer);
+    texture.Transition(&mCopyCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                       0, VK_ACCESS_TRANSFER_READ_BIT,
+                       VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
+                       VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    Transition(&mCopyCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                       0, VK_ACCESS_TRANSFER_WRITE_BIT,
+                       VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
+                       VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
     if (!mCopyCommandBuffer.End())
         return false;
 

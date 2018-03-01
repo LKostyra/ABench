@@ -10,71 +10,175 @@ struct Frustum
     Plane plane[4];
 };
 
-struct LightData
+struct Light
 {
     vec4 pos;
-    vec4 diffuse;
+    vec3 diffuse;
+    float range;
+};
+
+struct Sphere
+{
+    vec3 pos;
+    float r;
 };
 
 struct GridLight
 {
     uint offset;
     uint count;
+    uvec2 padding;
 };
 
 
 // shader attachments
 layout (set = 0, binding = 0) uniform _cullingParams
 {
+    mat4 proj;
+    mat4 view;
     uvec2 viewport;
-    uvec2 frustumsCount;
     uint lightCount;
 } cullingParams;
 
-layout (set = 0, binding = 1) buffer _gridData
+layout (set = 0, binding = 1) coherent buffer _globalLightCounter
+{
+    uint opaque;
+    uvec3 padding;
+} globalLightCounter;
+
+layout (set = 0, binding = 2) buffer _gridData
 {
     Frustum frustum[];
 } gridData;
 
-layout (set = 0, binding = 2) buffer _lightData
+layout (set = 0, binding = 3) buffer _lights
 {
-    LightData data[];
-} lightData;
+    Light data[];
+} lights;
 
-layout (set = 0, binding = 3) buffer _culledLights
+layout (set = 0, binding = 4) buffer _culledLights
 {
     uint data[];
 } culledLights;
 
-layout (set = 0, binding = 4) buffer _gridLightData
+layout (set = 0, binding = 5) buffer _gridLights
 {
     GridLight data[];
-} gridBuffer;
+} gridLights;
 
-layout (set = 0, binding = 5) uniform sampler2D depthTexture;
+layout (set = 0, binding = 6) uniform sampler2D depthImage;
 
 
 // shared variables
 shared uint sCulledLightsCurrentOffset;
+shared uint sMinDepth;
+shared uint sMaxDepth;
+shared Frustum sFrustum;
+shared uint sLightCount;
+shared uint sLightIndexStartOffset;
+shared uint sLightList[4096];
 
 
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
-void main()
-{
-    if (gl_GlobalInvocationID.xy == uvec2(0, 0))
-    {
-        atomicExchange(sCulledLightsCurrentOffset, 0);
 
-        for (uint i = 0; i < cullingParams.lightCount; ++i)
-            culledLights.data[i] = i;
+// helper functions
+void addLight(uint lightIndex)
+{
+    uint index = atomicAdd(sLightCount, 1);
+    if (index < 4096)
+        sLightList[index] = lightIndex;
+}
+
+bool sphereFrustumIntersection(Sphere s, Frustum f, float minDepth, float maxDepth)
+{
+    bool result = true;
+
+    if (s.pos.z - s.r > minDepth || s.pos.z + s.r < maxDepth)
+        result = false;
+
+    for (uint i = 0; i < 4 && result; ++i)
+    { 
+        float d = dot(f.plane[i].N, s.pos) - f.plane[i].d;
+        if (d < -s.r)
+            result = false;
     }
 
-    if (gl_GlobalInvocationID.x < cullingParams.frustumsCount.x &&
-        gl_GlobalInvocationID.y < cullingParams.frustumsCount.y)
+    return result;
+}
+
+// same as in GridFrustumsGenerator.comp
+vec3 clipSpaceToViewSpace(vec4 v)
+{
+    vec4 vView = inverse(cullingParams.proj) * v;
+    return (vView / vView.w).xyz;
+}
+
+
+void main()
+{
+    if (gl_LocalInvocationID.xy == uvec2(0,0))
     {
-        uint index = gl_GlobalInvocationID.y * cullingParams.frustumsCount.x + gl_GlobalInvocationID.x;
-        gridBuffer.data[index].offset = 0;
-        gridBuffer.data[index].count = cullingParams.lightCount;
+        sCulledLightsCurrentOffset = 0;
+        sMinDepth = 0xFFFFFFFF;
+        sMaxDepth = 0;
+        sLightCount = 0;
+        sLightIndexStartOffset = 0;
+    }
+
+    // other threads must wait for the first one to finish initialization work
+    barrier();
+
+    // get depth min/max value
+    float depthFromImage = texelFetch(depthImage, ivec2(gl_GlobalInvocationID.xy), 0).x;
+    uint depth = floatBitsToUint(depthFromImage);
+    atomicMin(sMinDepth, depth);
+    atomicMax(sMaxDepth, depth);
+
+    // wait for everyone
+    barrier();
+
+    // get our planes
+    float minDepth = uintBitsToFloat(sMinDepth);
+    float maxDepth = uintBitsToFloat(sMaxDepth);
+    float minDepthView = clipSpaceToViewSpace(vec4(0.0f, 0.0f, minDepth, 1.0f)).z;
+    float maxDepthView = clipSpaceToViewSpace(vec4(0.0f, 0.0f, maxDepth, 1.0f)).z;
+    Plane minPlane;
+    minPlane.N = vec3(0.0f, 0.0f, 1.0f);
+    minPlane.d = minDepthView;
+    Plane maxPlane;
+    maxPlane.N = vec3(0.0f, 0.0f,-1.0f);
+    maxPlane.d = -maxDepthView;
+
+    // hit it with the culling
+    uint i = gl_LocalInvocationID.y * 16 + gl_LocalInvocationID.x;
+    for (i; i < cullingParams.lightCount; i += 256)
+    {
+        Sphere s;
+        s.pos = (cullingParams.view * lights.data[i].pos).xyz;
+        s.r = lights.data[i].range;
+        //if (sphereFrustumIntersection(s, sFrustum, minDepthView, maxDepthView))
+        {
+            addLight(i);
+        }
+    }
+
+    barrier();
+
+    // update grid data for this work group
+    if (gl_LocalInvocationID.xy == uvec2(0,0))
+    {
+        sLightIndexStartOffset = atomicAdd(globalLightCounter.opaque, sLightCount);
+        uint gridLightsIndex = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
+        gridLights.data[gridLightsIndex].offset = sLightIndexStartOffset;
+        gridLights.data[gridLightsIndex].count = sLightCount;
+    }
+
+    barrier();
+
+    i = gl_LocalInvocationID.y * 16 + gl_LocalInvocationID.x;
+    for (i; i < sLightCount; i += 256)
+    {
+        culledLights.data[sLightIndexStartOffset + i] = sLightList[i];
     }
 }

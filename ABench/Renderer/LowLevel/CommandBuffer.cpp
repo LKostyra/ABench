@@ -41,6 +41,18 @@ bool CommandBuffer::Init(const DevicePtr& device, DeviceQueueType queueType)
     return true;
 }
 
+void CommandBuffer::Barrier(VkPipelineStageFlags fromStage, VkPipelineStageFlags toStage,
+                            VkAccessFlags accessFrom, VkAccessFlags accessTo)
+{
+    VkMemoryBarrier barrier;
+    ZERO_MEMORY(barrier);
+    barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+    barrier.srcAccessMask = accessFrom;
+    barrier.dstAccessMask = accessTo;
+
+    vkCmdPipelineBarrier(mCommandBuffer, fromStage, toStage, 0, 1, &barrier, 0, nullptr, 0, nullptr);
+}
+
 void CommandBuffer::BufferBarrier(const Buffer* buffer, VkPipelineStageFlags fromStage, VkPipelineStageFlags toStage,
                                   VkAccessFlags accessFrom, VkAccessFlags accessTo,
                                   uint32_t fromQueueFamily, uint32_t toQueueFamily)
@@ -56,6 +68,26 @@ void CommandBuffer::BufferBarrier(const Buffer* buffer, VkPipelineStageFlags fro
     barrier.dstQueueFamilyIndex = toQueueFamily;
 
     vkCmdPipelineBarrier(mCommandBuffer, fromStage, toStage, 0, 0, nullptr, 1, &barrier, 0, nullptr);
+}
+
+void CommandBuffer::ImageBarrier(const Texture* texture, VkPipelineStageFlags fromStage, VkPipelineStageFlags toStage,
+                                 VkAccessFlags accessFrom, VkAccessFlags accessTo,
+                                 VkImageLayout fromLayout, VkImageLayout toLayout,
+                                 uint32_t fromQueueFamily, uint32_t toQueueFamily)
+{
+    VkImageMemoryBarrier barrier;
+    ZERO_MEMORY(barrier);
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.image = texture->mImage;
+    barrier.subresourceRange = texture->mSubresourceRange;
+    barrier.oldLayout = fromLayout;
+    barrier.newLayout = toLayout;
+    barrier.srcAccessMask = accessFrom;
+    barrier.dstAccessMask = accessTo;
+    barrier.srcQueueFamilyIndex = fromQueueFamily;
+    barrier.dstQueueFamilyIndex = toQueueFamily;
+
+    vkCmdPipelineBarrier(mCommandBuffer, fromStage, toStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 }
 
 void CommandBuffer::Begin()
@@ -84,13 +116,6 @@ void CommandBuffer::BeginRenderPass(VkRenderPass rp, Framebuffer* fb, ClearType 
         clear[clearCount].depthStencil.depth = depthValue;
         clearCount++;
     }
-
-    // Transition Framebuffer's textures to their ATTACHMENT layouts
-    if (fb->mTexturePtr)
-        fb->mTexturePtr->Transition(mCommandBuffer, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-
-    if (fb->mDepthTexturePtr)
-        fb->mDepthTexturePtr->Transition(mCommandBuffer, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
     VkRenderPassBeginInfo rpInfo;
     ZERO_MEMORY(rpInfo);
@@ -245,8 +270,8 @@ void CommandBuffer::CopyTexture(Texture* src, Texture* dst)
     region.dstSubresource.baseArrayLayer = dst->mSubresourceRange.baseArrayLayer;
     region.dstSubresource.layerCount = dst->mSubresourceRange.layerCount;
     region.dstSubresource.mipLevel = 0;
-    vkCmdCopyImage(mCommandBuffer, src->GetImage(), src->GetCurrentLayout(),
-                   dst->GetImage(), dst->GetCurrentLayout(), 1, &region);
+    vkCmdCopyImage(mCommandBuffer, src->GetImage(), src->GetImageLayout(),
+                   dst->GetImage(), dst->GetImageLayout(), 1, &region);
 }
 
 void CommandBuffer::CopyTextureToBackbuffer(Texture* src, Backbuffer* dst)
@@ -270,8 +295,8 @@ void CommandBuffer::CopyTextureToBackbuffer(Texture* src, Backbuffer* dst)
     region.dstSubresource.baseArrayLayer = dst->mSubresourceRange.baseArrayLayer;
     region.dstSubresource.layerCount = dst->mSubresourceRange.layerCount;
     region.dstSubresource.mipLevel = 0;
-    vkCmdCopyImage(mCommandBuffer, src->GetImage(), src->GetCurrentLayout(),
-                   dst->mImages[dst->mCurrentBuffer].image, dst->mImages[dst->mCurrentBuffer].currentLayout, 1, &region);
+    vkCmdCopyImage(mCommandBuffer, src->GetImage(), src->GetImageLayout(),
+                   dst->mImages[dst->mCurrentBuffer].image, dst->mImages[dst->mCurrentBuffer].layout, 1, &region);
 }
 
 void CommandBuffer::Dispatch(uint32_t x, uint32_t y, uint32_t z)
@@ -292,13 +317,6 @@ void CommandBuffer::DrawIndexed(uint32_t indexCount)
 void CommandBuffer::EndRenderPass()
 {
     vkCmdEndRenderPass(mCommandBuffer);
-
-    // revert texture to its default layout
-    if (mCurrentFramebuffer->mTexturePtr)
-        mCurrentFramebuffer->mTexturePtr->Transition(mCommandBuffer);
-    if (mCurrentFramebuffer->mDepthTexturePtr)
-        mCurrentFramebuffer->mDepthTexturePtr->Transition(mCommandBuffer);
-
     mCurrentFramebuffer = nullptr;
 }
 

@@ -28,6 +28,7 @@ struct RendererDesc
 {
     bool debugEnable;
     bool debugVerbose;
+    bool noAsync;
     float fov;
     float nearZ;
     float farZ;

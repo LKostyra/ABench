@@ -83,13 +83,13 @@ bool Renderer::Init(const RendererDesc& desc)
         return false;
 
     mDevice = std::make_shared<Device>();
-    if (!mDevice->Init(mInstance))
+    if (!mDevice->Init(mInstance, desc.noAsync))
         return false;
 
     // initialize Descriptor Allocator
     DescriptorAllocatorDesc daDesc;
     ZERO_MEMORY(daDesc);
-    daDesc.limits[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER] = 11;
+    daDesc.limits[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER] = 12;
     daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER] = 7;
     daDesc.limits[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC] = 3;
     daDesc.limits[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] = 1000;
@@ -196,7 +196,6 @@ bool Renderer::Init(const RendererDesc& desc)
     lightBufferDesc.dataSize = 1024 * 1024;
     lightBufferDesc.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
     lightBufferDesc.type = BufferType::Dynamic;
-    lightBufferDesc.concurrent = true;
     if (!mLightContainer.Init(mDevice, lightBufferDesc))
         return false;
 
@@ -319,7 +318,6 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera, floa
     });
 
 
-
     ///////////////
     // Rendering //
     ///////////////
@@ -334,6 +332,8 @@ void Renderer::Draw(const Scene::Scene& scene, const Scene::Camera& camera, floa
     // Light culling dispatch
     LightCullerDispatchDesc cullingDesc;
     cullingDesc.lightCount = lightCount;
+    cullingDesc.projMat = mProjection;
+    cullingDesc.viewMat = camera.GetView();
     cullingDesc.waitFlags = { VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT };
     cullingDesc.waitSems = { mDepthSem };
     cullingDesc.signalSem = mCullingSem;

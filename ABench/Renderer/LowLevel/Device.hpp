@@ -27,7 +27,7 @@ public:
     Device();
     ~Device();
 
-    bool Init(const InstancePtr& inst);
+    bool Init(const InstancePtr& inst, bool noAsync);
 
     uint32_t GetMemoryTypeIndex(uint32_t typeBits, VkFlags properties) const;
 

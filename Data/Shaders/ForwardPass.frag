@@ -16,13 +16,15 @@ layout (location = 0) out vec4 color;
 struct LightData
 {
     vec4 pos;
-    vec4 diffuse;
+    vec3 diffuse;
+    float range;
 };
 
 struct GridLight
 {
     uint offset;
     uint count;
+    uvec2 padding;
 };
 
 
@@ -100,7 +102,14 @@ void main()
         #endif // HAS_NORMAL == 1
 
         if (coeff < 0.0f) coeff = 0.0f;
-        color += coeff * curLight.diffuse * (5.0 / (distance * distance));
+        float att = (1.0f / (1.0f + 1.0f * distance * distance));
+
+        if (distance < curLight.range)
+            att *= (curLight.range - distance) / curLight.range;
+        else
+            att = 0;
+
+        color += vec4(curLight.diffuse * coeff * att, 1.0f);
     }
 
     color *= materialParams.color;

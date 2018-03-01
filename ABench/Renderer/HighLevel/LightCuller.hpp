@@ -37,6 +37,8 @@ struct LightCullerDesc
 
 struct LightCullerDispatchDesc
 {
+    ABench::Math::Matrix projMat;
+    ABench::Math::Matrix viewMat;
     uint32_t lightCount;
     std::vector<VkPipelineStageFlags> waitFlags;
     std::vector<VkSemaphore> waitSems;
@@ -46,19 +48,20 @@ struct LightCullerDispatchDesc
 
 class LightCuller final
 {
+    ABENCH_ALIGN(16)
     struct CullingParams
     {
+        ABench::Math::Matrix projMat;
+        ABench::Math::Matrix viewMat;
         uint32_t viewportWidth;
         uint32_t viewportHeight;
-        uint32_t frustumsPerWidth;
-        uint32_t frustumsPerHeight;
         uint32_t lightCount;
 
         CullingParams()
-            : viewportWidth(0)
+            : projMat()
+            , viewMat()
+            , viewportWidth(0)
             , viewportHeight(0)
-            , frustumsPerWidth(0)
-            , frustumsPerHeight(0)
             , lightCount(0)
         {
         }
@@ -69,16 +72,21 @@ class LightCuller final
     Buffer mCullingParams;
     Buffer mCulledLights;
     Buffer mGridLightData;
+    Buffer mGlobalLightCounter;
 
+    Texture* mDepthTexture;
     VkDescriptorSet mLightCullerSet;
     VkRAII<VkSampler> mSampler;
     VkRAII<VkDescriptorSetLayout> mDescriptorSetLayout;
     VkRAII<VkPipelineLayout> mPipelineLayout;
-    MultiPipeline mPipeline;
+    Shader mShader;
+    Pipeline mPipeline;
     CommandBuffer mCommandBuffer;
 
     CullingParams mCullingParamsData;
     uint32_t mPixelsPerGridFrustum;
+    uint32_t mFrustumsPerWidth;
+    uint32_t mFrustumsPerHeight;
 
 public:
     LightCuller();

@@ -31,13 +31,19 @@ Vector3 Interpolator::Interpolate(float factor)
     if (mPoints.size() == 1)
         return mPoints[0];
 
-    if (factor <= 0.0f)
+    mOutOfRange = false;
+    if (factor < 0.0f)
+    {
+        mOutOfRange = true;
         return mPoints[0];
-    else if (factor >= 1.0f)
+    }
+    else if (factor >= mPoints.size() - 1)
+    {
+        mOutOfRange = true;
         return mPoints.back();
+    }
 
     // determine where we are in our point list
-    factor *= mPoints.size() - 1;
     uint32_t point0 = static_cast<uint32_t>(factor);
     factor -= point0;
 

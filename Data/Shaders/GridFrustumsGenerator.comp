@@ -40,9 +40,9 @@ Plane computePlane(vec3 p0, vec3 p1, vec3 p2)
 vec3 screenSpaceToViewSpace(vec4 v)
 {
     // convert to clip space
-    vec4 vClip = vec4(        v.x / gridInfoBuffer.viewport.x  * 2.0f - 1.0f,
-                      (1.0f - v.y / gridInfoBuffer.viewport.y) * 2.0f - 1.0f, v.z, v.w);
+    vec2 coords = v.xy / gridInfoBuffer.viewport;
 
+    vec4 vClip = vec4(coords.x * 2.0f - 1.0f, (1.0f - coords.y) * 2.0f - 1.0f, v.z, v.w);
     vec4 vView = inverse(gridInfoBuffer.proj) * vClip;
     return (vView / vView.w).xyz;
 }
@@ -54,10 +54,10 @@ Frustum computeFrustum(uint frustumX, uint frustumY)
     vec3 eye = vec3(0.0f);
     Frustum result;
 
-    screenSpace[0] = vec4( frustumX * gridInfoBuffer.pixelsPerFrustum,       frustumY * gridInfoBuffer.pixelsPerFrustum,      -1.0f, 1.0f);
-    screenSpace[1] = vec4((frustumX + 1) * gridInfoBuffer.pixelsPerFrustum,  frustumY * gridInfoBuffer.pixelsPerFrustum,      -1.0f, 1.0f);
-    screenSpace[2] = vec4( frustumX * gridInfoBuffer.pixelsPerFrustum,      (frustumY + 1) * gridInfoBuffer.pixelsPerFrustum, -1.0f, 1.0f);
-    screenSpace[3] = vec4((frustumX + 1) * gridInfoBuffer.pixelsPerFrustum, (frustumY + 1) * gridInfoBuffer.pixelsPerFrustum, -1.0f, 1.0f);
+    screenSpace[0] = vec4( frustumX * gridInfoBuffer.pixelsPerFrustum,       frustumY * gridInfoBuffer.pixelsPerFrustum,      1.0f, 1.0f);
+    screenSpace[1] = vec4((frustumX + 1) * gridInfoBuffer.pixelsPerFrustum,  frustumY * gridInfoBuffer.pixelsPerFrustum,      1.0f, 1.0f);
+    screenSpace[2] = vec4( frustumX * gridInfoBuffer.pixelsPerFrustum,      (frustumY + 1) * gridInfoBuffer.pixelsPerFrustum, 1.0f, 1.0f);
+    screenSpace[3] = vec4((frustumX + 1) * gridInfoBuffer.pixelsPerFrustum, (frustumY + 1) * gridInfoBuffer.pixelsPerFrustum, 1.0f, 1.0f);
 
     viewSpace[0] = screenSpaceToViewSpace(screenSpace[0]);
     viewSpace[1] = screenSpaceToViewSpace(screenSpace[1]);
@@ -74,7 +74,10 @@ Frustum computeFrustum(uint frustumX, uint frustumY)
 
 void main()
 {
-    if (gl_LocalInvocationID.x < gridInfoBuffer.threadLimits.x &&
-        gl_LocalInvocationID.y < gridInfoBuffer.threadLimits.y)
-        gridData.frustum[gl_LocalInvocationIndex] = computeFrustum(gl_LocalInvocationID.x, gl_LocalInvocationID.y);
+    if (gl_GlobalInvocationID.x < gridInfoBuffer.threadLimits.x &&
+        gl_GlobalInvocationID.y < gridInfoBuffer.threadLimits.y)
+    {
+        uint index = gl_GlobalInvocationID.y * gl_WorkGroupSize.x * gl_NumWorkGroups.x + gl_GlobalInvocationID.x;
+        gridData.frustum[index] = computeFrustum(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y);
+    }
 }

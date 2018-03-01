@@ -81,6 +81,7 @@ bool ForwardPass::Init(const DevicePtr& device, const ForwardPassDesc& desc)
     targetTexDesc.height = desc.height;
     targetTexDesc.format = desc.outputFormat;
     targetTexDesc.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+    targetTexDesc.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     if (!mTargetTexture.Init(mDevice, targetTexDesc))
         return false;
 
@@ -232,6 +233,9 @@ bool ForwardPass::Init(const DevicePtr& device, const ForwardPassDesc& desc)
     Tools::UpdateBufferDescriptorSet(mDevice, mFragmentShaderSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 4,
                                      desc.gridLightDataPtr->GetBuffer(), desc.gridLightDataPtr->GetSize());
 
+    mCulledLights = desc.culledLightsPtr;
+    mGridLightData = desc.gridLightDataPtr;
+
     return true;
 }
 
@@ -247,6 +251,11 @@ void ForwardPass::Draw(const Scene::Scene& scene, const ForwardPassDrawDesc& des
 
         mCommandBuffer.SetViewport(0, 0, mTargetTexture.GetWidth(), mTargetTexture.GetHeight(), 0.0f, 1.0f);
         mCommandBuffer.SetScissor(0, 0, mTargetTexture.GetWidth(), mTargetTexture.GetHeight());
+
+        mTargetTexture.Transition(&mCommandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                                  0, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+                                  VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
+                                  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
         float clearValue[] = {0.1f, 0.1f, 0.1f, 0.0f};
         VkPipelineBindPoint bindPoint =  VK_PIPELINE_BIND_POINT_GRAPHICS;

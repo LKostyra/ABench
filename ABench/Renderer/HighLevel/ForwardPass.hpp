@@ -68,6 +68,8 @@ class ForwardPass final
 {
     DevicePtr mDevice;
 
+    Buffer* mCulledLights;
+    Buffer* mGridLightData;
     Texture mTargetTexture;
     Texture* mDepthTexture;
     Buffer mFragmentParams;

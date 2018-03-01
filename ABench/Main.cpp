@@ -11,6 +11,7 @@
 #include "Scene/Mesh.hpp"
 #include "Scene/Light.hpp"
 #include "Scene/Scene.hpp"
+#include "Math/Interpolation/LinearInterpolator.hpp"
 
 #include "ResourceDir.hpp"
 
@@ -22,52 +23,141 @@ ABench::Scene::Light* gLight;
 const int32_t EMITTERS_LIMIT = 1;
 ABench::Scene::Emitter* gEmitters[EMITTERS_LIMIT * 2 + 1];
 
-const int32_t ANIM_LIGHTS_LIMIT = 100;
-ABench::Scene::Light* gAnimatedLights[ANIM_LIGHTS_LIMIT * 2 + 1];
+const float LIGHT_AREA_X = 30.0f;
+const float LIGHT_AREA_Y = 0.0f;
+const float LIGHT_AREA_Z = 15.0f;
+std::vector<ABench::Scene::Light*> gLights;
+
+uint32_t EMITTERS_PARTICLE_LIMIT = 128;
+uint32_t LIGHT_COUNT = 128;
+
+bool gNoAsync = false;
+bool gTestMode = false;
+const std::string NOASYNC_COMMAND = "noasync";
+const std::string TEST_COMMAND = "test";
 
 class ABenchWindow: public ABench::Common::Window
 {
     ABench::Scene::Camera mCamera;
-    float mAngleX = 0.0f;
-    float mAngleY = 0.0f;
+    ABench::Math::LinearInterpolator mCameraPosTracker;
+    ABench::Math::LinearInterpolator mCameraAtTracker;
+
+    float mAngleX = -MATH_PIF * 0.3f;
+    float mAngleY = -MATH_PIF * 0.2f;
     bool mLightFollowsCamera = false;
     bool mCameraOnRails = false;
 
-    float mLightAnimationMoment = 0.0f;
+    float mCameraAnimMoment = 0.0f;
+
+    uint32_t mFrameCounter = 0;
+    std::fstream mCSVFile;
 
     void OnOpen() override
     {
+        /*mCameraPosTracker.Add(ABench::Math::Vector3(12.0f, 1.7f, 5.0f));
+        mCameraPosTracker.Add(ABench::Math::Vector3(12.0f, 1.7f,-5.0f));
+        mCameraPosTracker.Add(ABench::Math::Vector3(-12.0f, 1.7f,-5.0f));
+        mCameraPosTracker.Add(ABench::Math::Vector3(-12.0f, 1.7f,5.0f));
+        mCameraPosTracker.Add(ABench::Math::Vector3(12.0f, 1.7f, 5.0f));
+        mCameraPosTracker.Add(ABench::Math::Vector3(12.0f, 1.7f, 0.0f));
+        mCameraPosTracker.Add(ABench::Math::Vector3(8.0f, 1.7f, 0.0f));
+
+        mCameraAtTracker.Add(ABench::Math::Vector3(0.0f, 1.0f, 0.0f));
+        mCameraAtTracker.Add(ABench::Math::Vector3(0.0f, 1.0f, 0.0f));
+        mCameraAtTracker.Add(ABench::Math::Vector3(-12.0f, 1.0f, 0.0f));
+        mCameraAtTracker.Add(ABench::Math::Vector3(-8.0f, 1.7f, 5.0f));
+        mCameraAtTracker.Add(ABench::Math::Vector3(12.0f, 1.7f, 4.0f));
+        mCameraAtTracker.Add(ABench::Math::Vector3(0.0f, 2.0f, 0.0f));
+        mCameraAtTracker.Add(ABench::Math::Vector3(0.0f, 10.0f, 0.0f));*/
+
+        mCameraPosTracker.Add(ABench::Math::Vector3(-8.0f, 15.0f, -2.0f));
+        mCameraPosTracker.Add(ABench::Math::Vector3(0.0f, 15.0f,-2.0f));
+        mCameraPosTracker.Add(ABench::Math::Vector3(8.0f, 15.0f, 0.0f));
+        mCameraPosTracker.Add(ABench::Math::Vector3(6.0f, 1.7f, 0.0f));
+        mCameraPosTracker.Add(ABench::Math::Vector3(-3.0f, 1.7f,-1.5f));
+        mCameraPosTracker.Add(ABench::Math::Vector3(-11.0f, 1.7f, 0.0f));
+        mCameraPosTracker.Add(ABench::Math::Vector3(-12.0f, 1.7f, 5.0f));
+
+
+        mCameraAtTracker.Add(ABench::Math::Vector3(0.0f, 1.0f, 0.0f));
+        mCameraAtTracker.Add(ABench::Math::Vector3(0.0f, 1.0f, 0.0f));
+        mCameraAtTracker.Add(ABench::Math::Vector3(4.0f, 1.0f, 0.0f));
+        mCameraAtTracker.Add(ABench::Math::Vector3(-10.0f, 1.7f, 0.0f));
+        mCameraAtTracker.Add(ABench::Math::Vector3(-2.0f, 1.0f, 3.0f));
+        mCameraAtTracker.Add(ABench::Math::Vector3(0.0f, 1.7f, 0.0f));
+        mCameraAtTracker.Add(ABench::Math::Vector3(0.0f, 1.7f, 0.0f));
+
+
+        if (gTestMode)
+            mCameraOnRails = true;
+
+        std::string csvFilename;
+        csvFilename = "abench_" + std::to_string(LIGHT_COUNT) + "_" + std::to_string(EMITTERS_PARTICLE_LIMIT);
+        if (gNoAsync)
+            csvFilename += "_noasync";
+
+        csvFilename += ".csv";
+        mCSVFile.open(csvFilename, std::fstream::out);
+    }
+
+    void OnClose() override
+    {
+        mCSVFile.close();
     }
 
     void OnUpdate(float deltaTime) override
     {
         ABench::Math::Vector4 newPos;
-
-        ABench::Math::Vector4 cameraFrontDir = mCamera.GetAtPosition() - mCamera.GetPosition();
-        cameraFrontDir.Normalize();
-        ABench::Math::Vector4 cameraRightDir = cameraFrontDir.Cross(mCamera.GetUpVector());
-        ABench::Math::Vector4 cameraUpDir = cameraRightDir.Cross(cameraFrontDir);
-
-        if (IsKeyPressed(ABench::Common::KeyCode::W)) newPos += cameraFrontDir;
-        if (IsKeyPressed(ABench::Common::KeyCode::S)) newPos -= cameraFrontDir;
-        if (IsKeyPressed(ABench::Common::KeyCode::D)) newPos += cameraRightDir;
-        if (IsKeyPressed(ABench::Common::KeyCode::A)) newPos -= cameraRightDir;
-        if (IsKeyPressed(ABench::Common::KeyCode::R)) newPos -= cameraUpDir;
-        if (IsKeyPressed(ABench::Common::KeyCode::F)) newPos += cameraUpDir;
-
-        // new direction
         ABench::Math::Vector4 updateDir;
-        updateDir = ABench::Math::CreateRotationMatrixX(mAngleY) * ABench::Math::Vector4(0.0f, 0.0f, 1.0f, 0.0f);
-        updateDir = ABench::Math::CreateRotationMatrixY(mAngleX) * updateDir;
-        updateDir.Normalize();
 
-        float speed = 5.0f;
+        if (!mCameraOnRails)
+        {
+            ABench::Math::Vector4 cameraFrontDir = mCamera.GetAtPosition() - mCamera.GetPosition();
+            cameraFrontDir.Normalize();
+            ABench::Math::Vector4 cameraRightDir = cameraFrontDir.Cross(mCamera.GetUpVector());
+            ABench::Math::Vector4 cameraUpDir = cameraRightDir.Cross(cameraFrontDir);
 
-        ABench::Scene::CameraDesc desc;
-        desc.pos = mCamera.GetPosition() + (newPos * speed * deltaTime);
-        desc.at = desc.pos + updateDir;
-        desc.up = mCamera.GetUpVector();
-        mCamera.Update(desc);
+            if (IsKeyPressed(ABench::Common::KeyCode::W)) newPos += cameraFrontDir;
+            if (IsKeyPressed(ABench::Common::KeyCode::S)) newPos -= cameraFrontDir;
+            if (IsKeyPressed(ABench::Common::KeyCode::D)) newPos += cameraRightDir;
+            if (IsKeyPressed(ABench::Common::KeyCode::A)) newPos -= cameraRightDir;
+            if (IsKeyPressed(ABench::Common::KeyCode::R)) newPos -= cameraUpDir;
+            if (IsKeyPressed(ABench::Common::KeyCode::F)) newPos += cameraUpDir;
+
+            float speed = 5.0f;
+            newPos *= speed * deltaTime;
+
+            // new direction
+            updateDir = ABench::Math::CreateRotationMatrixX(mAngleY) * ABench::Math::Vector4(0.0f, 0.0f, 1.0f, 0.0f);
+            updateDir = ABench::Math::CreateRotationMatrixY(mAngleX) * updateDir;
+            updateDir.Normalize();
+
+            ABench::Scene::CameraDesc desc;
+            desc.pos = mCamera.GetPosition() + newPos;
+            desc.at = desc.pos + updateDir;
+            desc.up = mCamera.GetUpVector();
+            mCamera.Update(desc);
+        }
+        else
+        {
+            std::string text = std::to_string(mFrameCounter) + "," + std::to_string(deltaTime) + "\n";
+            mCSVFile << text;
+
+            mFrameCounter++;
+            mCameraAnimMoment += deltaTime * 0.15f;
+            ABench::Scene::CameraDesc desc;
+            desc.pos = ABench::Math::Vector4(mCameraPosTracker.Interpolate(mCameraAnimMoment), 1.0f);
+            desc.at = ABench::Math::Vector4(mCameraAtTracker.Interpolate(mCameraAnimMoment), 1.0f);
+            desc.up = mCamera.GetUpVector();
+            mCamera.Update(desc);
+
+            if (mCameraPosTracker.OutOfRange())
+            {
+                mCameraOnRails = false;
+                if (gTestMode)
+                    Close();
+            }
+        }
 
         // Light
         ABench::Math::Vector4 lightNewPos;
@@ -88,17 +178,6 @@ class ABenchWindow: public ABench::Common::Window
             if (IsKeyPressed(ABench::Common::KeyCode::O)) lightNewPos.Data()[1] -= lightSpeed;
             gLight->SetPosition(gLight->GetPosition() + (lightNewPos * deltaTime));
         }
-
-        // Animated lights
-        for (int32_t i = -ANIM_LIGHTS_LIMIT; i < ANIM_LIGHTS_LIMIT + 1; ++i)
-        {
-            float YPos = 2.0f + sinf(mLightAnimationMoment + (i * 0.5f));
-            gAnimatedLights[i + ANIM_LIGHTS_LIMIT]->SetPosition(i * 2.5f, YPos, 0.0f);
-        }
-
-        mLightAnimationMoment += deltaTime * 2.0f;
-        if (mLightAnimationMoment > 2 * MATH_PIF)
-            mLightAnimationMoment -= 2 * MATH_PIF;
     }
 
     void OnMouseMove(int x, int y, int deltaX, int deltaY) override
@@ -119,7 +198,14 @@ class ABenchWindow: public ABench::Common::Window
             mLightFollowsCamera ^= true;
 
         if (key == ABench::Common::KeyCode::F1)
+        {
             mCameraOnRails ^= true;
+            if (mCameraOnRails)
+            {
+                mCameraAnimMoment = 0.0f;
+                mFrameCounter = 0;
+            }
+        }
     }
 
 public:
@@ -129,8 +215,20 @@ public:
     }
 };
 
-int main()
+int main(int argc, char* argv[])
 {
+    if (argc >= 2)
+        LIGHT_COUNT = std::stoi(argv[1]);
+    if (argc >= 3)
+        EMITTERS_PARTICLE_LIMIT = std::stoi(argv[2]);
+    if (argc >= 4)
+        if (TEST_COMMAND == argv[3])
+            gTestMode = true;
+    if (argc >= 5)
+        if (NOASYNC_COMMAND == argv[4])
+            gNoAsync = true;
+
+
     std::string path = ABench::Common::FS::GetParentDir(ABench::Common::FS::GetExecutablePath());
     if (!ABench::Common::FS::SetCWD(path + "/../../.."))
         return -1;
@@ -160,6 +258,7 @@ int main()
     rendDesc.fov = 60.0f;
     rendDesc.nearZ = 0.2f;
     rendDesc.farZ = 500.0f;
+    rendDesc.noAsync = gNoAsync;
     if (!rend.Init(rendDesc))
     {
         LOGE("Failed to initialize Renderer");
@@ -203,7 +302,7 @@ int main()
 
     ABench::Scene::ModelDesc modelDesc;
     modelDesc.materials.push_back(boxMat);
-
+    /*
     // textured cube
     auto modelResult = scene.GetComponent(ABench::Scene::ComponentType::Model, "box1");
     ABench::Scene::Model* model1 = dynamic_cast<ABench::Scene::Model*>(modelResult.first);
@@ -230,7 +329,7 @@ int main()
 
     obj = scene.CreateObject();
     obj->SetComponent(model2);
-
+    */
     auto lightResult = scene.GetComponent(ABench::Scene::ComponentType::Light, "light");
     gLight = dynamic_cast<ABench::Scene::Light*>(lightResult.first);
     gLight->SetDiffuseIntensity(ABench::Math::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
@@ -239,17 +338,26 @@ int main()
     ABench::Scene::Object* lightObj = scene.CreateObject();
     lightObj->SetComponent(gLight);
 
-    for (int i = -ANIM_LIGHTS_LIMIT; i < ANIM_LIGHTS_LIMIT + 1; ++i)
-    {
-        auto lres = scene.GetComponent(ABench::Scene::ComponentType::Light, "light" + std::to_string(i + ANIM_LIGHTS_LIMIT));
-        gAnimatedLights[i + ANIM_LIGHTS_LIMIT] = dynamic_cast<ABench::Scene::Light*>(lres.first);
+    //std::random_device randomDevice;
+    std::mt19937 randomGen(0);
 
-        float colorX = static_cast<float>(i + ANIM_LIGHTS_LIMIT) / ((static_cast<float>(ANIM_LIGHTS_LIMIT) * 2.0f) + 1.0f);
-        gAnimatedLights[i + ANIM_LIGHTS_LIMIT]->SetDiffuseIntensity(ABench::Math::Vector4(colorX, 1.0f, 1.0f - colorX, 1.0f));
-        gAnimatedLights[i + ANIM_LIGHTS_LIMIT]->SetPosition(i * 2.5f, 2.0f, 0.0f);
+    gLights.resize(LIGHT_COUNT);
+    for (uint32_t i = 0; i < LIGHT_COUNT; ++i)
+    {
+        auto lres = scene.GetComponent(ABench::Scene::ComponentType::Light, "light" + std::to_string(i));
+        gLights[i] = dynamic_cast<ABench::Scene::Light*>(lres.first);
+
+        float colorX = static_cast<float>(randomGen()) / static_cast<float>(randomGen.max());
+        float colorY = static_cast<float>(randomGen()) / static_cast<float>(randomGen.max());
+        float colorZ = static_cast<float>(randomGen()) / static_cast<float>(randomGen.max());
+        gLights[i]->SetDiffuseIntensity(ABench::Math::Vector4(colorX, colorY, colorZ, 1.0f));
+        gLights[i]->SetPosition(colorX * LIGHT_AREA_X - (LIGHT_AREA_X / 2.0f),
+                                colorY * LIGHT_AREA_Y - (LIGHT_AREA_Y / 2.0f) + 0.5f,
+                                colorZ * LIGHT_AREA_Z - (LIGHT_AREA_Z / 2.0f));
+        gLights[i]->SetRange(1.5f);
 
         ABench::Scene::Object* o = scene.CreateObject();
-        o->SetComponent(gAnimatedLights[i + ANIM_LIGHTS_LIMIT]);
+        o->SetComponent(gLights[i]);
     }
 
     for (int i = -EMITTERS_LIMIT; i < EMITTERS_LIMIT + 1; ++i)
@@ -257,8 +365,8 @@ int main()
         auto emitterResult = scene.GetComponent(ABench::Scene::ComponentType::Emitter, "emitter" + std::to_string(i + EMITTERS_LIMIT));
         gEmitters[i + EMITTERS_LIMIT] = dynamic_cast<ABench::Scene::Emitter*>(emitterResult.first);
 
-        gEmitters[i + EMITTERS_LIMIT]->SetParticleLimit(1024);
-        gEmitters[i + EMITTERS_LIMIT]->SetSpawnPeriod(1.0f / 200.0f);
+        gEmitters[i + EMITTERS_LIMIT]->SetParticleLimit(EMITTERS_PARTICLE_LIMIT);
+        gEmitters[i + EMITTERS_LIMIT]->SetSpawnPeriod(4.0f / static_cast<float>(EMITTERS_PARTICLE_LIMIT));
         gEmitters[i + EMITTERS_LIMIT]->SetLifeTime(4.0f);
         gEmitters[i + EMITTERS_LIMIT]->SetPosition(ABench::Math::Vector4(i * 6.0f, 10.0f, -0.25f, 1.0f));
 

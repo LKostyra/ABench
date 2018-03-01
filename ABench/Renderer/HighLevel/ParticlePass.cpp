@@ -53,6 +53,7 @@ bool ParticlePass::Init(const DevicePtr& device, const ParticlePassDesc& desc)
     texDesc.data = textures.data();
     texDesc.mipmapCount = static_cast<uint32_t>(textures.size());
     texDesc.format = VK_FORMAT_B8G8R8A8_UNORM;
+    texDesc.layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     if (!mParticleTexture.Init(mDevice, texDesc))
         return false;
 
